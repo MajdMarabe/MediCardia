@@ -17,6 +17,8 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool _newPasswordObscureText = true; // For new password visibility
+  bool _confirmPasswordObscureText = true; // For confirm password visibility
 
   Future<void> _updatePassword() async {
     if (_formKey.currentState!.validate()) {
@@ -54,6 +56,18 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
         );
       }
     }
+  }
+
+  void _toggleNewPasswordVisibility() {
+    setState(() {
+      _newPasswordObscureText = !_newPasswordObscureText;
+    });
+  }
+
+  void _toggleConfirmPasswordVisibility() {
+    setState(() {
+      _confirmPasswordObscureText = !_confirmPasswordObscureText;
+    });
   }
 
   @override
@@ -102,7 +116,8 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                       // New Password
                       TextFormField(
                         controller: _newPasswordController,
-                        obscureText: true,
+                        obscureText: _newPasswordObscureText, // Use the state variable
+                        obscuringCharacter: '•',
                         decoration: InputDecoration(
                           labelText: 'New Password',
                           labelStyle: const TextStyle(color: Color(0xff613089)),
@@ -117,6 +132,14 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                               width: 2.0, // Set the border width to make it bold
                             ),
                             borderRadius: BorderRadius.circular(10),
+                          ),
+                          prefixIcon: const Icon(Icons.lock, color: Color(0xff613089)),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _newPasswordObscureText ? Icons.visibility : Icons.visibility_off,
+                              color: const Color(0xff613089),
+                            ),
+                            onPressed: _toggleNewPasswordVisibility, // Toggle password visibility
                           ),
                         ),
                         validator: (value) {
@@ -133,7 +156,8 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                       // Confirm New Password
                       TextFormField(
                         controller: _confirmPasswordController,
-                        obscureText: true,
+                        obscureText: _confirmPasswordObscureText, // Use the state variable
+                        obscuringCharacter: '•',
                         decoration: InputDecoration(
                           labelText: 'Confirm New Password',
                           labelStyle: const TextStyle(color: Color(0xff613089)),
@@ -148,6 +172,14 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                               width: 2.0, // Set the border width to make it bold
                             ),
                             borderRadius: BorderRadius.circular(10),
+                          ),
+                          prefixIcon: const Icon(Icons.lock, color: Color(0xff613089)),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _confirmPasswordObscureText ? Icons.visibility : Icons.visibility_off,
+                              color: const Color(0xff613089),
+                            ),
+                            onPressed: _toggleConfirmPasswordVisibility, // Toggle password visibility
                           ),
                         ),
                         validator: (value) {

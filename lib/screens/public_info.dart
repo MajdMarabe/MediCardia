@@ -31,6 +31,41 @@ class _PublicInfoState extends State<PublicInfo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+  title: const Text(
+    'Medical Information',
+    style: TextStyle(
+      fontWeight: FontWeight.bold,
+      
+      fontSize: 20, // Adjust font size as needed
+    ),
+  ),
+  leading: IconButton(
+    icon: const Icon(Icons.arrow_back), // Back arrow icon
+    onPressed: () {
+      Navigator.pop(context); // Navigate back
+    },
+  ),
+  flexibleSpace: Container(
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          const Color(0xff613089), // Start color
+          const Color(0xffb41391), // End color
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+    ),
+  ),
+  elevation: 5, // Add elevation for a shadow effect
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(
+      bottom: Radius.circular(30), // Rounded bottom corners
+    ),
+  ),
+),
+
       body: Container(
         color: Colors.white, // Set background color to white
         child: Center( // Centering the form
@@ -41,6 +76,58 @@ class _PublicInfoState extends State<PublicInfo> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Adding the new text
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 30.0), // Generous vertical padding
+                    child: Column(
+                      children: [
+                        // Text with a gradient
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xff613089), // Start color
+                                const Color(0xffb41391), // End color
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(15), // Rounded corners
+                          ),
+                          padding: const EdgeInsets.all(10.0), // Inner padding
+                          child: Text(
+                            'Enter your general medical information.',
+                            style: TextStyle(
+                              fontSize: 24, // Increased font size for better visibility
+                              fontWeight: FontWeight.bold, // Bold font for emphasis
+                              color: Colors.white, // White text color for contrast
+                              letterSpacing: 1.5, // Space between letters for elegance
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 8.0, // Increased blur for a soft shadow
+                                  color: Colors.black.withOpacity(0.3), // Soft black shadow
+                                  offset: const Offset(4.0, 4.0), // Shadow offset for depth
+                                ),
+                              ],
+                            ),
+                            textAlign: TextAlign.center, // Center the text
+                          ),
+                        ),
+                        const SizedBox(height: 10), // Space between text and next element
+                        Text(
+                          'Please fill out the following details to help us assist you better.',
+                          style: TextStyle(
+                            fontSize: 16, // Smaller font for subtext
+                            color: const Color(0xff613089), // Theme color for consistency
+                            fontStyle: FontStyle.italic, // Italic for a soft touch
+                            letterSpacing: 1.0, // Slight spacing for elegance
+                          ),
+                          textAlign: TextAlign.center, // Center the subtext
+                        ),
+                      ],
+                    ),
+                  ),
+
                   // ID Number
                   _buildTextFormField(
                     controller: _idNumberController,
@@ -178,10 +265,10 @@ class _PublicInfoState extends State<PublicInfo> {
           borderRadius: BorderRadius.circular(10),
         ),
         focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-    color: Color(0xffb41391),  // Set focused border color
-    width: 2.0,  // Set the border width to make it bold
-  ),
+          borderSide: BorderSide(
+            color: Color(0xffb41391), // Set focused border color
+            width: 2.0, // Set the border width to make it bold
+          ),
           borderRadius: BorderRadius.circular(10),
         ),
         filled: true,
@@ -204,10 +291,10 @@ class _PublicInfoState extends State<PublicInfo> {
         labelText: label,
         labelStyle: const TextStyle(color: Color(0xff613089)),
         border: OutlineInputBorder(
-            borderSide: BorderSide(
-    color: Color(0xffb41391),  // Set focused border color
-    width: 2.0,  // Set the border width to make it bold
-  ),
+          borderSide: BorderSide(
+            color: Color(0xffb41391), // Set focused border color
+            width: 2.0, // Set the border width to make it bold
+          ),
         ),
         filled: true,
         fillColor: Colors.white,
@@ -279,56 +366,54 @@ class _PublicInfoState extends State<PublicInfo> {
     );
   }
 
- // Custom Date Picker Dialog
-Future<void> _showCustomDatePicker(BuildContext context) async {
-  final DateTime? pickedDate = await showDialog<DateTime>(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text("Select a date"),
-        content: SizedBox(
-          width: double.maxFinite, // Allow the dialog to take full width
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min, // Ensures the Column takes only necessary space
-              children: [
-                SizedBox(
-                  height: 250,
-                  child: CalendarDatePicker(
-                    initialDate: _lastDonationDate ?? DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime.now(),
-                    onDateChanged: (DateTime date) {
-                      setState(() {
-                        _lastDonationDate = date;
-                      });
+  // Custom Date Picker Dialog
+  Future<void> _showCustomDatePicker(BuildContext context) async {
+    final DateTime? pickedDate = await showDialog<DateTime>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Select a date"),
+          content: SizedBox(
+            width: double.maxFinite, // Allow the dialog to take full width
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min, // Ensures the Column takes only necessary space
+                children: [
+                  SizedBox(
+                    height: 250,
+                    child: CalendarDatePicker(
+                      initialDate: _lastDonationDate ?? DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime.now(),
+                      onDateChanged: (DateTime date) {
+                        setState(() {
+                          _lastDonationDate = date;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(_lastDonationDate);
                     },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xff613089),
+                    ),
+                    child: const Text("Done"),
                   ),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(_lastDonationDate);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xff613089),
-                  ),
-                  child: const Text("Done"),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    },
-  );
+        );
+      },
+    );
 
-  if (pickedDate != null) {
-    setState(() {
-      _lastDonationDate = pickedDate;
-    });
+    if (pickedDate != null) {
+      setState(() {
+        _lastDonationDate = pickedDate;
+      });
+    }
   }
-}
-
-
 }

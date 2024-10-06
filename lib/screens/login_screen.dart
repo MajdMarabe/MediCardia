@@ -18,6 +18,7 @@ class _SignInScreenState extends State<SignInScreen> {
   final _formSignInKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _obscureText = true; // To manage password visibility
 
   final RegExp _emailRegExp = RegExp(
     r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
@@ -65,6 +66,12 @@ class _SignInScreenState extends State<SignInScreen> {
         );
       }
     }
+  }
+
+  void _togglePasswordVisibility() {
+    setState(() {
+      _obscureText = !_obscureText;
+    });
   }
 
   @override
@@ -132,14 +139,15 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                       ),
                       const SizedBox(height: 25.0),
-                      // Password Field with Icon
+                  
+                       // Password
                       TextFormField(
                         controller: _passwordController,
-                        obscureText: true,
-                        obscuringCharacter: '*',
+                        obscureText: _obscureText, // Use the state variable
+                        obscuringCharacter: '•',
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter Password';
+                            return 'Please enter a new password';
                           } else if (value.length < 6) {
                             return 'Password must be at least 6 characters long';
                           }
@@ -147,22 +155,30 @@ class _SignInScreenState extends State<SignInScreen> {
                         },
                         decoration: InputDecoration(
                           labelText: 'Password',
-                          labelStyle: const TextStyle(color: Color(0xff613089)), // Matching color
+                          labelStyle: const TextStyle(color: Color(0xff613089)),
                           hintText: 'Enter Password',
-                          hintStyle: const TextStyle(color: Color(0xff613089)), // Matching color
+                          hintStyle: const TextStyle(color: Color(0xff613089)),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
+                          prefixIcon: const Icon(Icons.lock, color: Color(0xff613089)),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscureText ? Icons.visibility : Icons.visibility_off,
+                              color: const Color(0xff613089),
+                            ),
+                            onPressed: _togglePasswordVisibility, // Toggle password visibility
+                          ),
                           focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: const Color(0xffb41391), // Set focused border color
+                            borderSide: const BorderSide(
+                              color: Color(0xffb41391),
                               width: 2.0,
                             ),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          prefixIcon: const Icon(FontAwesomeIcons.lock, color: Color(0xff613089)), // Lock icon
                         ),
                       ),
+
                       const SizedBox(height: 25.0),
                       // Forgot Password
                       Align(

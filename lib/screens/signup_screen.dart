@@ -20,11 +20,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _passwordController = TextEditingController();
   final _locationController = TextEditingController(); // Location Controller
   bool agreePersonalData = true;
+  bool _obscureText = true; // New variable to control password visibility
 
   // Regular expression for email validation
   final RegExp _emailRegExp = RegExp(
     r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
   );
+
+  // Function to toggle password visibility
+  void _togglePasswordVisibility() {
+    setState(() {
+      _obscureText = !_obscureText; // Toggle the obscureText state
+    });
+  }
 
   // Function to send signup data to the backend
   Future<void> _submitSignUp() async {
@@ -205,8 +213,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       // Password
                       TextFormField(
                         controller: _passwordController,
-                        obscureText: true,
-                        obscuringCharacter: '*',
+                        obscureText: _obscureText, // Use the state variable
+                        obscuringCharacter: '•',
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter a new password';
@@ -224,6 +232,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           prefixIcon: const Icon(Icons.lock, color: Color(0xff613089)),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscureText ? Icons.visibility : Icons.visibility_off,
+                              color: const Color(0xff613089),
+                            ),
+                            onPressed: _togglePasswordVisibility, // Toggle password visibility
+                          ),
                           focusedBorder: OutlineInputBorder(
                             borderSide: const BorderSide(
                               color: Color(0xffb41391),
@@ -280,10 +295,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          FaIcon(FontAwesomeIcons.facebookF, color:Color(0xff613089) ),
-                          FaIcon(FontAwesomeIcons.twitter,color:Color(0xff613089)),
-                          FaIcon(FontAwesomeIcons.google,color:Color(0xff613089)),
-                          FaIcon(FontAwesomeIcons.apple, size: 33,color:Color(0xff613089)),
+                          FaIcon(FontAwesomeIcons.facebookF, color: Color(0xff613089)),
+                          FaIcon(FontAwesomeIcons.twitter, color: Color(0xff613089)),
+                          FaIcon(FontAwesomeIcons.google, color: Color(0xff613089)),
+                          FaIcon(FontAwesomeIcons.apple, size: 33, color: Color(0xff613089)),
                         ],
                       ),
                       const SizedBox(height: 25.0),
