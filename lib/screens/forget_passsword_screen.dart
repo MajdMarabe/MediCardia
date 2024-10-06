@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/widgets/custom_scaffold.dart';
-import '../theme/theme.dart'; 
 import 'package:flutter_application_3/screens/verification_code.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -15,7 +14,7 @@ class ApiService {
       body: jsonEncode({'email': email}),
     );
 
-    return response.statusCode == 200; // Return true if the request was successful
+    return response.statusCode == 200;
   }
 }
 
@@ -57,12 +56,12 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         'Forgot Your Password?',
                         style: TextStyle(
-                          fontSize: 28.0,
-                          fontWeight: FontWeight.bold,
-                          color: lightColorScheme.primary,
+                          fontSize: 30.0,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xff613089),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -73,6 +72,8 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 40.0),
+                      
+                      // Email Input Field
                       TextFormField(
                         controller: _emailController,
                         validator: (value) {
@@ -86,41 +87,46 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                           return null;
                         },
                         decoration: InputDecoration(
-                          labelText: 'Email Address',
+                          labelText: 'Email',
+                          labelStyle: const TextStyle(color: Color(0xff613089)), // Set label color
                           hintText: 'Enter your email',
-                          hintStyle: const TextStyle(
-                            color: Colors.black26,
-                          ),
+                          hintStyle: const TextStyle(color: Color(0xff613089)), // Set hint color
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          prefixIcon: const Icon(Icons.email),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: const Color(0xffb41391),  // Set focused border color
+                              width: 2.0,  // Set the border width to make it bold
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          prefixIcon: const Icon(Icons.email, color: Color(0xff613089)),
                         ),
                       ),
+                      
                       const SizedBox(height: 40.0),
+                      
+                      // Submit Button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {
-                              // Call the API service to send the reset email
                               bool success = await apiService.forgetPassword(_emailController.text);
                               if (success) {
-                                // Navigate to the Verification Code Screen with email
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => VerificationCodeScreen(email: _emailController.text),
                                   ),
                                 );
-                                // Show success message
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text('Password reset instructions sent'),
                                   ),
                                 );
                               } else {
-                                // Show error message
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text('Failed to send reset instructions. Please try again.'),
@@ -130,7 +136,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: lightColorScheme.primary,
+                            backgroundColor: const Color(0xff613089),
                             padding: const EdgeInsets.symmetric(vertical: 16.0),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),

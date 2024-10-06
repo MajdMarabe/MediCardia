@@ -1,9 +1,9 @@
 import 'dart:convert'; // For converting response to JSON
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // FontAwesome for social icons
 import 'package:flutter_application_3/screens/login_screen.dart';
-import 'package:flutter_application_3/theme/theme.dart';
 import 'package:flutter_application_3/widgets/custom_scaffold.dart';
+import 'package:flutter_application_3/screens/public_info.dart';
 import 'package:http/http.dart' as http; // HTTP package for sending requests
 
 class SignUpScreen extends StatefulWidget {
@@ -59,7 +59,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         );
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const SignInScreen()),
+          MaterialPageRoute(builder: (context) => const PublicInfo()),
         );
       } else {
         // Server error or validation issue
@@ -103,16 +103,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         'Get Started',
                         style: TextStyle(
                           fontSize: 30.0,
                           fontWeight: FontWeight.w900,
-                          color: lightColorScheme.primary,
+                          color: Color(0xff613089),
                         ),
                       ),
                       const SizedBox(height: 40.0),
-                      
+
                       // Full Name
                       TextFormField(
                         controller: _fullNameController,
@@ -123,16 +123,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           return null;
                         },
                         decoration: InputDecoration(
-                          label: const Text('Full Name'),
+                          labelText: 'Full Name',
+                          labelStyle: const TextStyle(color: Color(0xff613089)),
                           hintText: 'Enter Full Name',
-                          hintStyle: const TextStyle(color: Colors.black26),
+                          hintStyle: const TextStyle(color: Color(0xff613089)),
                           border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          prefixIcon: const Icon(Icons.person, color: Color(0xff613089)),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Color(0xffb41391),
+                              width: 2.0,
+                            ),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
                       const SizedBox(height: 25.0),
-                      
+
                       // Email
                       TextFormField(
                         controller: _emailController,
@@ -145,16 +154,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           return null;
                         },
                         decoration: InputDecoration(
-                          label: const Text('Email'),
+                          labelText: 'Email',
+                          labelStyle: const TextStyle(color: Color(0xff613089)),
                           hintText: 'Enter Email',
-                          hintStyle: const TextStyle(color: Colors.black26),
+                          hintStyle: const TextStyle(color: Color(0xff613089)),
                           border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          prefixIcon: const Icon(Icons.email, color: Color(0xff613089)),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Color(0xffb41391),
+                              width: 2.0,
+                            ),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
                       const SizedBox(height: 25.0),
-                      
+
                       // Location
                       TextFormField(
                         controller: _locationController,
@@ -165,10 +183,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           return null;
                         },
                         decoration: InputDecoration(
-                          label: const Text('Location'),
+                          labelText: 'Location',
+                          labelStyle: const TextStyle(color: Color(0xff613089)),
                           hintText: 'Enter Location',
-                          hintStyle: const TextStyle(color: Colors.black26),
+                          hintStyle: const TextStyle(color: Color(0xff613089)),
                           border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          prefixIcon: const Icon(Icons.location_on, color: Color(0xff613089)),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Color(0xffb41391),
+                              width: 2.0,
+                            ),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
@@ -189,21 +216,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           return null;
                         },
                         decoration: InputDecoration(
-                          label: const Text('Password'),
+                          labelText: 'Password',
+                          labelStyle: const TextStyle(color: Color(0xff613089)),
                           hintText: 'Enter Password',
-                          hintStyle: const TextStyle(color: Colors.black26),
+                          hintStyle: const TextStyle(color: Color(0xff613089)),
                           border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          prefixIcon: const Icon(Icons.lock, color: Color(0xff613089)),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Color(0xffb41391),
+                              width: 2.0,
+                            ),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 25.0),
-                      
+
                       // Signup Button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _submitSignUp,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xff613089),
+                          ),
                           child: const Text('Sign up'),
                         ),
                       ),
@@ -240,10 +280,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          FaIcon(FontAwesomeIcons.facebookF),
-                          FaIcon(FontAwesomeIcons.twitter),
-                          FaIcon(FontAwesomeIcons.google),
-                          FaIcon(FontAwesomeIcons.apple, size: 33),
+                          FaIcon(FontAwesomeIcons.facebookF, color:Color(0xff613089) ),
+                          FaIcon(FontAwesomeIcons.twitter,color:Color(0xff613089)),
+                          FaIcon(FontAwesomeIcons.google,color:Color(0xff613089)),
+                          FaIcon(FontAwesomeIcons.apple, size: 33,color:Color(0xff613089)),
                         ],
                       ),
                       const SizedBox(height: 25.0),
@@ -265,11 +305,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 ),
                               );
                             },
-                            child: Text(
+                            child: const Text(
                               'Log in',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: lightColorScheme.primary,
+                                color: Color(0xff613089),
                               ),
                             ),
                           ),

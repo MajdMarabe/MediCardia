@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class VerificationCodeScreen extends StatefulWidget {
-  final String email; // Add email parameter to send with verification code
+  final String email; // To send verification code to email
 
   const VerificationCodeScreen({super.key, required this.email});
 
@@ -27,13 +27,12 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
           'Content-Type': 'application/json; charset=UTF-8',
         },
         body: jsonEncode({
-         // 'email': widget.email,
           'verificationCode': _currentText,
         }),
       );
 
       if (response.statusCode == 200) {
-        final token = jsonDecode(response.body)['token']; // Get the token
+        final token = jsonDecode(response.body)['token']; // Extract token
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -74,25 +73,24 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        'Verification Code',
+                      const Text(
+                        'Enter Verification Code',
                         style: TextStyle(
-                          fontSize: 28.0,
-                          fontWeight: FontWeight.bold,
-                          color: lightColorScheme.primary,
+                          fontSize: 30.0,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xff613089),
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 10.0),
+                      const SizedBox(height: 20.0),
                       const Text(
                         'We have sent a verification code to your email.',
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          color: Colors.black54,
-                        ),
+                        style: TextStyle(fontSize: 16.0, color: Colors.black54),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 40.0),
+                      
+                      // Verification Code Input Field
                       PinCodeTextField(
                         appContext: context,
                         length: 4,
@@ -107,8 +105,8 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                           activeFillColor: Colors.white,
                           inactiveFillColor: Colors.white,
                           selectedFillColor: Colors.white,
-                          activeColor: lightColorScheme.primary,
-                          selectedColor: lightColorScheme.secondary,
+                          activeColor: const Color(0xff613089),
+                          selectedColor: const Color(0xffb41391),
                           inactiveColor: Colors.grey,
                         ),
                         animationDuration: const Duration(milliseconds: 300),
@@ -129,12 +127,14 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                         },
                       ),
                       const SizedBox(height: 40.0),
+
+                      // Confirm Button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _verifyCode,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: lightColorScheme.primary,
+                            backgroundColor: const Color(0xff613089),
                             padding: const EdgeInsets.symmetric(vertical: 16.0),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),

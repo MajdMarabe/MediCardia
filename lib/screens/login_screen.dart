@@ -93,16 +93,16 @@ class _SignInScreenState extends State<SignInScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         'Welcome back',
                         style: TextStyle(
                           fontSize: 30.0,
                           fontWeight: FontWeight.w900,
-                          color: lightColorScheme.primary,
+                          color: Color(0xff613089), // Matching color
                         ),
                       ),
                       const SizedBox(height: 40.0),
-                      // Email Field
+                      // Email Field with Icon
                       TextFormField(
                         controller: _emailController,
                         validator: (value) {
@@ -114,21 +114,25 @@ class _SignInScreenState extends State<SignInScreen> {
                           return null;
                         },
                         decoration: InputDecoration(
-                          label: const Text('Email'),
+                          labelText: 'Email',
+                          labelStyle: const TextStyle(color: Color(0xff613089)), // Matching color
                           hintText: 'Enter Email',
-                          hintStyle: const TextStyle(color: Colors.black26),
+                          hintStyle: const TextStyle(color: Color(0xff613089)), // Matching color
                           border: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: const Color(0xffb41391), // Set focused border color
+                              width: 2.0,
+                            ),
                             borderRadius: BorderRadius.circular(10),
                           ),
+                          prefixIcon: const Icon(FontAwesomeIcons.envelope, color: Color(0xff613089)), // Email icon
                         ),
                       ),
                       const SizedBox(height: 25.0),
-                      // Password Field
+                      // Password Field with Icon
                       TextFormField(
                         controller: _passwordController,
                         obscureText: true,
@@ -142,17 +146,21 @@ class _SignInScreenState extends State<SignInScreen> {
                           return null;
                         },
                         decoration: InputDecoration(
-                          label: const Text('Password'),
+                          labelText: 'Password',
+                          labelStyle: const TextStyle(color: Color(0xff613089)), // Matching color
                           hintText: 'Enter Password',
-                          hintStyle: const TextStyle(color: Colors.black26),
+                          hintStyle: const TextStyle(color: Color(0xff613089)), // Matching color
                           border: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.black12),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: const Color(0xffb41391), // Set focused border color
+                              width: 2.0,
+                            ),
                             borderRadius: BorderRadius.circular(10),
                           ),
+                          prefixIcon: const Icon(FontAwesomeIcons.lock, color: Color(0xff613089)), // Lock icon
                         ),
                       ),
                       const SizedBox(height: 25.0),
@@ -176,11 +184,11 @@ class _SignInScreenState extends State<SignInScreen> {
                               );
                             }
                           },
-                          child: Text(
+                          child: const Text(
                             'Forget password?',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: lightColorScheme.primary,
+                              color: Color(0xff613089), // Matching color
                             ),
                           ),
                         ),
@@ -191,6 +199,9 @@ class _SignInScreenState extends State<SignInScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: login, // Call the login function
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xff613089), // Set background color here
+                          ),
                           child: const Text('Log in'),
                         ),
                       ),
@@ -224,10 +235,10 @@ class _SignInScreenState extends State<SignInScreen> {
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          FaIcon(FontAwesomeIcons.facebookF),
-                          FaIcon(FontAwesomeIcons.twitter),
-                          FaIcon(FontAwesomeIcons.google),
-                          FaIcon(FontAwesomeIcons.apple, size: 33),
+                          FaIcon(FontAwesomeIcons.facebookF, color: Color(0xff613089)),
+                          FaIcon(FontAwesomeIcons.twitter, color: Color(0xff613089)),
+                          FaIcon(FontAwesomeIcons.google, color: Color(0xff613089)),
+                          FaIcon(FontAwesomeIcons.apple, size: 33, color: Color(0xff613089)),
                         ],
                       ),
                       const SizedBox(height: 25.0),
@@ -243,22 +254,19 @@ class _SignInScreenState extends State<SignInScreen> {
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (e) => const SignUpScreen(),
-                                ),
+                                MaterialPageRoute(builder: (context) => const SignUpScreen()),
                               );
                             },
-                            child: Text(
-                              'Sign up',
+                            child: const Text(
+                              'Sign Up',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: lightColorScheme.primary,
+                                color: Color(0xff613089),
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20.0),
                     ],
                   ),
                 ),

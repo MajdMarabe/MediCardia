@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/widgets/custom_scaffold.dart';
-import '../theme/theme.dart';
+import 'package:flutter_application_3/screens/login_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter_application_3/screens/login_screen.dart'; // Import your SignInScreen
 
 class UpdatePasswordScreen extends StatefulWidget {
   final String token; // Accept the token from the previous screen
@@ -43,7 +42,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
         Future.delayed(const Duration(seconds: 2), () {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => SignInScreen()),
+            MaterialPageRoute(builder: (context) => const SignInScreen()),
           );
         });
 
@@ -81,28 +80,42 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                 child: Form(
                   key: _formKey,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         'Update Your Password',
                         style: TextStyle(
-                          fontSize: 28.0,
-                          fontWeight: FontWeight.bold,
-                          color: lightColorScheme.primary,
+                          fontSize: 30.0,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xff613089),
                         ),
+                        textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
+                      const Text(
+                        'Please enter your new password below.',
+                        style: TextStyle(fontSize: 16.0, color: Colors.black54),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 40),
+                      
                       // New Password
                       TextFormField(
                         controller: _newPasswordController,
                         obscureText: true,
                         decoration: InputDecoration(
                           labelText: 'New Password',
+                          labelStyle: const TextStyle(color: Color(0xff613089)),
                           hintText: 'Enter your new password',
-                          hintStyle: const TextStyle(
-                            color: Colors.black26,
-                          ),
+                          hintStyle: const TextStyle(color: Colors.black26),
                           border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: const Color(0xffb41391), // Set focused border color
+                              width: 2.0, // Set the border width to make it bold
+                            ),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
@@ -116,17 +129,24 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                         },
                       ),
                       const SizedBox(height: 15),
+                      
                       // Confirm New Password
                       TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: true,
                         decoration: InputDecoration(
                           labelText: 'Confirm New Password',
+                          labelStyle: const TextStyle(color: Color(0xff613089)),
                           hintText: 'Re-enter your new password',
-                          hintStyle: const TextStyle(
-                            color: Colors.black26,
-                          ),
+                          hintStyle: const TextStyle(color: Colors.black26),
                           border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: const Color(0xffb41391), // Set focused border color
+                              width: 2.0, // Set the border width to make it bold
+                            ),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
@@ -140,13 +160,14 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                         },
                       ),
                       const SizedBox(height: 20),
+                      
                       // Update Password Button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _updatePassword,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: lightColorScheme.primary,
+                            backgroundColor: const Color(0xff613089),
                             padding: const EdgeInsets.symmetric(vertical: 16.0),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
