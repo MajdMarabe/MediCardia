@@ -15,60 +15,68 @@ class _PublicInfoState extends State<PublicInfo> {
   final TextEditingController _phoneController = TextEditingController();
 
   String? _selectedBloodType;
-  String? _selectedChronicDisease;
+  List<String> _selectedChronicDiseases = [];
 
   List<String> bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-  List<String> chronicDiseases = [
-    'Diabetes',
-    'Hypertension',
-    'Heart Disease',
-    'Asthma',
-    'None'
+  List<Map<String, dynamic>> chronicDiseases = [
+    {'name': 'Diabetes', 'icon': Icons.healing},
+    {'name': 'Hypertension', 'icon': Icons.favorite},
+    {'name': 'None', 'icon': Icons.check_circle_outline},
   ];
 
   DateTime? _lastDonationDate;
+  final FocusNode _dateFieldFocusNode = FocusNode(); // FocusNode for date field
+
+  @override
+  void initState() {
+    super.initState();
+    _dateFieldFocusNode.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _dateFieldFocusNode.dispose(); // Dispose of the FocusNode
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-  title: const Text(
-    'Medical Information',
-    style: TextStyle(
-      fontWeight: FontWeight.bold,
-      
-      fontSize: 20, // Adjust font size as needed
-    ),
-  ),
-  leading: IconButton(
-    icon: const Icon(Icons.arrow_back), // Back arrow icon
-    onPressed: () {
-      Navigator.pop(context); // Navigate back
-    },
-  ),
-  flexibleSpace: Container(
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        colors: [
-          const Color(0xff613089), // Start color
-          const Color(0xffb41391), // End color
-        ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+        title: const Text(
+          'Medical Information',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xff613089), Color(0xffb41391)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 5,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(30),
+          ),
+        ),
       ),
-    ),
-  ),
-  elevation: 5, // Add elevation for a shadow effect
-  shape: const RoundedRectangleBorder(
-    borderRadius: BorderRadius.vertical(
-      bottom: Radius.circular(30), // Rounded bottom corners
-    ),
-  ),
-),
-
       body: Container(
-        color: Colors.white, // Set background color to white
-        child: Center( // Centering the form
+        color: Colors.white,
+        child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(20.0),
             child: Form(
@@ -76,58 +84,6 @@ class _PublicInfoState extends State<PublicInfo> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Adding the new text
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 30.0), // Generous vertical padding
-                    child: Column(
-                      children: [
-                        // Text with a gradient
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                const Color(0xff613089), // Start color
-                                const Color(0xffb41391), // End color
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(15), // Rounded corners
-                          ),
-                          padding: const EdgeInsets.all(10.0), // Inner padding
-                          child: Text(
-                            'Enter your general medical information.',
-                            style: TextStyle(
-                              fontSize: 24, // Increased font size for better visibility
-                              fontWeight: FontWeight.bold, // Bold font for emphasis
-                              color: Colors.white, // White text color for contrast
-                              letterSpacing: 1.5, // Space between letters for elegance
-                              shadows: [
-                                Shadow(
-                                  blurRadius: 8.0, // Increased blur for a soft shadow
-                                  color: Colors.black.withOpacity(0.3), // Soft black shadow
-                                  offset: const Offset(4.0, 4.0), // Shadow offset for depth
-                                ),
-                              ],
-                            ),
-                            textAlign: TextAlign.center, // Center the text
-                          ),
-                        ),
-                        const SizedBox(height: 10), // Space between text and next element
-                        Text(
-                          'Please fill out the following details to help us assist you better.',
-                          style: TextStyle(
-                            fontSize: 16, // Smaller font for subtext
-                            color: const Color(0xff613089), // Theme color for consistency
-                            fontStyle: FontStyle.italic, // Italic for a soft touch
-                            letterSpacing: 1.0, // Slight spacing for elegance
-                          ),
-                          textAlign: TextAlign.center, // Center the subtext
-                        ),
-                      ],
-                    ),
-                  ),
-
                   // ID Number
                   _buildTextFormField(
                     controller: _idNumberController,
@@ -158,37 +114,110 @@ class _PublicInfoState extends State<PublicInfo> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Blood Type
-                  _buildDropdownField(
-                    value: _selectedBloodType,
-                    label: 'Blood Type',
-                    hint: 'Select Blood Type',
-                    icon: Icons.bloodtype,
-                    items: bloodTypes,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedBloodType = value;
-                      });
+                  // Blood Type with Validation
+                  FormField<String>(
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a blood type';
+                      }
+                      return null;
+                    },
+                    builder: (FormFieldState<String> state) {
+                      return InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: 'Blood Type',
+                          labelStyle: const TextStyle(color: Color(0xff613089)),
+                          errorText: state.hasError ? state.errorText : null,
+                          border: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              color: Color(0xffb41391),
+                              width: 2.0,
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            isExpanded: true,
+                            value: _selectedBloodType,
+                            hint: const Text(
+                              'Select Blood Type',
+                              style: TextStyle(color: Color(0xff613089)),
+                            ),
+                            items: bloodTypes.map((String item) {
+                              return DropdownMenuItem<String>(
+                                value: item,
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.bloodtype, color: Color(0xff613089)),
+                                    const SizedBox(width: 10),
+                                    Text(item),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedBloodType = value;
+                                state.didChange(value);  // Update the FormField state
+                              });
+                            },
+                          ),
+                        ),
+                      );
                     },
                   ),
                   const SizedBox(height: 20),
 
-                  // Chronic Diseases
-                  _buildDropdownField(
-                    value: _selectedChronicDisease,
-                    label: 'Chronic Diseases',
-                    hint: 'Select Chronic Disease',
-                    icon: Icons.health_and_safety,
-                    items: chronicDiseases,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedChronicDisease = value;
-                      });
-                    },
-                  ),
+// Chips for Chronic Diseases
+const Text(
+  ' Select Chronic Diseases',
+  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xff613089)),
+),
+const SizedBox(height: 10),
+Wrap(
+  spacing: 8.0,
+  children: chronicDiseases.map((disease) {
+    bool isSelected = _selectedChronicDiseases.contains(disease['name']); // Check if selected
+    return ChoiceChip(
+      label: Row(
+        children: [
+          Icon(
+            disease['icon'],
+            color: isSelected ? Colors.white : const Color(0xff613089), // Change icon color based on selection
+          ),
+          const SizedBox(width: 5),
+          Text(
+            disease['name'],
+            style: TextStyle(color: isSelected ? Colors.white : Colors.black), // Change text color based on selection
+          ),
+        ],
+      ),
+      selected: isSelected,
+      selectedColor: const Color(0xff613089),
+      onSelected: (selected) {
+        setState(() {
+          if (selected) {
+            _selectedChronicDiseases.add(disease['name']);
+          } else {
+            _selectedChronicDiseases.remove(disease['name']);
+          }
+        });
+      },
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+  }).toList(),
+),
+
+
+
                   const SizedBox(height: 20),
 
-                  // Sensitivity
+                  // Sensitivity (No validation)
                   _buildTextFormField(
                     controller: _sensitivityController,
                     label: 'Sensitivity',
@@ -197,7 +226,7 @@ class _PublicInfoState extends State<PublicInfo> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Date of Last Blood Donation
+                  // Date of Last Blood Donation (No validation)
                   _buildDateField(),
 
                   const SizedBox(height: 20),
@@ -230,7 +259,7 @@ class _PublicInfoState extends State<PublicInfo> {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xff613089),
-                        minimumSize: const Size(double.infinity, 50), // Set button width
+                        minimumSize: const Size(360, 50),
                       ),
                       child: const Text('Submit'),
                     ),
@@ -260,67 +289,19 @@ class _PublicInfoState extends State<PublicInfo> {
         labelStyle: const TextStyle(color: Color(0xff613089)),
         hintText: hint,
         hintStyle: const TextStyle(color: Color(0xff613089)),
-        prefixIcon: Icon(icon, color: const Color(0xff613089)), // Icon for input fields
+        prefixIcon: Icon(icon, color: const Color(0xff613089)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(
-            color: Color(0xffb41391), // Set focused border color
-            width: 2.0, // Set the border width to make it bold
+          borderSide: const BorderSide(
+            color: Color(0xffb41391),
+            width: 2.0,
           ),
           borderRadius: BorderRadius.circular(10),
         ),
         filled: true,
         fillColor: Colors.white,
-      ),
-    );
-  }
-
-  // Custom Dropdown Field Builder
-  Widget _buildDropdownField({
-    required String? value,
-    required String label,
-    required String hint,
-    required IconData icon,
-    required List<String> items,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return InputDecorator(
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Color(0xff613089)),
-        border: OutlineInputBorder(
-          borderSide: BorderSide(
-            color: Color(0xffb41391), // Set focused border color
-            width: 2.0, // Set the border width to make it bold
-          ),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          isExpanded: true,
-          value: value,
-          hint: Text(
-            hint,
-            style: const TextStyle(color: Color(0xff613089)),
-          ),
-          items: items.map((String item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Row(
-                children: [
-                  Icon(icon, color: const Color(0xff613089)), // Icon for dropdown
-                  const SizedBox(width: 10),
-                  Text(item),
-                ],
-              ),
-            );
-          }).toList(),
-          onChanged: onChanged,
-        ),
       ),
     );
   }
@@ -332,32 +313,27 @@ class _PublicInfoState extends State<PublicInfo> {
         _showCustomDatePicker(context);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          border: Border.all(
+            color: _dateFieldFocusNode.hasFocus 
+                ? const Color(0xffb41391) // Focused border color
+                :   const Color(0xff959695),// Normal border color
+            width: 2.0,
+          ),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xff613089)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
         ),
         child: Row(
           children: [
             const Icon(Icons.date_range, color: Color(0xff613089)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                _lastDonationDate != null
-                    ? "${_lastDonationDate!.day}/${_lastDonationDate!.month}/${_lastDonationDate!.year}"
-                    : 'Select Date',
-                style: TextStyle(
-                  color: _lastDonationDate != null ? Colors.black : const Color(0xff613089),
-                  fontSize: 16,
-                ),
+            const SizedBox(width: 10), // Adds some space between the icon and text
+            Text(
+              _lastDonationDate != null
+                  ? 'Last Donation: ${_lastDonationDate!.day}/${_lastDonationDate!.month}/${_lastDonationDate!.year}'
+                  : 'Select Last Donation Date',
+              style: TextStyle(
+                color: _lastDonationDate != null ? Colors.black : const Color(0xff613089),
+                fontSize: 16,
               ),
             ),
           ],
@@ -368,51 +344,33 @@ class _PublicInfoState extends State<PublicInfo> {
 
   // Custom Date Picker Dialog
   Future<void> _showCustomDatePicker(BuildContext context) async {
-    final DateTime? pickedDate = await showDialog<DateTime>(
+    final selectedDate = await showDatePicker(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Select a date"),
-          content: SizedBox(
-            width: double.maxFinite, // Allow the dialog to take full width
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min, // Ensures the Column takes only necessary space
-                children: [
-                  SizedBox(
-                    height: 250,
-                    child: CalendarDatePicker(
-                      initialDate: _lastDonationDate ?? DateTime.now(),
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime.now(),
-                      onDateChanged: (DateTime date) {
-                        setState(() {
-                          _lastDonationDate = date;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(_lastDonationDate);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xff613089),
-                    ),
-                    child: const Text("Done"),
-                  ),
-                ],
+      initialDate: _lastDonationDate ?? DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xff613089),
+              onPrimary: Colors.white,
+              onSurface: Color(0xff613089),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xff613089),
               ),
             ),
           ),
+          child: child!,
         );
       },
     );
 
-    if (pickedDate != null) {
+    if (selectedDate != null) {
       setState(() {
-        _lastDonationDate = pickedDate;
+        _lastDonationDate = selectedDate;
       });
     }
   }
