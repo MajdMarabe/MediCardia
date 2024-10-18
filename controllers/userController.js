@@ -1,6 +1,6 @@
 const jwt =require("jsonwebtoken");
 const asyncHandler= require("express-async-handler"); 
-const {validateCreatUser,validateLoginUser,validateUpdateUser,User}= require("../models/User");
+const {validateCreatUser,validateLoginUser,validateUpdateUser,validatePublicData,User}= require("../models/User");
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
@@ -327,8 +327,37 @@ module.exports.login= asyncHandler(async(req,res) =>{
     
         res.status(200).json({ message: 'Password has been reset successfully' });
     });
+    /**
+ * @desc PublicData
+ * @route /:Id/public-medical-card
+ * @method put
+ * @access public
+ */
+    module.exports.updatePublicMedicalCardData = asyncHandler(async (req, res) => {
+        const { publicData } = req.body; // Expecting userId and publicData in request body
     
+        // Validate the incoming data
+        const { error } = validatePublicData(publicData); // Assume this function validates the public data
+        if (error) {
+            return res.status(400).json({ message: error.details[0].message });
+        }
+    
+        // Update the user's public medical card data
+      
 
+        const user = await User.findByIdAndUpdate(
+            req.params.id ,
+            { $set: { 'medicalCard.publicData': publicData} },
+            { new: true } // Return the updated document
+        );
+    
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+    
+        res.status(200).json({ message: 'Public medical card data updated successfully', user });
+    });
+    
 
 /*
     module.exports.verifyCodeAndResetPassword = asyncHandler(async (req, res, next) => {

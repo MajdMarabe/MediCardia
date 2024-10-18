@@ -45,6 +45,39 @@ const UserSchema = new mongoose.Schema({
     },
     passwordChangedAt: {
         type: Date
+    },
+    medicalCard: {
+        publicData: {
+            idNumber: { type: String, trim: true }, // رقم الهوية
+            gender: { type: String, enum: ['Male', 'Female'], trim: true }, // الجنس
+            age: { type: Number }, // العمر
+            bloodType: { type: String, trim: true }, // زمرة الدم
+            chronicConditions: { type: [String], trim: true }, // أمراض مزمنة
+            allergies: { type: [String], trim: true }, // حساسية
+            lastBloodDonationDate: { type: Date }, // تاريخ آخر تبرع بالدم
+            phoneNumber: { type: String, trim: true }, // رقم الهاتف
+            Drugs: { type: [String], trim: true },
+        },
+        privateData: {
+/*
+            prescribedMedications: { type: [String], trim: true },
+            labTests: [
+                {
+                    testName: { type: String, trim: true },
+                    result: { type: String, trim: true },
+                    date: { type: Date }
+                }
+            ],
+            doctorNotes: { type: String, trim: true }*/
+        },
+        permissions: {
+           /* doctors: [
+                {
+                    doctorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor' },
+                    accessLevel: { type: String, enum: ['public', 'private'], default: 'private' }
+                }
+            ]*/
+        }
     }
     /*passwordChangedAt: Date,
     passwordResetToken: String,
@@ -100,10 +133,26 @@ function validateLoginUser(obj) {
     });
     return schema.validate(obj);
 }
+function validatePublicData(publicData) {
+    const schema = joi.object({
+        idNumber: joi.string().trim().optional(),
+        gender: joi.string().valid('Male', 'Female').trim().optional(),
+        age: joi.number().integer().min(0).optional(),
+        bloodType: joi.string().trim().optional(),
+        chronicConditions: joi.array().items(joi.string().trim()).optional(),
+        allergies: joi.array().items(joi.string().trim()).optional(),
+        lastBloodDonationDate: joi.date().optional(),
+        phoneNumber: joi.string().trim().optional(),
+        Drugs: joi.array().items(joi.string().trim()).optional()
+    });
 
+    return schema.validate(publicData);
+}
 module.exports = {
     User,
     validateCreatUser,
     validateLoginUser,
-    validateUpdateUser
+    validateUpdateUser,
+    validatePublicData
+
 };
