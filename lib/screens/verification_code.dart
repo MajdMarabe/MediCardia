@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart'; 
-import '../theme/theme.dart'; 
 import 'update_password.dart'; 
 import 'package:flutter_application_3/widgets/custom_scaffold.dart'; 
 import 'package:http/http.dart' as http;
