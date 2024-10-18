@@ -104,7 +104,7 @@ class _PublicInfoState extends State<PublicInfo> {
                           ),
                           padding: const EdgeInsets.all(10.0), // Inner padding
                           child: Text(
-                            'Enter your general medical information.',
+                            'Enter your public medical information.',
                             style: TextStyle(
                               fontSize: 24, // Increased font size for better visibility
                               fontWeight: FontWeight.bold, // Bold font for emphasis
