@@ -84,6 +84,50 @@ class _PublicInfoState extends State<PublicInfo> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                   // Adding the new text
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 30.0), // Generous vertical padding
+                    child: Column(
+                      children: [
+                        // Text with a gradient
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xff613089), // Start color
+                                const Color(0xffb41391), // End color
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(15), // Rounded corners
+                          ),
+                          padding: const EdgeInsets.all(10.0), // Inner padding
+                          child: Text(
+                            'Enter your general medical information.',
+                            style: TextStyle(
+                              fontSize: 24, // Increased font size for better visibility
+                              fontWeight: FontWeight.bold, // Bold font for emphasis
+                              color: Colors.white, // White text color for contrast
+                              letterSpacing: 1.5, // Space between letters for elegance
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 8.0, // Increased blur for a soft shadow
+                                  color: Colors.black.withOpacity(0.3), // Soft black shadow
+                                  offset: const Offset(4.0, 4.0), // Shadow offset for depth
+                                ),
+                              ],
+                            ),
+                            textAlign: TextAlign.center, // Center the text
+                          ),
+                        ),
+                        const SizedBox(height: 10), // Space between text and next element
+                    
+                      ],
+                    ),
+                  ),
+
+
                   // ID Number
                   _buildTextFormField(
                     controller: _idNumberController,
