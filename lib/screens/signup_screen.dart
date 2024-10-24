@@ -34,7 +34,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
   }
 
-  // Function to send signup data to the backend
   Future<void> _submitSignUp() async {
     if (!_formSignupKey.currentState!.validate() || !agreePersonalData) {
       if (!agreePersonalData) {
@@ -45,7 +44,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    // Replace this URL with your actual Node.js API URL
     final url = Uri.parse('http://10.0.2.2:5001/api/users/register');
 
     try {
@@ -56,18 +54,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
           'username': _fullNameController.text,
           'email': _emailController.text,
           'password_hash': _passwordController.text,
-          'location': _locationController.text, // Added location to the request
+          'location': _locationController.text,
         }),
       );
 
       if (response.statusCode == 201) {
+        // Parse the response body to get the user ID
+        final responseData = jsonDecode(response.body);
+        final userId = responseData['_id']; // Extract user ID from the response
+
         // Success
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Sign up successful')),
         );
+
+        // Navigate to PublicInfo screen and pass userId
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const PublicInfo()),
+          MaterialPageRoute(builder: (context) => PublicInfo(userId: userId)), // Pass userId to the PublicInfo screen
         );
       } else {
         // Server error or validation issue
@@ -248,89 +252,40 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 25.0),
 
+                      // Agreement Checkbox
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Checkbox(
+                            value: agreePersonalData,
+                            onChanged: (value) {
+                              setState(() {
+                                agreePersonalData = value ?? false;
+                              });
+                            },
+                          ),
+                          const Text('I agree to the processing of personal data'),
+                        ],
+                      ),
                       const SizedBox(height: 25.0),
 
                       // Signup Button
                       SizedBox(
                         width: double.infinity,
+                        height: 50.0,
                         child: ElevatedButton(
-                          onPressed: _submitSignUp,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xff613089),
+                            backgroundColor: const Color(0xffb41391),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
-                          child: const Text('Sign up'),
+                          onPressed: _submitSignUp, // Trigger the signup function
+                          child: const Text('Create Account'),
                         ),
                       ),
-                      const SizedBox(height: 30.0),
-                      
-                      // Sign up Divider
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Divider(
-                              thickness: 0.7,
-                              color: Colors.grey.withOpacity(0.5),
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                            child: Text(
-                              'Sign up with',
-                              style: TextStyle(color: Colors.black45),
-                            ),
-                          ),
-                          Expanded(
-                            child: Divider(
-                              thickness: 0.7,
-                              color: Colors.grey.withOpacity(0.5),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 30.0),
-                      
-                      // Social Media Icons
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          FaIcon(FontAwesomeIcons.facebookF, color: Color(0xff613089)),
-                          FaIcon(FontAwesomeIcons.twitter, color: Color(0xff613089)),
-                          FaIcon(FontAwesomeIcons.google, color: Color(0xff613089)),
-                          FaIcon(FontAwesomeIcons.apple, size: 33, color: Color(0xff613089)),
-                        ],
-                      ),
-                      const SizedBox(height: 25.0),
-                      
-                      // Already have an account
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'Already have an account? ',
-                            style: TextStyle(color: Colors.black45),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (e) => const SignInScreen(),
-                                ),
-                              );
-                            },
-                            child: const Text(
-                              'Log in',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xff613089),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20.0),
                     ],
                   ),
                 ),
