@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
 class PublicInfo extends StatefulWidget {
   final String userId; // Accepting userId from the constructor
@@ -214,6 +215,29 @@ class _PublicInfoState extends State<PublicInfo> {
                         label: 'Drugs',
                         hint: 'Enter Drugs',
                         icon: Icons.medical_services,
+
+ suffixIcon: IconButton(
+    icon: const Icon(Icons.camera_alt, color: Color(0xff613089)), // Camera icon
+    onPressed: () async {
+      String barcodeScanResult = await FlutterBarcodeScanner.scanBarcode(
+        "#ff6666", // Color for the scan line
+        "Cancel", // Cancel button text
+        true, // Show flash icon
+        ScanMode.BARCODE, // Scan mode (can also be QR_CODE)
+      );
+
+      // Check if the scan was successful and update the drugs controller
+      if (barcodeScanResult != '-1') {
+        setState(() {
+          _drugsController.text = barcodeScanResult; // Set scanned value to the text field
+        });
+      }
+    },
+  ),
+
+
+
+
                       ),
                       const SizedBox(height: 20),
                       _buildDatePickerField(),
@@ -342,6 +366,7 @@ class _PublicInfoState extends State<PublicInfo> {
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
+     Widget? suffixIcon, // Add suffixIcon parameter
   }) {
     return TextFormField(
       controller: controller,
@@ -350,6 +375,8 @@ class _PublicInfoState extends State<PublicInfo> {
         hintText: hint,
         labelStyle: const TextStyle(color: Color(0xff613089)),
         prefixIcon: Icon(icon, color: const Color(0xff613089)),
+             suffixIcon: suffixIcon, // Use the provided suffixIcon
+
         border: const OutlineInputBorder(),
         filled: true,
         fillColor: Colors.white,
@@ -448,7 +475,7 @@ class _PublicInfoState extends State<PublicInfo> {
   }
 
   // Keep the submit function the same as before
-  Future<void> _submitForm() async {
+ Future<void> _submitForm() async {
   // Convert allergies (sensitivity) text input to an array by splitting on commas
   List<String> allergiesArray = _sensitivityController.text.split(',');
 
