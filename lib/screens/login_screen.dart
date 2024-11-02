@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_3/screens/signup_screen.dart';
 import 'package:flutter_application_3/screens/forget_passsword_screen.dart';
 import 'package:flutter_application_3/widgets/custom_scaffold.dart';
+import 'package:flutter_application_3/screens/home.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http; // Import http package
 
@@ -53,6 +54,11 @@ class _SignInScreenState extends State<SignInScreen> {
             SnackBar(content: Text('Login Successful! Token: ${responseData['token']}')),
           );
           // Navigate or store token after successful login
+             // Navigate to HomePage after successful login
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
 
         } else {
           final errorMessage = jsonDecode(response.body)['message'];

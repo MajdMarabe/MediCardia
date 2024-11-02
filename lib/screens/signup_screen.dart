@@ -1,7 +1,5 @@
 import 'dart:convert'; // For converting response to JSON
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // FontAwesome for social icons
-import 'package:flutter_application_3/screens/login_screen.dart';
 import 'package:flutter_application_3/widgets/custom_scaffold.dart';
 import 'package:flutter_application_3/screens/public_info.dart';
 import 'package:http/http.dart' as http; // HTTP package for sending requests
@@ -254,21 +252,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       const SizedBox(height: 25.0),
 
-                      // Agreement Checkbox
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Checkbox(
-                            value: agreePersonalData,
-                            onChanged: (value) {
-                              setState(() {
-                                agreePersonalData = value ?? false;
-                              });
-                            },
-                          ),
-                          const Text('I agree to the processing of personal data'),
-                        ],
-                      ),
+                    // Agreement Checkbox
+Row(
+  mainAxisAlignment: MainAxisAlignment.start,
+  children: [
+    Checkbox(
+      value: agreePersonalData,
+      onChanged: (value) {
+        setState(() {
+          agreePersonalData = value ?? false;
+        });
+      },
+      activeColor: const Color(0xff613089), // This changes the tick color
+    ),
+    const Text('I agree to the processing of personal data'),
+  ],
+),
+
                       const SizedBox(height: 25.0),
 
                       // Signup Button
@@ -277,7 +277,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         height: 50.0,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xffb41391),
+                            backgroundColor: const Color(0xff613089),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),

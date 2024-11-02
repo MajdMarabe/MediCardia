@@ -1,7 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:flutter_application_3/screens/private_info.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+
+
 
 class PublicInfo extends StatefulWidget {
   final String userId; // Accepting userId from the constructor
@@ -38,6 +44,7 @@ class _PublicInfoState extends State<PublicInfo> {
   ];
 
   DateTime? _lastDonationDate;
+  XFile? _imageFile; // Variable to hold the selected image
 /////
 
   @override
@@ -73,6 +80,89 @@ class _PublicInfoState extends State<PublicInfo> {
       });
     }
   }
+Future<void> _selectImage() async {
+    final ImagePicker picker = ImagePicker();
+    // Show dialog to choose between camera and gallery
+    final XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery, // or ImageSource.camera
+      imageQuality: 100, // Optional: set image quality (0-100)
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = pickedFile; // Update the image file
+      });
+    }
+  }
+
+
+Future<void> _selectLastDonationDate(BuildContext context) async {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Select Last Donation Date', style: TextStyle(color: Color(0xff613089))),
+        content: SizedBox(
+          width: 300,
+          height: 400,
+          child: Column(
+            children: [
+              Expanded(
+                child: TableCalendar(
+                  firstDay: DateTime.utc(2000, 1, 1),
+                  lastDay: DateTime.now(),
+                  focusedDay: _lastDonationDate ?? DateTime.now(),
+                  selectedDayPredicate: (day) {
+                    return isSameDay(_lastDonationDate, day);
+                  },
+                  onDaySelected: (selectedDay, focusedDay) {
+                    setState(() {
+                      _lastDonationDate = selectedDay; // Update the selected date
+                    });
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  calendarStyle: const CalendarStyle(
+                    selectedDecoration: BoxDecoration(
+                      color: Color(0xffb41391),
+                      shape: BoxShape.circle,
+                    ),
+                    todayDecoration: BoxDecoration(
+                      color: Color(0xff613089),
+                      shape: BoxShape.circle,
+                    ),
+                    markerDecoration: BoxDecoration(
+                      color: Colors.yellow,
+                      shape: BoxShape.circle,
+                    ),
+                    defaultDecoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  headerStyle: const HeaderStyle(
+                    formatButtonVisible: false,
+                    titleTextStyle: TextStyle(color: Color(0xff613089), fontSize: 20),
+                    leftChevronIcon: Icon(Icons.chevron_left, color: Color(0xff613089)),
+                    rightChevronIcon: Icon(Icons.chevron_right, color: Color(0xff613089)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+            child: const Text('Cancel', style: TextStyle(color: Color(0xff613089))),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
 //////
   @override
@@ -112,6 +202,7 @@ class _PublicInfoState extends State<PublicInfo> {
         color: Colors.white,
         child: Column(
           children: [
+            const SizedBox(height: 20),
             // Profile Header Section
             _buildProfileHeader(),
             const SizedBox(height: 20),
@@ -145,7 +236,7 @@ class _PublicInfoState extends State<PublicInfo> {
                         controller: _ageController,
                         label: 'Age',
                         hint: 'Enter Age',
-                        icon: Icons.calendar_today,
+                        icon: Icons.mood,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your age';
@@ -164,6 +255,7 @@ class _PublicInfoState extends State<PublicInfo> {
                             _selectedGender = value;
                           });
                         },
+                        
                       ),
                       const SizedBox(height: 20),
                       _buildTextFormField(
@@ -184,17 +276,61 @@ class _PublicInfoState extends State<PublicInfo> {
                       // Medical Info Section
                       _buildSectionTitle('Medical Info'),
                       const SizedBox(height: 10),
-                      _buildDropdownField(
-                        label: 'Blood Type',
-                        hint: 'Select Blood Type',
-                        items: bloodTypes,
-                        selectedValue: _selectedBloodType,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedBloodType = value;
-                          });
-                        },
-                      ),
+                                      // Blood Type with Validation
+                  FormField<String>(
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a blood type';
+                      }
+                      return null;
+                    },
+                    builder: (FormFieldState<String> state) {
+  return InputDecorator(
+    decoration: InputDecoration(
+      labelText: 'Blood Type',
+      labelStyle: const TextStyle(color: Color(0xff613089)),
+      errorText: state.hasError ? state.errorText : null,
+      border: OutlineInputBorder(
+        borderSide: const BorderSide(
+          color: Color(0xffb41391),
+          width: 2.0,
+        ),
+        borderRadius: BorderRadius.circular(15), // Add border radius here
+      ),
+      filled: true,
+      fillColor: Colors.white,
+    ),
+    child: DropdownButtonHideUnderline(
+      child: DropdownButton<String>(
+        isExpanded: true,
+        value: _selectedBloodType,
+        hint: const Text(
+          'Select Blood Type',
+          style: TextStyle(color: Color(0xff613089)),
+        ),
+        items: bloodTypes.map((String item) {
+          return DropdownMenuItem<String>(
+            value: item,
+            child: Row(
+              children: [
+                const Icon(Icons.bloodtype, color: Color(0xff613089)),
+                const SizedBox(width: 10),
+                Text(item),
+              ],
+            ),
+          );
+        }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedBloodType = value;
+                                state.didChange(value);  // Update the FormField state
+                              });
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                       const SizedBox(height: 20),
                       const Text(
                         'Select Chronic Diseases',
@@ -210,7 +346,7 @@ class _PublicInfoState extends State<PublicInfo> {
                         icon: Icons.safety_check,
                       ),
                       const SizedBox(height: 20),
-                      _buildTextFormField(
+                       _buildTextFormField(
                         controller: _drugsController,
                         label: 'Drugs',
                         hint: 'Enter Drugs',
@@ -235,33 +371,37 @@ class _PublicInfoState extends State<PublicInfo> {
     },
   ),
 
-
-
-
                       ),
                       const SizedBox(height: 20),
                       _buildDatePickerField(),
                       const SizedBox(height: 30),
 
                       // Submit Button
-                      ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState?.validate() ?? false) {
-                            _submitForm(); // Keep submit function as-is
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 15),
-                          backgroundColor: const Color(0xffb41391),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: const Text(
-                          'Submit',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                      ),
+                     ElevatedButton(
+  onPressed: () {
+    if (_formKey.currentState?.validate() ?? false) {
+      _submitForm(); // Keep submit function as-is
+
+      // Navigate to the PrivateInfo page after form submission
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PrivateInfo()), // Make sure PrivateInfo is imported
+      );
+    }
+  },
+  style: ElevatedButton.styleFrom(
+    padding: const EdgeInsets.symmetric(vertical: 15),
+    backgroundColor: const Color(0xffb41391),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+  ),
+  child: const Text(
+    'Submit',
+    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  ),
+),
+
                     ],
                   ),
                 ),
@@ -273,32 +413,80 @@ class _PublicInfoState extends State<PublicInfo> {
     );
   }
 
-  // Build Profile Header Section
-  Widget _buildProfileHeader() {
-    
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: 40,
-          backgroundImage: NetworkImage('https://your_image_url_here.jpg'), // Replace with real image URL
-        ),
-        const SizedBox(height: 10),
-        Text(
-          _userName, // Display fetched username
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+
+
+Widget _buildProfileHeader() {
+  return Column(
+    children: [
+      GestureDetector(
+        onTap: _selectImage, // Function to select an image
+        child: Stack(
+          alignment: Alignment.center,
           children: [
-            _buildInfoCard('please fill it\nyou should know that every doctor can see this', 'Your MediCard public information', Icons.favorite),
-           // _buildInfoCard('Calories', '756cal', Icons.local_fire_department),
-          //  _buildInfoCard('Weight', '103lbs', Icons.monitor_weight),
+            CircleAvatar(
+              radius: 50, // Size of the avatar
+              backgroundColor: Colors.grey[300], // Background color for the placeholder
+              child: _imageFile != null 
+                  ? ClipOval(
+                      child: Image.file(
+                        File(_imageFile!.path),
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover, // Ensure the image covers the circle
+                      ),
+                    )
+                  : const SizedBox.shrink(), // Placeholder for image
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.add_a_photo, // Icon for adding a photo
+                  size: 24, // Icon size
+                  color: Color(0xff613089), // Icon color
+                ),
+                const SizedBox(height: 5), // Space between icon and text
+                const Text(
+                  'Add Photo', // Placeholder text
+                  style: TextStyle(
+                    fontSize: 12, // Size of the text
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xff613089), // Text color
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
-      ],
-    );
-  }
+      ),
+      const SizedBox(height: 10),
+      Text(
+        _userName, // Display fetched username
+        style: const TextStyle(
+          fontWeight: FontWeight.bold, 
+          fontSize: 22, // Username font size
+          color: Color(0xff613089), // Matching text color with the theme
+        ),
+      ),
+      const SizedBox(height: 10),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildInfoCard(
+            'Please fill it\nyou should know that every doctor can see this', 
+            'Your MediCard public information', 
+            Icons.favorite,
+          ),
+          // Add more info cards if needed
+        ],
+      ),
+    ],
+  );
+}
+
+
+
+
 
   // Helper method to build information cards like in the header
   Widget _buildInfoCard(String title, String value, IconData icon) {
@@ -358,124 +546,171 @@ class _PublicInfoState extends State<PublicInfo> {
     );
   }
 
-  // Helper method to build text form fields
-  Widget _buildTextFormField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
-    String? Function(String?)? validator,
-     Widget? suffixIcon, // Add suffixIcon parameter
-  }) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        labelStyle: const TextStyle(color: Color(0xff613089)),
-        prefixIcon: Icon(icon, color: const Color(0xff613089)),
-             suffixIcon: suffixIcon, // Use the provided suffixIcon
-
-        border: const OutlineInputBorder(),
-        filled: true,
-        fillColor: Colors.white,
+// Helper method to build text form fields
+// Helper method to build text form fields
+Widget _buildTextFormField({
+  required TextEditingController controller,
+  required String label,
+  required String hint,
+  required IconData icon,
+  int maxLines = 1,
+  String? Function(String?)? validator,
+  Widget? suffixIcon, // Change type to Widget
+  TextInputType? keyboardType, // Add keyboardType parameter
+}) {
+  return TextFormField(
+    controller: controller,
+    maxLines: maxLines,
+    keyboardType: keyboardType, // Set keyboardType here
+    decoration: InputDecoration(
+      labelText: label,
+      hintText: hint,
+      labelStyle: const TextStyle(color: Color(0xff613089)),
+      prefixIcon: Icon(icon, color: const Color(0xff613089)),
+      suffixIcon: suffixIcon,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: const BorderSide(color: Colors.grey),
       ),
-      keyboardType: keyboardType,
-      validator: validator,
-    );
-  }
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: const BorderSide(color: Color(0xffb41391)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: const BorderSide(color: Colors.grey),
+      ),
+      filled: true,
+      fillColor: Colors.white,
+    ),
+    validator: validator,
+  );
+}
+
+
 
   // Helper method to build dropdown fields
-  Widget _buildDropdownField({
-    required String label,
-    required String hint,
-    required List<String> items,
-    required String? selectedValue,
-    required void Function(String?) onChanged,
-  }) {
-    return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        labelStyle: const TextStyle(color: Color(0xff613089)),
-        border: const OutlineInputBorder(),
-        filled: true,
-        fillColor: Colors.white,
+// Update the dropdown field method
+Widget _buildDropdownField({
+  required String label,
+  required String hint,
+  required List<String> items,
+  required String? selectedValue,
+  required void Function(String?) onChanged,
+}) {
+  return DropdownButtonFormField<String>(
+    decoration: InputDecoration(
+      labelText: label,
+      hintText: hint,
+      labelStyle: const TextStyle(color: Color(0xff613089)),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: const BorderSide(color: Colors.grey),
       ),
-      value: selectedValue,
-      onChanged: onChanged,
-      items: items.map((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-    );
-  }
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: const BorderSide(color: Color(0xffb41391)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: const BorderSide(color: Colors.grey),
+      ),
+      filled: true,
+      fillColor: Colors.white,
+    ),
+    value: selectedValue,
+    onChanged: onChanged,
+    items: items.map((String value) {
+      IconData icon;
+      if (value == 'Male') {
+        icon = Icons.male; // Male icon
+      } else {
+        icon = Icons.female; // Female icon
+      }
+      return DropdownMenuItem<String>(
+        value: value,
+        child: Row(
+          children: [
+            Icon(icon, color: const Color(0xff613089)), // Icon for gender
+            const SizedBox(width: 10),
+            Text(value),
+          ],
+        ),
+      );
+    }).toList(),
+  );
+}
 
   // Helper method to build chronic diseases chips
-  Widget _buildChronicDiseasesChips() {
-    return Wrap(
-      spacing: 10.0,
-      children: chronicDiseases.map((disease) {
-        final isSelected = _selectedChronicDiseases.contains(disease['name']);
-        return FilterChip(
-          label: Text(disease['name']),
-          avatar: Icon(disease['icon'], color: isSelected ? Colors.white : Colors.black),
-          selected: isSelected,
-          onSelected: (selected) {
-            setState(() {
-              if (selected) {
-                _selectedChronicDiseases.add(disease['name']);
-              } else {
-                _selectedChronicDiseases.remove(disease['name']);
-              }
-            });
-          },
-          selectedColor: const Color(0xffb41391),
-        );
-      }).toList(),
-    );
-  }
+// Helper method to build chronic diseases chips
+Widget _buildChronicDiseasesChips() {
+  return Wrap(
+    spacing: 10.0,
+    children: chronicDiseases.map((disease) {
+      final isSelected = _selectedChronicDiseases.contains(disease['name']);
+      return FilterChip(
+        label: Text(
+          disease['name'],
+          style: TextStyle(
+            color: isSelected ? Colors.white : Color(0xff613089), // Text color changes based on selection
+          ),
+        ),
+        avatar: Icon(disease['icon'], color: isSelected ? Colors.white : Color(0xff613089)),
+        selected: isSelected,
+        onSelected: (selected) {
+          setState(() {
+            if (selected) {
+              _selectedChronicDiseases.add(disease['name']);
+            } else {
+              _selectedChronicDiseases.remove(disease['name']);
+            }
+          });
+        },
+        selectedColor: const Color(0xffb41391),
+        backgroundColor: Colors.white, // Background color for unselected state
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      );
+    }).toList(),
+  );
+}
 
-  // Helper method to build date picker field
-  Widget _buildDatePickerField() {
-    return GestureDetector(
-      onTap: _selectLastDonationDate,
-      child: InputDecorator(
-        decoration: const InputDecoration(
-          labelText: 'Last Donation Date',
-          border: OutlineInputBorder(),
-          filled: true,
-          fillColor: Colors.white,
-        ),
-        child: Text(
-          _lastDonationDate == null
-              ? 'Select Last Donation Date'
-              : _lastDonationDate.toString().split(' ')[0],
-        ),
+
+Widget _buildDatePickerField() {
+  return TextFormField(
+    controller: TextEditingController(
+      text: _lastDonationDate == null ? '' : "${_lastDonationDate!.toLocal()}".split(' ')[0],
+    ),
+    readOnly: true, // Prevent keyboard from appearing
+    onTap: () {
+      _selectLastDonationDate(context); // Call the date selection method
+    },
+    decoration: InputDecoration(
+      labelText: 'Last Donation Date',
+      hintText: 'Select Last Donation Date',
+       labelStyle: const TextStyle(color: Color(0xff613089)),
+      prefixIcon: const Icon(Icons.calendar_today, color: Color(0xff613089)), // Icon before hint text
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10.0),
+        borderSide: const BorderSide(color: Color(0xffb41391), width: 2.0),
       ),
-    );
-  }
+      focusedBorder: OutlineInputBorder( // Border when focused
+        borderRadius: BorderRadius.circular(10.0),
+        borderSide: const BorderSide(color: Color(0xffb41391), width: 2.0), // Change this to the color you want
+      ),
+      enabledBorder: OutlineInputBorder( // Border when enabled
+        borderRadius: BorderRadius.circular(10.0),
+        borderSide: const BorderSide(color: Color(0xffb41391), width: 2.0),
+      ),
+    ),
+  );
+}
 
-  // Method to select last donation date
-  Future<void> _selectLastDonationDate() async {
-    final pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-    );
-    if (pickedDate != null) {
-      setState(() {
-        _lastDonationDate = pickedDate;
-      });
-    }
-  }
+
 
   // Keep the submit function the same as before
- Future<void> _submitForm() async {
+  Future<void> _submitForm() async {
   // Convert allergies (sensitivity) text input to an array by splitting on commas
   List<String> allergiesArray = _sensitivityController.text.split(',');
 
@@ -493,6 +728,7 @@ class _PublicInfoState extends State<PublicInfo> {
       "lastBloodDonationDate": _lastDonationDate?.toIso8601String(),
     }
   };
+  
 
   String userId = widget.userId; // Retrieve the userId from widget
   try {
