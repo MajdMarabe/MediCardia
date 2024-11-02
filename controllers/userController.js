@@ -329,7 +329,7 @@ module.exports.login= asyncHandler(async(req,res) =>{
     });
     /**
  * @desc PublicData
- * @route /:Id/public-medical-card
+ * @route /:id/public-medical-card
  * @method put
  * @access public
  */
