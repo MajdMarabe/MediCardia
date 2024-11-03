@@ -75,7 +75,7 @@ Widget build(BuildContext context) {
                     ? FileImage(_image!) // Use selected image if available
                     : null,
                 child: _image == null
-                    ? const Icon(Icons.person, size: 70, color: Colors.grey) // Placeholder icon if no image
+                    ? const Icon(Icons.person, size: 70, color: Colors.white) // Placeholder icon if no image
                     : null,
               ),
             ],

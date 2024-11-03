@@ -41,12 +41,6 @@ class WelcomeScreen extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          TextSpan(
-                            text: '\nEnter personal details to your employee account',
-                            style: TextStyle(
-                              fontSize: 20,
-                            ),
-                          ),
                         ],
                       ),
                     ),

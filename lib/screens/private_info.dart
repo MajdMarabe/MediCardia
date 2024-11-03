@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-
+import 'package:flutter_application_3/screens/home.dart';
 
 class PrivateInfo extends StatefulWidget {
   @override
@@ -102,10 +102,10 @@ class _PrivateInfoState extends State<PrivateInfo> {
                   child: TableCalendar(
                     firstDay: DateTime.utc(2020, 1, 1),
                     lastDay: DateTime.utc(2030, 12, 31),
-                    focusedDay: _selectedDate ?? DateTime.now(),
+                    focusedDay: _testDate ?? DateTime.now(),
                     onDaySelected: (selectedDay, focusedDay) {
                       setState(() {
-                        _selectedDate = selectedDay;
+                        _testDate = selectedDay;
                         _diagnosisDateController.text = "${selectedDay.toLocal()}".split(' ')[0];
                       });
                       Navigator.of(context).pop();
@@ -202,33 +202,40 @@ class _PrivateInfoState extends State<PrivateInfo> {
                       ),
                     ],
                   ),
-                  child: const Column( // Add a Column to contain multiple widgets
-                    children: [
-                      Text(
-                        'Your MediCardia Private Info',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xff613089),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      
-                     
-                      SizedBox(height: 10),
-                      Text(
-                        'Please provide your private medical information securely.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.black54),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        'No one can access this data without your permission.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.black54, fontStyle: FontStyle.italic),
-                      ),
-                    ],
-                  ),
+                 child: const Column(
+  mainAxisAlignment: MainAxisAlignment.center, // Aligns the content vertically in the center
+  children: [
+    Icon(
+      Icons.favorite, // Favorite icon
+      color: Color(0xffb41391), // Set icon color
+      size: 30, // You can adjust the size if needed
+    ),
+    SizedBox(height: 8), // Space between the icon and the text
+    Text(
+      'Your MediCardia Private Info',
+      style: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Color(0xff613089),
+      ),
+      textAlign: TextAlign.center,
+    ),
+    SizedBox(height: 10),
+    Text(
+      'Please provide your private medical information securely.',
+      textAlign: TextAlign.center,
+      style: TextStyle(color: Colors.black54),
+    ),
+    SizedBox(height: 10),
+    Text(
+      'No one can access this data without your permission.',
+      textAlign: TextAlign.center,
+      style: TextStyle(color: Colors.black54, fontStyle: FontStyle.italic),
+    ),
+  ],
+),
+
+
                 ),
                 const SizedBox(height: 20), // Space between the new container and the form
                 
@@ -349,45 +356,54 @@ class _PrivateInfoState extends State<PrivateInfo> {
                   maxLines: 2,
                 ),
                 const SizedBox(height: 30),
+ElevatedButton(
+  onPressed: () {
+    if (_formKey.currentState?.validate() ?? false) {
+      _submitForm();
+      // Navigate to HomePage after form submission
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()), // Ensure HomePage is imported correctly
+      );
+    }
+  },
+  style: ElevatedButton.styleFrom(
+    padding: const EdgeInsets.symmetric(vertical: 15),
+    backgroundColor: const Color(0xffb41391),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+  ),
+  child: const Text(
+    'Submit',
+    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  ),
+),
 
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState?.validate() ?? false) {
-                      _submitForm();
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    backgroundColor: const Color(0xffb41391),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Submit',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
                 const SizedBox(height: 20), // Space below the Submit button
 
                 // Skip Button
                 ElevatedButton(
-                  onPressed: () {
-                    // Navigate to the next page or perform any action you want
-                    Navigator.pushReplacementNamed(context, '/nextPage'); // Change '/nextPage' to your target route
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    backgroundColor: const Color(0xffb41391),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Skip',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
+  onPressed: () {
+    // Navigate to HomePage when Skip is pressed
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => HomePage()), // Ensure HomePage is imported correctly
+    );
+  },
+  style: ElevatedButton.styleFrom(
+    padding: const EdgeInsets.symmetric(vertical: 15),
+    backgroundColor: const Color(0xffb41391),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+  ),
+  child: const Text(
+    'Skip',
+    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  ),
+),
+
               ],
             ),
           ),
