@@ -747,6 +747,8 @@ Widget _buildDatePickerField() {
       );
     } else {
       // If the server did not return a 200 OK response, throw an error
+      print('Error: Server returned status code ${response.statusCode}');
+  print('Response body: ${response.body}'); // Log response for debugging
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to update medical information')),
       );
