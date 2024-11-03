@@ -141,7 +141,7 @@ function validatePublicData(publicData) {
         bloodType: joi.string().trim().optional(),
         chronicConditions: joi.array().items(joi.string().trim()).optional(),
         allergies: joi.array().items(joi.string().trim()).optional(),
-        lastBloodDonationDate: joi.date().optional(),
+        lastBloodDonationDate: joi.alternatives().try(joi.date(), joi.string().allow('').optional()),
         phoneNumber: joi.string().trim().optional(),
         Drugs: joi.array().items(joi.string().trim()).optional()
     });
