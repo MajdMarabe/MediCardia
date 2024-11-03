@@ -7,7 +7,6 @@ import 'package:flutter_application_3/screens/home.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http; // Import http package
 
-
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
 
@@ -36,11 +35,13 @@ class _SignInScreenState extends State<SignInScreen> {
       );
 
       // Prepare the API request
-      final url = Uri.parse('http://10.0.2.2:5001/api/users/login'); // Replace with your actual API URL
+      final url = Uri.parse(
+          'http://10.0.2.2:5001/api/users/login'); // Replace with your actual API URL
       final headers = {'Content-Type': 'application/json'};
       final body = jsonEncode({
         'email': _emailController.text,
-        'password_hash': _passwordController.text,  // Ensure this matches your API's expected field
+        'password_hash': _passwordController
+            .text, // Ensure this matches your API's expected field
       });
 
       try {
@@ -51,15 +52,16 @@ class _SignInScreenState extends State<SignInScreen> {
         if (response.statusCode == 200) {
           final responseData = jsonDecode(response.body);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login Successful! Token: ${responseData['token']}')),
+            SnackBar(
+                content:
+                    Text('Login Successful! Token: ${responseData['token']}')),
           );
           // Navigate or store token after successful login
-             // Navigate to HomePage after successful login
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-        );
 
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+          );
         } else {
           final errorMessage = jsonDecode(response.body)['message'];
           ScaffoldMessenger.of(context).showSnackBar(
@@ -107,7 +109,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Text(
-                        'Welcome back',
+                        'Welcome Back ',
                         style: TextStyle(
                           fontSize: 30.0,
                           fontWeight: FontWeight.w900,
@@ -128,25 +130,29 @@ class _SignInScreenState extends State<SignInScreen> {
                         },
                         decoration: InputDecoration(
                           labelText: 'Email',
-                          labelStyle: const TextStyle(color: Color(0xff613089)), // Matching color
+                          labelStyle: const TextStyle(
+                              color: Color(0xff613089)), // Matching color
                           hintText: 'Enter Email',
-                          hintStyle: const TextStyle(color: Color(0xff613089)), // Matching color
+                          hintStyle: const TextStyle(
+                              color: Color(0xff613089)), // Matching color
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: const Color(0xffb41391), // Set focused border color
+                              color: const Color(
+                                  0xffb41391), // Set focused border color
                               width: 2.0,
                             ),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          prefixIcon: const Icon(FontAwesomeIcons.envelope, color: Color(0xff613089)), // Email icon
+                          prefixIcon: const Icon(FontAwesomeIcons.envelope,
+                              color: Color(0xff613089)), // Email icon
                         ),
                       ),
                       const SizedBox(height: 25.0),
-                  
-                       // Password
+
+                      // Password
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscureText, // Use the state variable
@@ -167,13 +173,17 @@ class _SignInScreenState extends State<SignInScreen> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          prefixIcon: const Icon(Icons.lock, color: Color(0xff613089)),
+                          prefixIcon:
+                              const Icon(Icons.lock, color: Color(0xff613089)),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscureText ? Icons.visibility : Icons.visibility_off,
+                              _obscureText
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
                               color: const Color(0xff613089),
                             ),
-                            onPressed: _togglePasswordVisibility, // Toggle password visibility
+                            onPressed:
+                                _togglePasswordVisibility, // Toggle password visibility
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderSide: const BorderSide(
@@ -191,17 +201,20 @@ class _SignInScreenState extends State<SignInScreen> {
                         alignment: Alignment.centerRight,
                         child: GestureDetector(
                           onTap: () {
-                            if (_emailController.text.isEmpty || !_emailRegExp.hasMatch(_emailController.text)) {
+                            if (_emailController.text.isEmpty ||
+                                !_emailRegExp.hasMatch(_emailController.text)) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Please enter a valid Email to reset password.'),
+                                  content: Text(
+                                      'Please enter a valid Email to reset password.'),
                                 ),
                               );
                             } else {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const ForgetPasswordScreen(),
+                                  builder: (context) =>
+                                      const ForgetPasswordScreen(),
                                 ),
                               );
                             }
@@ -222,7 +235,9 @@ class _SignInScreenState extends State<SignInScreen> {
                         child: ElevatedButton(
                           onPressed: login, // Call the login function
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xff613089), // Set background color here
+                            backgroundColor: const Color(
+                                0xff613089),
+                                 // Set background color here
                           ),
                           child: const Text('Log in'),
                         ),
@@ -239,7 +254,8 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                           ),
                           const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                            padding: EdgeInsets.symmetric(
+                                vertical: 0, horizontal: 10),
                             child: Text(
                               'Log in with',
                               style: TextStyle(color: Colors.black45),
@@ -257,10 +273,14 @@ class _SignInScreenState extends State<SignInScreen> {
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          FaIcon(FontAwesomeIcons.facebookF, color: Color(0xff613089)),
-                          FaIcon(FontAwesomeIcons.twitter, color: Color(0xff613089)),
-                          FaIcon(FontAwesomeIcons.google, color: Color(0xff613089)),
-                          FaIcon(FontAwesomeIcons.apple, size: 33, color: Color(0xff613089)),
+                          FaIcon(FontAwesomeIcons.facebookF,
+                              color: Color(0xff613089)),
+                          FaIcon(FontAwesomeIcons.twitter,
+                              color: Color(0xff613089)),
+                          FaIcon(FontAwesomeIcons.google,
+                              color: Color(0xff613089)),
+                          FaIcon(FontAwesomeIcons.apple,
+                              size: 33, color: Color(0xff613089)),
                         ],
                       ),
                       const SizedBox(height: 25.0),
@@ -276,7 +296,8 @@ class _SignInScreenState extends State<SignInScreen> {
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => const SignUpScreen()),
+                                MaterialPageRoute(
+                                    builder: (context) => const SignUpScreen()),
                               );
                             },
                             child: const Text(

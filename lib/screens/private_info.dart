@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:flutter_application_3/screens/home.dart';
+import 'package:flutter_application_3/screens/login_screen.dart';
 
 class PrivateInfo extends StatefulWidget {
   @override
@@ -360,10 +360,10 @@ ElevatedButton(
   onPressed: () {
     if (_formKey.currentState?.validate() ?? false) {
       _submitForm();
-      // Navigate to HomePage after form submission
+    
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => HomePage()), // Ensure HomePage is imported correctly
+        MaterialPageRoute(builder: (context) => SignInScreen()), 
       );
     }
   },
@@ -385,10 +385,10 @@ ElevatedButton(
                 // Skip Button
                 ElevatedButton(
   onPressed: () {
-    // Navigate to HomePage when Skip is pressed
+   
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => HomePage()), // Ensure HomePage is imported correctly
+      MaterialPageRoute(builder: (context) => SignInScreen()), 
     );
   },
   style: ElevatedButton.styleFrom(

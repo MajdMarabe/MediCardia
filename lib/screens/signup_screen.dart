@@ -274,7 +274,6 @@ Row(
                       // Signup Button
                       SizedBox(
                         width: double.infinity,
-                        height: 50.0,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xff613089),
@@ -283,7 +282,16 @@ Row(
                             ),
                           ),
                           onPressed: _submitSignUp, // Trigger the signup function
-                          child: const Text('Create Account'),
+                        child: const Text(
+      'Create Account',
+      style: TextStyle(
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+      textAlign: TextAlign.center,
+    
+    ),
+
                         ),
                       ),
                     ],

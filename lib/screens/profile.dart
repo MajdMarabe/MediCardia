@@ -126,22 +126,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
-  bool _obscureText = true; // To manage password visibility
-  File? _image; // Variable to hold the selected image
+  bool _obscureText = true;
+  File? _image;
 
-  // Function to pick an image from the gallery
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.getImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       setState(() {
-        _image = File(pickedFile.path); // Update the state with the selected image
+        _image = File(pickedFile.path);
       });
     }
   }
 
-  // Toggle visibility for password field
   void _togglePasswordVisibility() {
     setState(() {
       _obscureText = !_obscureText;
@@ -162,30 +160,26 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Profile'), 
-        backgroundColor: const Color(0xff613089), // Set the same color as SignInScreen
+        backgroundColor: const Color(0xff613089),
       ),
+      backgroundColor: Colors.white, // Set background color to white
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
           key: _formEditKey,
           child: Column(
             children: [
-         
               const SizedBox(height: 20),
-
-              // Profile image with edit option
               Stack(
                 alignment: Alignment.center,
                 children: [
                   GestureDetector(
-                    onTap: _pickImage, // Allow user to tap on the image to edit
+                    onTap: _pickImage,
                     child: CircleAvatar(
                       radius: 70,
                       backgroundColor: Colors.grey[300],
-                      backgroundImage: _image != null
-                          ? FileImage(_image!) // Use selected image if available
-                          : null,
-                      child: _image == null // Show edit icon if no image is selected
+                      backgroundImage: _image != null ? FileImage(_image!) : null,
+                      child: _image == null
                           ? const Icon(Icons.add_a_photo, size: 30, color: Colors.grey)
                           : null,
                     ),
@@ -194,15 +188,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     bottom: 0,
                     right: 0,
                     child: GestureDetector(
-                      onTap: _pickImage, // Allow user to tap on the edit icon to change the photo
+                      onTap: _pickImage,
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Color(0xff613089), // Change color to your preference
+                          color: Color(0xff613089),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
-                          Icons.edit, // Edit icon
+                          Icons.edit,
                           color: Colors.white,
                           size: 20,
                         ),
@@ -211,15 +205,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 20),
-
-              // Name Field
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
                   labelText: 'Your Name',
-                  labelStyle: const TextStyle(color: Color(0xff613089)), // Matching color
+                  labelStyle: const TextStyle(color: Color(0xff613089)),
                   hintText: 'Edit your name',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -231,10 +222,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              // Email Field
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
@@ -251,10 +239,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              // Password Field
               TextFormField(
                 controller: _passwordController,
                 obscureText: _obscureText,
@@ -280,10 +265,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              // Location Field
               TextFormField(
                 controller: _locationController,
                 decoration: InputDecoration(
@@ -300,16 +282,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 30),
-
-              // Save Changes Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
                     if (_formEditKey.currentState!.validate()) {
-                      // Logic to save profile changes
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Profile updated successfully!')),
                       );
@@ -318,7 +296,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.all(15),
-                    backgroundColor: const Color(0xff613089), // Button color
+                    backgroundColor: const Color(0xff613089),
                   ),
                   child: const Text('Save Changes'),
                 ),
