@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/screens/private_info.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -43,7 +44,10 @@ class _PublicInfoState extends State<PublicInfo> {
     {'name': 'None', 'icon': Icons.check_circle_outline},
   ];
 
+  
+
   DateTime? _lastDonationDate;
+  
   XFile? _imageFile; // Variable to hold the selected image
 /////
 
@@ -51,6 +55,7 @@ class _PublicInfoState extends State<PublicInfo> {
   void initState() {
     super.initState();
     _fetchUserName(); // Fetch the user's name when the widget is initialized
+    
   }
 
   Future<void> _fetchUserName() async {
@@ -153,6 +158,10 @@ Future<void> _selectLastDonationDate(BuildContext context) async {
         actions: [
           TextButton(
             onPressed: () {
+              // Allow the user to clear the date selection
+              setState(() {
+                _lastDonationDate = null; // Set to null when dialog is canceled
+              });
               Navigator.of(context).pop(); // Close the dialog
             },
             child: const Text('Cancel', style: TextStyle(color: Color(0xff613089))),
@@ -245,18 +254,17 @@ Future<void> _selectLastDonationDate(BuildContext context) async {
                         },
                       ),
                       const SizedBox(height: 20),
-                      _buildDropdownField(
-                        label: 'Gender',
-                        hint: 'Select Gender',
-                        items: genders,
-                        selectedValue: _selectedGender,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedGender = value;
-                          });
-                        },
-                        
-                      ),
+                     _buildDropdownField(
+            label: 'Gender',
+            hint: 'Select Gender',
+            items: genders,
+            selectedValue: _selectedGender,
+            onChanged: (value) {
+              setState(() {
+                _selectedGender = value;
+              });
+            },
+          ),
                       const SizedBox(height: 20),
                       _buildTextFormField(
                         controller: _phoneController,
@@ -437,25 +445,28 @@ Widget _buildProfileHeader() {
                     )
                   : const SizedBox.shrink(), // Placeholder for image
             ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.add_a_photo, // Icon for adding a photo
-                  size: 24, // Icon size
-                  color: Color(0xff613089), // Icon color
-                ),
-                const SizedBox(height: 5), // Space between icon and text
-                const Text(
-                  'Add Photo', // Placeholder text
-                  style: TextStyle(
-                    fontSize: 12, // Size of the text
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xff613089), // Text color
+            // Only show the icon and text if there is no image
+            if (_imageFile == null) ...[
+              const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.add_a_photo, // Icon for adding a photo
+                    size: 24, // Icon size
+                    color: Color(0xff613089), // Icon color
                   ),
-                ),
-              ],
-            ),
+                  SizedBox(height: 5), // Space between icon and text
+                  Text(
+                    'Add Photo', // Placeholder text
+                    style: TextStyle(
+                      fontSize: 12, // Size of the text
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xff613089), // Text color
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -496,11 +507,11 @@ Widget _buildProfileHeader() {
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(15),
-      boxShadow: [
+      boxShadow: const [
         BoxShadow(
           color: Colors.black12,
           blurRadius: 6,
-          offset: const Offset(0, 3),
+          offset: Offset(0, 3),
         ),
       ],
     ),
@@ -547,7 +558,6 @@ Widget _buildProfileHeader() {
   }
 
 // Helper method to build text form fields
-// Helper method to build text form fields
 Widget _buildTextFormField({
   required TextEditingController controller,
   required String label,
@@ -590,7 +600,6 @@ Widget _buildTextFormField({
 
 
   // Helper method to build dropdown fields
-// Update the dropdown field method
 Widget _buildDropdownField({
   required String label,
   required String hint,
@@ -600,6 +609,7 @@ Widget _buildDropdownField({
 }) {
   return DropdownButtonFormField<String>(
     decoration: InputDecoration(
+      prefixIcon: const Icon(Icons.transgender, color: Color(0xff613089)), // Icon before the label
       labelText: label,
       hintText: hint,
       labelStyle: const TextStyle(color: Color(0xff613089)),
@@ -621,17 +631,13 @@ Widget _buildDropdownField({
     value: selectedValue,
     onChanged: onChanged,
     items: items.map((String value) {
-      IconData icon;
-      if (value == 'Male') {
-        icon = Icons.male; // Male icon
-      } else {
-        icon = Icons.female; // Female icon
-      }
+      IconData icon = value == 'Male' ? Icons.male : Icons.female; // Determine the icon based on gender
+
       return DropdownMenuItem<String>(
         value: value,
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xff613089)), // Icon for gender
+            Icon(icon, color: const Color(0xff613089)), // Gender icon
             const SizedBox(width: 10),
             Text(value),
           ],
@@ -641,8 +647,9 @@ Widget _buildDropdownField({
   );
 }
 
+
+
   // Helper method to build chronic diseases chips
-// Helper method to build chronic diseases chips
 Widget _buildChronicDiseasesChips() {
   return Wrap(
     spacing: 10.0,
@@ -680,8 +687,9 @@ Widget _buildChronicDiseasesChips() {
 Widget _buildDatePickerField() {
   return TextFormField(
     controller: TextEditingController(
-      text: _lastDonationDate == null ? '' : "${_lastDonationDate!.toLocal()}".split(' ')[0],
+      text: _lastDonationDate != null ? DateFormat('yyyy-MM-dd').format(_lastDonationDate!.toLocal()) : null,
     ),
+
     readOnly: true, // Prevent keyboard from appearing
     onTap: () {
       _selectLastDonationDate(context); // Call the date selection method
@@ -710,47 +718,50 @@ Widget _buildDatePickerField() {
 
 
   // Keep the submit function the same as before
-  Future<void> _submitForm() async {
-  // Convert allergies (sensitivity) text input to an array by splitting on commas
-  List<String> allergiesArray = _sensitivityController.text.split(',');
+Future<void> _submitForm() async {
+  List<String> allergiesArray = _sensitivityController.text.isNotEmpty 
+      ? _sensitivityController.text.split(',') 
+      : []; 
 
-  // Prepare the data to send to the backend
   Map<String, dynamic> medicalInfo = {
-    "publicData": {  // Wrapping the medical information inside "publicData"
-      "idNumber": _idNumberController.text,
-      "age": int.tryParse(_ageController.text) ?? 0, // Converting age to an integer
-      "gender": _selectedGender,
-      "bloodType": _selectedBloodType,
-      "chronicConditions": _selectedChronicDiseases,
-      "allergies": allergiesArray,
-      "phoneNumber": _phoneController.text,
-      "Drugs": _drugsController.text.split(','), // Ensure drugs are sent as a list
-      "lastBloodDonationDate": _lastDonationDate?.toIso8601String(),
-    }
-  };
-  
+  "publicData": { 
+    "idNumber": _idNumberController.text.isNotEmpty ? _idNumberController.text : null,
+    "age": int.tryParse(_ageController.text) ?? null,
+    "gender": _selectedGender ?? null,
+    "bloodType": _selectedBloodType ?? null,
+    "chronicConditions": _selectedChronicDiseases.isNotEmpty ? _selectedChronicDiseases : [], // Change here to use empty array
+    "allergies": allergiesArray.isNotEmpty ? allergiesArray : [], 
+    "phoneNumber": _phoneController.text.isNotEmpty ? _phoneController.text : null,
+    "Drugs": _drugsController.text.isNotEmpty 
+              ? _drugsController.text.split(',').map((drug) => drug.trim()).toList() 
+              : [],
+    // Set lastBloodDonationDate to an empty string if not selected
+    "lastBloodDonationDate": _lastDonationDate?.toIso8601String() ?? "", // Use an empty string if no date is selected
+  }
+};
 
-  String userId = widget.userId; // Retrieve the userId from widget
+
+  print('Request Payload: ${json.encode(medicalInfo)}'); 
+
+  String userId = widget.userId; 
   try {
-    // Make the PUT request to the backend
-    String apiUrl = 'http://10.0.2.2:5001/api/users/${userId}/public-medical-card';
+    String apiUrl = 'http://10.0.2.2:5001/api/users/$userId/public-medical-card';
     final response = await http.put(
       Uri.parse(apiUrl),
       headers: {"Content-Type": "application/json"},
       body: json.encode(medicalInfo),
     );
 
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
     if (response.statusCode == 200) {
-      // If the server returns a 200 OK response, parse the JSON
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Medical information updated successfully')),
       );
     } else {
-      // If the server did not return a 200 OK response, throw an error
-      print('Error: Server returned status code ${response.statusCode}');
-  print('Response body: ${response.body}'); // Log response for debugging
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to update medical information')),
+        SnackBar(content: Text('Failed to update medical information: ${response.body}')),
       );
     }
   } catch (e) {
@@ -758,6 +769,5 @@ Widget _buildDatePickerField() {
       SnackBar(content: Text('Error: $e')),
     );
   }
-
-  }
+}
 }
