@@ -48,15 +48,15 @@ const UserSchema = new mongoose.Schema({
     },
     medicalCard: {
         publicData: {
-            idNumber: { type: String, trim: true }, // رقم الهوية
-            gender: { type: String, enum: ['Male', 'Female'], trim: true }, // الجنس
-            age: { type: Number }, // العمر
-            bloodType: { type: String, trim: true }, // زمرة الدم
-            chronicConditions: { type: [String], trim: true }, // أمراض مزمنة
-            allergies: { type: [String], trim: true }, // حساسية
-            lastBloodDonationDate: { type: Date }, // تاريخ آخر تبرع بالدم
-            phoneNumber: { type: String, trim: true }, // رقم الهاتف
-            Drugs: { type: [String], trim: true },
+            idNumber: { type: String, trim: true, default: null }, 
+            gender: { type: String, enum: ['Male', 'Female'], trim: true, default: null }, 
+            age: { type: Number, default: null }, 
+            bloodType: { type: String, trim: true, default: null },
+            chronicConditions: { type: [String], trim: true, default: [] }, 
+            allergies: { type: [String], trim: true, default: [] },
+            lastBloodDonationDate: { type: Date, default: null },
+            phoneNumber: { type: String, trim: true, default: null },
+            Drugs: { type: [String], trim: true, default: [] },
         },
         privateData: {
 /*
@@ -135,19 +135,20 @@ function validateLoginUser(obj) {
 }
 function validatePublicData(publicData) {
     const schema = joi.object({
-        idNumber: joi.string().trim().optional(),
-        gender: joi.string().valid('Male', 'Female').trim().optional(),
-        age: joi.number().integer().min(0).optional(),
-        bloodType: joi.string().trim().optional(),
-        chronicConditions: joi.array().items(joi.string().trim()).optional(),
-        allergies: joi.array().items(joi.string().trim()).optional(),
-        lastBloodDonationDate: joi.date().optional(),
-        phoneNumber: joi.string().trim().optional(),
-        Drugs: joi.array().items(joi.string().trim()).optional()
+        idNumber: joi.string().trim().allow(null, '').optional(),
+        gender: joi.string().valid('Male', 'Female').trim().allow(null, '').optional(),
+        age: joi.number().integer().min(0).allow(null).optional(),
+        bloodType: joi.string().trim().allow(null, '').optional(),
+        chronicConditions: joi.array().items(joi.string().trim()).allow(null).optional(),
+        allergies: joi.array().items(joi.string().trim()).allow(null).optional(),
+        lastBloodDonationDate: joi.date().allow(null).optional(),
+        phoneNumber: joi.string().trim().allow(null, '').optional(),
+        Drugs: joi.array().items(joi.string().trim()).allow(null).optional()
     });
 
     return schema.validate(publicData);
 }
+
 module.exports = {
     User,
     validateCreatUser,
