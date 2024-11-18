@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_3/widgets/custom_scaffold.dart';
 import 'package:flutter_application_3/screens/public_info.dart';
 import 'package:http/http.dart' as http; // HTTP package for sending requests
+import 'constants.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -42,7 +43,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    final url = Uri.parse('http://10.0.2.2:5001/api/users/register');
+    final url = Uri.parse('${ApiConstants.baseUrl}/users/register');
 
     try {
       final response = await http.post(

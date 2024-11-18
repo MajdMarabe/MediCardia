@@ -3,6 +3,7 @@ import 'package:flutter_application_3/widgets/custom_scaffold.dart';
 import 'package:flutter_application_3/screens/login_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'constants.dart';
 
 class UpdatePasswordScreen extends StatefulWidget {
   final String token; // Accept the token from the previous screen
@@ -23,7 +24,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
   Future<void> _updatePassword() async {
     if (_formKey.currentState!.validate()) {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:5001/api/users/resetPassword'),
+        Uri.parse('${ApiConstants.baseUrl}/users/resetPassword'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer ${widget.token}', // Pass the token

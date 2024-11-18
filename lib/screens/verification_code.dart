@@ -4,6 +4,7 @@ import 'update_password.dart';
 import 'package:flutter_application_3/widgets/custom_scaffold.dart'; 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'constants.dart';
 
 class VerificationCodeScreen extends StatefulWidget {
   final String email; // To send verification code to email
@@ -21,7 +22,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   Future<void> _verifyCode() async {
     if (_formKey.currentState!.validate()) {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:5001/api/users/verifyCode'),
+        Uri.parse('${ApiConstants.baseUrl}/users/verifyCode'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

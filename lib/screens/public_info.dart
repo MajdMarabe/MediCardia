@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'constants.dart';
 
 
 
@@ -58,9 +59,54 @@ class _PublicInfoState extends State<PublicInfo> {
     
   }
 
+String? encodeImageToBase64(XFile? imageFile) {
+  if (imageFile == null) return null;
+
+  // Convert XFile to File
+  File file = File(imageFile.path);
+
+  // Read image bytes from the file
+  final bytes = file.readAsBytesSync();
+
+  // Return the Base64-encoded string of the image bytes
+  return base64Encode(bytes);
+}
+ Future<void> getDrugByBarcode(String barcode) async {
+  final String apiUrl = '${ApiConstants.baseUrl}/drugs/barcode?barcode=$barcode'; // Query parameter in URL
+
+  try {
+    final response = await http.get(
+      Uri.parse(apiUrl),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final drugName = data['drugName'];
+
+      setState(() {
+if (_drugsController.text.isEmpty) {
+    _drugsController.text = drugName;
+  } else {
+    _drugsController.text = '${_drugsController.text}, $drugName';
+  }      });
+    } else {
+      setState(() {
+        _drugsController.text = 'Drug not found';
+      });
+    }
+  } catch (e) {
+    print('Error: $e');
+    setState(() {
+      _drugsController.text = 'Error retrieving drug information';
+    });
+  }
+}
+
+
   Future<void> _fetchUserName() async {
     String userId = widget.userId;
-    String apiUrl = 'http://10.0.2.2:5001/api/users/$userId';
+    String apiUrl = '${ApiConstants.baseUrl}/users/$userId';
 
   
     try {
@@ -95,7 +141,8 @@ Future<void> _selectImage() async {
 
     if (pickedFile != null) {
       setState(() {
-        _imageFile = pickedFile; // Update the image file
+        _imageFile = pickedFile; 
+        // Update the image file
       });
     }
   }
@@ -357,7 +404,8 @@ Future<void> _selectLastDonationDate(BuildContext context) async {
                        _buildTextFormField(
                         controller: _drugsController,
                         label: 'Drugs',
-                        hint: 'Enter Drugs',
+                        hint: 'i.e Rovatin,Advil,..',
+                        
                         icon: Icons.medical_services,
 
  suffixIcon: IconButton(
@@ -372,9 +420,12 @@ Future<void> _selectLastDonationDate(BuildContext context) async {
 
       // Check if the scan was successful and update the drugs controller
       if (barcodeScanResult != '-1') {
-        setState(() {
-          _drugsController.text = barcodeScanResult; // Set scanned value to the text field
-        });
+            print("Scanned Barcode: $barcodeScanResult");
+
+        await getDrugByBarcode(barcodeScanResult);
+
+        //  _drugsController.text = barcodeScanResult; // Set scanned value to the text field
+       
       }
     },
   ),
@@ -393,9 +444,10 @@ Future<void> _selectLastDonationDate(BuildContext context) async {
       // Navigate to the PrivateInfo page after form submission
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => PrivateInfo()), // Make sure PrivateInfo is imported
+        MaterialPageRoute(builder: (context) => PrivateInfo(userId: widget.userId)), // Make sure PrivateInfo is imported
       );
     }
+    
   },
   style: ElevatedButton.styleFrom(
     padding: const EdgeInsets.symmetric(vertical: 15),
@@ -575,6 +627,11 @@ Widget _buildTextFormField({
     decoration: InputDecoration(
       labelText: label,
       hintText: hint,
+      hintStyle: TextStyle(
+      color: Colors.grey.shade400, // لون النص الافتراضي
+      fontSize: 14, // حجم النص
+      fontStyle: FontStyle.italic, // نمط النص
+    ),
       labelStyle: const TextStyle(color: Color(0xff613089)),
       prefixIcon: Icon(icon, color: const Color(0xff613089)),
       suffixIcon: suffixIcon,
@@ -719,6 +776,8 @@ Widget _buildDatePickerField() {
 
   // Keep the submit function the same as before
 Future<void> _submitForm() async {
+    String? base64Image = encodeImageToBase64(_imageFile);
+
   List<String> allergiesArray = _sensitivityController.text.isNotEmpty 
       ? _sensitivityController.text.split(',') 
       : []; 
@@ -737,6 +796,7 @@ Future<void> _submitForm() async {
               : [],
     // Set lastBloodDonationDate to an empty string if not selected
     "lastBloodDonationDate": _lastDonationDate?.toIso8601String() ?? "", // Use an empty string if no date is selected
+    "image": base64Image,
   }
 };
 
@@ -745,7 +805,7 @@ Future<void> _submitForm() async {
 
   String userId = widget.userId; 
   try {
-    String apiUrl = 'http://10.0.2.2:5001/api/users/$userId/public-medical-card';
+    String apiUrl = '${ApiConstants.baseUrl}/users/$userId/public-medical-card';
     final response = await http.put(
       Uri.parse(apiUrl),
       headers: {"Content-Type": "application/json"},

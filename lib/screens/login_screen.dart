@@ -6,6 +6,7 @@ import 'package:flutter_application_3/widgets/custom_scaffold.dart';
 import 'package:flutter_application_3/screens/home.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http; // Import http package
+import 'constants.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -36,7 +37,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
       // Prepare the API request
       final url = Uri.parse(
-          'http://10.0.2.2:5001/api/users/login'); // Replace with your actual API URL
+          '${ApiConstants.baseUrl}/users/login'); // Replace with your actual API URL
       final headers = {'Content-Type': 'application/json'};
       final body = jsonEncode({
         'email': _emailController.text,
@@ -257,7 +258,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             padding: EdgeInsets.symmetric(
                                 vertical: 0, horizontal: 10),
                             child: Text(
-                              'Log in with',
+                              '',
                               style: TextStyle(color: Colors.black45),
                             ),
                           ),
@@ -269,7 +270,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 25.0),
+                      const SizedBox(height: 25.0),/*
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -283,7 +284,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               size: 33, color: Color(0xff613089)),
                         ],
                       ),
-                      const SizedBox(height: 25.0),
+                      const SizedBox(height: 25.0),*/
                       // Sign Up
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,

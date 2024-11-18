@@ -1,8 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_application_3/screens/login_screen.dart';
+import 'package:http/http.dart' as http;
+import 'constants.dart';
 
 class PrivateInfo extends StatefulWidget {
+   final String userId; // Accepting userId from the constructor
+
+  const PrivateInfo({super.key, required this.userId});
   @override
   _PrivateInfoState createState() => _PrivateInfoState();
 }
@@ -25,10 +32,254 @@ class _PrivateInfoState extends State<PrivateInfo> {
   // Controllers for lab tests
   final TextEditingController _testNameController = TextEditingController();
   final TextEditingController _testResultController = TextEditingController();
+  
   DateTime? _testDate;
 
   DateTime? _selectedDate;
 
+
+Future<void> _addNewMedicalCondition() async {
+  // Create a list of medical history objects
+  List<Map<String, dynamic>> medicalHistory = [
+    {
+      "conditionName": _medicalConditionNameController.text.isNotEmpty
+          ? _medicalConditionNameController.text
+          : null,
+      "diagnosisDate": _diagnosisDateController.text.isNotEmpty
+          ? _diagnosisDateController.text
+          : null,
+      "conditionDetails": _medicalConditionDetailsController.text.isNotEmpty
+          ? _medicalConditionDetailsController.text
+          : null,
+    }
+  ];
+
+  // Clear the controllers after creating the request
+  _medicalConditionNameController.clear();
+  _diagnosisDateController.clear();
+  _medicalConditionDetailsController.clear();
+
+  // Prepare the payload in the correct format
+  Map<String, dynamic> requestPayload = {
+    "medicalHistory": medicalHistory,
+  };
+
+  print('Request Payload: ${json.encode(requestPayload)}');
+
+  String userId = widget.userId; // Get user ID
+  try {
+    String apiUrl = '${ApiConstants.baseUrl}/users/$userId/medicalhistory';
+    final response = await http.put(
+      Uri.parse(apiUrl),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode(requestPayload),
+    );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Medical information updated successfully')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update medical information: ${response.body}')),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: $e')),
+    );
+  }
+}
+
+  
+
+
+
+
+   Future<void> _addNewLabTests() async {
+
+
+List<Map<String, dynamic>> labTests = [
+    {
+      "testName": _testNameController.text.isNotEmpty
+          ? _testNameController.text
+          : null,
+      "testResult": _testResultController.text.isNotEmpty
+          ? _testResultController.text
+          : null,
+      "testDate": _diagnosisDateController.text.isNotEmpty
+          ? _diagnosisDateController.text
+          : null,
+    }
+  ];
+  
+
+  // Clear the controllers after creating the request
+   _testNameController.clear();
+    _testResultController.clear();
+       _testDate = null;
+    _diagnosisDateController.clear();
+    _diagnosisDateController.text = '';
+  // Prepare the payload in the correct format
+  Map<String, dynamic> requestPayload = {
+    "labTests": labTests,
+  };
+
+  print('Request Payload: ${json.encode(requestPayload)}');
+
+  String userId = widget.userId; // Get user ID
+  try {
+    String apiUrl = '${ApiConstants.baseUrl}/users/$userId/labtests';
+    final response = await http.put(
+      Uri.parse(apiUrl),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode(requestPayload),
+    );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('labtests information updated successfully')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update labtests information: ${response.body}')),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: $e')),
+    );
+  }
+
+
+
+
+
+  }
+    Future<void> _addNewMedicalNotes() async {
+        
+  
+   List<Map<String, dynamic>> medicalNotes = [
+    {
+      "note": _medicalNotesController.text.isNotEmpty
+          ? _medicalNotesController.text
+          : null
+      
+    }
+  ];
+  
+
+         _medicalNotesController.clear();
+
+  Map<String, dynamic> requestPayload = {
+    "medicalNotes": medicalNotes
+  };
+
+  print('Request Payload: ${json.encode(requestPayload)}');
+
+  String userId = widget.userId; // Get user ID
+  try {
+    String apiUrl = '${ApiConstants.baseUrl}/users/$userId/medicalNotes';
+    final response = await http.put(
+      Uri.parse(apiUrl),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode(requestPayload),
+    );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('medicalNotes information updated successfully')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update medicalNotes information: ${response.body}')),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: $e')),
+    );
+  }
+
+
+
+  }
+
+ Future<void> _addNewTreatmentPlans() async {
+        
+List<Map<String, dynamic>> treatmentPlans = [
+    {
+      "prescribedMedications": _prescribedMedicationsController.text.isNotEmpty
+          ? _prescribedMedicationsController.text
+          : null,
+      "treatmentDuration": _treatmentDurationController.text.isNotEmpty
+          ? _treatmentDurationController.text
+          : null,
+      "treatmentGoals": _treatmentGoalsController.text.isNotEmpty
+          ? _treatmentGoalsController.text
+          : null,
+      "alternativeTherapies": _alternativeTherapiesController.text.isNotEmpty
+          ? _alternativeTherapiesController.text
+          : null,
+    }
+  ];
+  
+
+  // Clear the controllers after creating the request
+        _treatmentGoalsController.clear();
+        _treatmentDurationController.clear();
+        _prescribedMedicationsController.clear();
+        _alternativeTherapiesController.clear();
+
+  // Prepare the payload in the correct format
+  Map<String, dynamic> requestPayload = {
+    "treatmentPlans": treatmentPlans,
+  };
+
+  print('Request Payload: ${json.encode(requestPayload)}');
+
+  String userId = widget.userId; // Get user ID
+  try {
+    String apiUrl = '${ApiConstants.baseUrl}/users/$userId/treatmentPlans';
+    final response = await http.put(
+      Uri.parse(apiUrl),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode(requestPayload),
+    );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('treatmentPlans information updated successfully')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update treatmentPlans information: ${response.body}')),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: $e')),
+    );
+  }
+
+
+
+
+    
+  
+  }
   Future<void> _selectDate(BuildContext context) async {
     showDialog(
       context: context,
@@ -203,8 +454,8 @@ class _PrivateInfoState extends State<PrivateInfo> {
                     ],
                   ),
                  child: const Column(
-  mainAxisAlignment: MainAxisAlignment.center, // Aligns the content vertically in the center
-  children: [
+   mainAxisAlignment: MainAxisAlignment.center, // Aligns the content vertically in the center
+   children: [
     Icon(
       Icons.favorite, // Favorite icon
       color: Color(0xffb41391), // Set icon color
@@ -212,7 +463,7 @@ class _PrivateInfoState extends State<PrivateInfo> {
     ),
     SizedBox(height: 8), // Space between the icon and the text
     Text(
-      'Your MediCardia Private Info',
+      'Your MediCarde Private Info',
       style: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.bold,
@@ -270,6 +521,19 @@ class _PrivateInfoState extends State<PrivateInfo> {
                   maxLines: 4,
                 ),
                 const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                  onPressed: _addNewMedicalCondition,
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  label: const Text("Add New Medical Condition"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff613089),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
+                ),
+                const SizedBox(height: 20),
 
                 _buildSectionTitle('Lab Tests'),
                 // Test Name
@@ -309,7 +573,19 @@ class _PrivateInfoState extends State<PrivateInfo> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
+                ElevatedButton.icon(
+                  onPressed: _addNewLabTests,
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  label: const Text("Add New LabTest"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff613089),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
+                ),
+                const SizedBox(height: 20),
                 _buildSectionTitle('Medical Notes'),
                 _buildTextFormField(
                   controller: _medicalNotesController,
@@ -319,7 +595,19 @@ class _PrivateInfoState extends State<PrivateInfo> {
                   maxLines: 3,
                 ),
                 const SizedBox(height: 20),
-
+                  ElevatedButton.icon(
+                  onPressed: _addNewMedicalNotes,
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  label: const Text("Add New Medical Note"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff613089),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
+                ),
+                const SizedBox(height: 20),
                 _buildSectionTitle('Treatment Plans'),
                 _buildTextFormField(
                   controller: _prescribedMedicationsController,
@@ -355,7 +643,22 @@ class _PrivateInfoState extends State<PrivateInfo> {
                   icon: Icons.local_hospital,
                   maxLines: 2,
                 ),
+              
                 const SizedBox(height: 30),
+                ElevatedButton.icon(
+                  onPressed: _addNewTreatmentPlans,
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  label: const Text("Add New Treatment Plan"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff613089),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                /*
 ElevatedButton(
   onPressed: () {
     if (_formKey.currentState?.validate() ?? false) {
@@ -378,7 +681,7 @@ ElevatedButton(
     'Submit',
     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
   ),
-),
+),*/
 
                 const SizedBox(height: 20), // Space below the Submit button
 
@@ -467,7 +770,7 @@ ElevatedButton(
       },
     );
   }
-
+/*
   void _submitForm() {
     // Handle form submission logic
     print('Medical Condition Name: ${_medicalConditionNameController.text}');
@@ -481,5 +784,5 @@ ElevatedButton(
     print('Treatment Duration: ${_treatmentDurationController.text}');
     print('Treatment Goals: ${_treatmentGoalsController.text}');
     print('Alternative Therapies: ${_alternativeTherapiesController.text}');
-  }
+  }*/
 }

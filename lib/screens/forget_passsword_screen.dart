@@ -3,11 +3,12 @@ import 'package:flutter_application_3/widgets/custom_scaffold.dart';
 import 'package:flutter_application_3/screens/verification_code.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'constants.dart';
 
 class ApiService {
   Future<bool> forgetPassword(String email) async {
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:5001/api/users/forgetPassword'),
+      Uri.parse('${ApiConstants.baseUrl}/users/forgetPassword'),
       headers: {
         'Content-Type': 'application/json',
       },
