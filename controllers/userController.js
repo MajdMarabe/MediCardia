@@ -1,6 +1,6 @@
 const jwt =require("jsonwebtoken");
 const asyncHandler= require("express-async-handler"); 
-const {validateCreatUser,validateLoginUser,validateUpdateUser,validatePublicData,User}= require("../models/User");
+const {validateCreatUser,validateLoginUser,validateUpdateUser,validatePublicData,validateHistory,validatelabTests,User}= require("../models/User");
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
@@ -357,7 +357,167 @@ module.exports.login= asyncHandler(async(req,res) =>{
     
         res.status(200).json({ message: 'Public medical card data updated successfully', user });
     });
+
+/**
+ * @desc Update Medical History
+ * @route /:id/medicalhistory
+ * @method PUT
+ * @access public
+ */
+module.exports.UpdatemedicalHistory = asyncHandler(async (req, res) => {
+    // Destructure medicalHistory from the request body
+    const { medicalHistory } = req.body;
+
+    // Validate that medicalHistory is an array
+    if (!Array.isArray(medicalHistory)) {
+        return res.status(400).json({ message: "medicalHistory must be an array" });
+    }
+
+    // Validate that each entry in the array has the correct fields
+    const invalidEntry = medicalHistory.find(entry => 
+        !entry.conditionName || !entry.diagnosisDate || !entry.conditionDetails
+    );
+
+    if (invalidEntry) {
+        return res.status(400).json({ message: "Each medical history entry must contain conditionName, diagnosisDate, and conditionDetails." });
+    }
+
+    // Find the user by ID
+    const user = await User.findById(req.params.id);
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Append new entries to the existing medical history
+    user.medicalCard.privateData.medicalHistory.push(...medicalHistory);
+
+    // Save the updated user document
+    await user.save();
+
+    // Return the updated user data
+    res.status(200).json({ message: 'Medical history updated successfully', user });
+});
+
+
+/**
+ * @desc Update lab Tests
+ * @route /:id/labtests
+ * @method PUT
+ * @access public
+ */
+module.exports.UpdalabTests = asyncHandler(async (req, res) => {
+    // Destructure medicalHistory from the request body
+    const { labTests } = req.body;
+
+    // Validate that medicalHistory is an array
+    if (!Array.isArray(labTests)) {
+        return res.status(400).json({ message: "labTests must be an array" });
+    }
+
+    // Validate that each entry in the array has the correct fields
+    const invalidEntry = labTests.find(entry => 
+        !entry.testName || !entry.testResult || !entry.testDate
+    );
+
+    if (invalidEntry) {
+        return res.status(400).json({ message: "Each lab Test entry must contain testName, testDate, and testResult." });
+    }
+
+    // Find the user by ID
+    const user = await User.findById(req.params.id);
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Append new entries to the existing medical history
+    user.medicalCard.privateData.labTests.push(...labTests);
+
+    // Save the updated user document
+    await user.save();
+
+    // Return the updated user data
+    res.status(200).json({ message: 'lab Tests updated successfully', user });
+});
+
+/**
+ * @desc Update medicalNotes
+ * @route /:id/medicalNotes
+ * @method PUT
+ * @access public
+ */
+module.exports.UpdamedicalNotes = asyncHandler(async (req, res) => {
+    // Destructure medicalHistory from the request body
+    const { medicalNotes } = req.body;
+
+    // Validate that medicalHistory is an array
+    if (!Array.isArray(medicalNotes)) {
+        return res.status(400).json({ message: "medicalNotes must be an array" });
+    }
+
+    // Validate that each entry in the array has the correct fields
+    const invalidEntry = medicalNotes.find(entry => 
+        !entry.note 
+    );
+
+    if (invalidEntry) {
+        return res.status(400).json({ message: "Each medicalNotes entry must contain note." });
+    }
+
+    // Find the user by ID
+    const user = await User.findById(req.params.id);
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Append new entries to the existing medical history
+    user.medicalCard.privateData.medicalNotes.push(...medicalNotes);
+
+    // Save the updated user document
+    await user.save();
+
+    // Return the updated user data
+    res.status(200).json({ message: 'medicalNotes updated successfully', user });
+});
+/**
+ * @desc Update treatmentPlans
+ * @route /:id/treatmentPlans
+ * @method PUT
+ * @access public
+ */
+module.exports.UpdatreatmentPlans = asyncHandler(async (req, res) => {
+    // Destructure medicalHistory from the request body
+    const { treatmentPlans } = req.body;
+
+    // Validate that medicalHistory is an array
+    if (!Array.isArray(treatmentPlans)) {
+        return res.status(400).json({ message: "treatment Plans must be an array" });
+    }
+
+    // Validate that each entry in the array has the correct fields
+    const invalidEntry = treatmentPlans.find(entry => 
+        !entry.prescribedMedications || !entry.treatmentDuration || !entry.treatmentGoals|| !entry.alternativeTherapies 
+
+    );
     
+    if (invalidEntry) {
+        return res.status(400).json({ message: "Each treatment Plans entry must contain testName, testDate, and testResult." });
+    }
+
+    // Find the user by ID
+    const user = await User.findById(req.params.id);
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Append new entries to the existing medical history
+    user.medicalCard.privateData.treatmentPlans.push(...treatmentPlans);
+
+    // Save the updated user document
+    await user.save();
+
+    // Return the updated user data
+    res.status(200).json({ message: 'treatment Plans updated successfully', user });
+});
 
 /*
     module.exports.verifyCodeAndResetPassword = asyncHandler(async (req, res, next) => {

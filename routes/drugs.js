@@ -1,6 +1,8 @@
 const express = require ("express");
 const router = express.Router();
-const {getbarcode}=require("../controllers/drugController");
+const {getDrugByBar,addDrug}=require("../controllers/drugController");
 
-router.get("/latest-barcode", getbarcode);
+router.get("/barcode", getDrugByBar);
+router.post("/adddrug", addDrug);
+
 module.exports = router;

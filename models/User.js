@@ -3,7 +3,7 @@ const joi = require('joi');
 const jwt = require("jsonwebtoken");
 const crypto = require('crypto');
 
-// project Schema
+// User Schema
 const UserSchema = new mongoose.Schema({
     username: {
         type: String,
@@ -57,18 +57,40 @@ const UserSchema = new mongoose.Schema({
             lastBloodDonationDate: { type: Date, default: null },
             phoneNumber: { type: String, trim: true, default: null },
             Drugs: { type: [String], trim: true, default: [] },
+            image: { 
+                type: String,  // Store base64 image string
+                default: null 
+            },
         },
         privateData: {
-/*
-            prescribedMedications: { type: [String], trim: true },
-            labTests: [
+            medicalHistory: [
                 {
-                    testName: { type: String, trim: true },
-                    result: { type: String, trim: true },
-                    date: { type: Date }
-                }
-            ],
-            doctorNotes: { type: String, trim: true }*/
+                  conditionName: { type: String, trim: true, default: null  },
+                  diagnosisDate: { type: Date,  default: Date.now  },
+                  conditionDetails: { type: String , trim: true, default: null },
+                },
+              ],
+              labTests: [
+                {
+                  testName: { type: String, trim: true, default: null },
+                  testResult: { type: String  , trim: true, default: null },
+                  testDate: { type: Date, trim: true, default: null  },
+                },
+              ],
+              medicalNotes: [
+                {
+                  note: { type: String, trim: true, default: null },
+                //  dateAdded: { type: Date, default: Date.now },
+                },
+              ],
+              treatmentPlans: [
+                {
+                  prescribedMedications: { type: String, trim: true, default: null },
+                  treatmentDuration: { type: String,trim: true, default: null }, // e.g., "6 months"
+                  treatmentGoals: { type: String,trim: true, default: null },
+                  alternativeTherapies: { type: String,trim: true, default: null }, // Optional
+                },
+              ],
         },
         permissions: {
            /* doctors: [
@@ -135,25 +157,67 @@ function validateLoginUser(obj) {
 }
 function validatePublicData(publicData) {
     const schema = joi.object({
-        idNumber: joi.string().trim().allow(null, '').optional(),
-        gender: joi.string().valid('Male', 'Female').trim().allow(null, '').optional(),
-        age: joi.number().integer().min(0).allow(null).optional(),
-        bloodType: joi.string().trim().allow(null, '').optional(),
-        chronicConditions: joi.array().items(joi.string().trim()).allow(null).optional(),
-        allergies: joi.array().items(joi.string().trim()).allow(null).optional(),
-        lastBloodDonationDate: joi.date().allow(null).optional(),
-        phoneNumber: joi.string().trim().allow(null, '').optional(),
-        Drugs: joi.array().items(joi.string().trim()).allow(null).optional()
+        idNumber: joi.string().trim().optional(),
+        gender: joi.string().valid('Male', 'Female').trim().optional(),
+        age: joi.number().integer().min(0).optional(),
+        bloodType: joi.string().trim().optional(),
+        chronicConditions: joi.array().items(joi.string().trim()).optional(),
+        allergies: joi.array().items(joi.string().trim()).optional(),
+        lastBloodDonationDate: joi.alternatives().try(joi.date(), joi.string().allow('').optional()),
+        phoneNumber: joi.string().trim().optional(),
+        Drugs: joi.array().items(joi.string().trim()).optional(),
+        image: joi.string().optional() 
+
+
     });
 
     return schema.validate(publicData);
 }
+
+function validateHistory(publicData) {
+    const schema = joi.object({
+        conditionName: joi.string().trim().optional(),
+        diagnosisDate: joi.alternatives().try(joi.date(), joi.string().allow('').optional()),
+        conditionDetails: joi.string().trim().optional(),
+
+
+    });
+
+    return schema.validate(publicData);
+}
+
+function validateHistory(publicData) {
+    const schema = joi.object({
+        
+        conditionName: joi.string().trim().optional(),
+        diagnosisDate: joi.alternatives().try(joi.date(), joi.string().allow('').optional()),
+        conditionDetails: joi.string().trim().optional(),
+
+    });
+
+    return schema.validate(publicData);
+}
+
+
+function validatelabTests(publicData) {
+    const schema = joi.object({
+        testName: joi.string().trim().optional(),
+        testDate: joi.alternatives().try(joi.date(), joi.string().allow('').optional()),
+        testResult: joi.string().trim().optional(), 
+
+
+    });
+
+    return schema.validate(publicData);
+}
+
 
 module.exports = {
     User,
     validateCreatUser,
     validateLoginUser,
     validateUpdateUser,
-    validatePublicData
-
+    validatePublicData,
+    validateHistory,
+    validatelabTests
 };
