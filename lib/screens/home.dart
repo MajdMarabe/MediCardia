@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_application_3/screens/profile.dart';
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'drug_interaction_checker.dart';  // Import the DrugInteractionCheckerPage
 
 class HomePage extends StatefulWidget {
   @override
@@ -12,7 +13,7 @@ class _HomePageState extends State<HomePage> {
   final items = const [
     Icon(Icons.home, size: 30),
     Icon(FontAwesomeIcons.search, size: 30),
-    Icon(Icons.add, size: 30),
+    Icon(Icons.notifications, size: 30),
     Icon(FontAwesomeIcons.userCircle, size: 30),
   ];
 
@@ -20,7 +21,7 @@ class _HomePageState extends State<HomePage> {
 
   // List of pages to navigate to
   final List<Widget> _pages = [
-    Center(child: Text('Home Page')),
+    Container(), // Home page is initially empty
     Center(child: Text('Search Page')),
     Center(child: Text('Add Page')),
     ProfilePage(), // Link to the ProfilePage here
@@ -30,6 +31,14 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  // Function to navigate to the DrugInteractionCheckerPage
+  void _navigateToDrugInteractionChecker() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => DrugInteractionCheckerPage()),
+    );
   }
 
   @override
@@ -44,7 +53,60 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Color(0xff613089),
         centerTitle: true,
       ),
-      body: _pages[_selectedIndex], // Show the selected page
+      body: Stack(
+        children: [
+          _pages[_selectedIndex], // Show the selected page
+
+          // Add the "Drug Interaction" section within Home Page content
+          if (_selectedIndex == 0) // Only show in the 'Home Page' section
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Welcome to MediCardia',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  GestureDetector(
+                    onTap: _navigateToDrugInteractionChecker,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                      decoration: BoxDecoration(
+                        color: Color(0xff613089),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            offset: Offset(0, 5),
+                            color: Color(0xff613089).withOpacity(0.2),
+                            spreadRadius: 2,
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.medical_services, color: Colors.white),
+                          SizedBox(width: 10),
+                          Text(
+                            'Drug Interaction Checker',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
       bottomNavigationBar: CurvedNavigationBar(
         items: items,
         index: _selectedIndex,

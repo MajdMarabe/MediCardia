@@ -667,8 +667,8 @@ Widget _buildDropdownField({
 }) {
   return DropdownButtonFormField<String>(
     decoration: InputDecoration(
-     prefixIcon: Padding(
-    padding: const EdgeInsets.only(left: 10.0,top: 8.0), // Add padding before the icon
+     prefixIcon: const Padding(
+    padding: EdgeInsets.only(left: 10.0,top: 8.0), // Add padding before the icon
     child: FaIcon(
       FontAwesomeIcons.venusMars,
       color: Color(0xff613089),
