@@ -6,6 +6,7 @@ import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:io';
 import 'constants.dart';
 
@@ -666,7 +667,13 @@ Widget _buildDropdownField({
 }) {
   return DropdownButtonFormField<String>(
     decoration: InputDecoration(
-      prefixIcon: const Icon(Icons.transgender, color: Color(0xff613089)), // Icon before the label
+     prefixIcon: Padding(
+    padding: const EdgeInsets.only(left: 10.0,top: 8.0), // Add padding before the icon
+    child: FaIcon(
+      FontAwesomeIcons.venusMars,
+      color: Color(0xff613089),
+    ),
+  ), // Icon before the label
       labelText: label,
       hintText: hint,
       labelStyle: const TextStyle(color: Color(0xff613089)),
