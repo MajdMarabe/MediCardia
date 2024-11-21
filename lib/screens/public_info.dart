@@ -784,34 +784,39 @@ Widget _buildDatePickerField() {
 
   // Keep the submit function the same as before
 Future<void> _submitForm() async {
-    String? base64Image = encodeImageToBase64(_imageFile);
+  String? base64Image;
+  if (_imageFile != null) {
+    base64Image = encodeImageToBase64(_imageFile);
+  }
 
-  List<String> allergiesArray = _sensitivityController.text.isNotEmpty 
-      ? _sensitivityController.text.split(',') 
-      : []; 
+  List<String> allergiesArray = _sensitivityController.text.isNotEmpty
+      ? _sensitivityController.text.split(',')
+      : [];
 
   Map<String, dynamic> medicalInfo = {
-  "publicData": { 
-    "idNumber": _idNumberController.text.isNotEmpty ? _idNumberController.text : null,
-    "age": int.tryParse(_ageController.text) ?? null,
-    "gender": _selectedGender ?? null,
-    "bloodType": _selectedBloodType ?? null,
-    "chronicConditions": _selectedChronicDiseases.isNotEmpty ? _selectedChronicDiseases : [], // Change here to use empty array
-    "allergies": allergiesArray.isNotEmpty ? allergiesArray : [], 
-    "phoneNumber": _phoneController.text.isNotEmpty ? _phoneController.text : null,
-    "Drugs": _drugsController.text.isNotEmpty 
-              ? _drugsController.text.split(',').map((drug) => drug.trim()).toList() 
-              : [],
-    // Set lastBloodDonationDate to an empty string if not selected
-    "lastBloodDonationDate": _lastDonationDate?.toIso8601String() ?? "", // Use an empty string if no date is selected
-    "image": base64Image,
+    "publicData": {
+      "idNumber": _idNumberController.text.isNotEmpty ? _idNumberController.text : null,
+      "age": int.tryParse(_ageController.text) ?? null,
+      "gender": _selectedGender ?? null,
+      "bloodType": _selectedBloodType ?? null,
+      "chronicConditions": _selectedChronicDiseases.isNotEmpty ? _selectedChronicDiseases : [],
+      "allergies": allergiesArray.isNotEmpty ? allergiesArray : [],
+      "phoneNumber": _phoneController.text.isNotEmpty ? _phoneController.text : null,
+      "Drugs": _drugsController.text.isNotEmpty
+          ? _drugsController.text.split(',').map((drug) => drug.trim()).toList()
+          : [],
+      "lastBloodDonationDate": _lastDonationDate?.toIso8601String() ?? "",
+    }
+  };
+
+  // Add the image only if it's not null
+  if (base64Image != null) {
+    medicalInfo["publicData"]["image"] = base64Image;
   }
-};
 
+  print('Request Payload: ${json.encode(medicalInfo)}');
 
-  print('Request Payload: ${json.encode(medicalInfo)}'); 
-
-  String userId = widget.userId; 
+  String userId = widget.userId;
   try {
     String apiUrl = '${ApiConstants.baseUrl}/users/$userId/public-medical-card';
     final response = await http.put(
@@ -828,6 +833,7 @@ Future<void> _submitForm() async {
         const SnackBar(content: Text('Medical information updated successfully')),
       );
     } else {
+      // Only show error if the status code is not 200
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to update medical information: ${response.body}')),
       );
@@ -838,4 +844,5 @@ Future<void> _submitForm() async {
     );
   }
 }
+
 }
