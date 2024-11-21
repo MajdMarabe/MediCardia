@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_application_3/screens/profile.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'drug_interaction_checker.dart';  // Import the DrugInteractionCheckerPage
+import 'drug_interaction_checker.dart';
+import 'drug_info.dart'; // Import the new page
 
 class HomePage extends StatefulWidget {
   @override
@@ -22,8 +23,8 @@ class _HomePageState extends State<HomePage> {
   // List of pages to navigate to
   final List<Widget> _pages = [
     Container(), // Home page is initially empty
-    Center(child: Text('Search Page')),
-    Center(child: Text('Add Page')),
+    const Center(child: Text('Search Page')),
+    const Center(child: Text('Add Page')),
     ProfilePage(), // Link to the ProfilePage here
   ];
 
@@ -41,12 +42,20 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Function to navigate to the DrugInfoFromBarcodePage
+  void _navigateToDrugInfoFromBarcode() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => DrugInfoPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xffe0c3fc), // Match your gradient colors
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'MediCardia',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
@@ -69,6 +78,8 @@ class _HomePageState extends State<HomePage> {
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),
+
+                  // Drug Interaction Checker
                   GestureDetector(
                     onTap: _navigateToDrugInteractionChecker,
                     child: Container(
@@ -85,13 +96,55 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ],
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Icon(Icons.medical_services, color: Colors.white),
                           SizedBox(width: 10),
                           Text(
                             'Drug Interaction Checker',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Drug Info from Barcode
+                  GestureDetector(
+                    onTap: _navigateToDrugInfoFromBarcode,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                      decoration: BoxDecoration(
+                        color: Color(0xff613089),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            offset: Offset(0, 5),
+                            color: Color(0xff613089).withOpacity(0.2),
+                            spreadRadius: 2,
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                         Image.asset(
+                    'assets/images/barcode.png', // The path to your image
+                    width: 20,
+                    height: 20,
+                    color: Colors.white,
+                  ),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'Drug Info From Barcode',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,
