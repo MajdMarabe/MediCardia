@@ -141,39 +141,37 @@ class DrugInfoPage extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // Additional Info
+            // Tip Section
             Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.purple.shade50,
-                    Colors.purple.shade50,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                color: Colors.purple.shade200, // Updated background color
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'How it works:',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xff613089),
-                    ),
+                color: Colors.purple.shade100,
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
                   ),
-                  SizedBox(height: 10),
-                  Text(
-                    '• Position the barcode within the scanner frame.\n'
-                    '• Hold still while the scanner processes the barcode.\n'
-                    '• Ensure the barcode is clear and well-lit for the best results.\n'
-                    '• Get detailed information about the scanned drug.',
-                    style: TextStyle(fontSize: 14, color: Colors.black),
+                ],
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.lightbulb,
+                    color: Color(0xff613089),
+                    size: 30,
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Ensure the barcode is clear and well-lit for the best results.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -185,7 +183,6 @@ class DrugInfoPage extends StatelessWidget {
   }
 }
 
-// Custom Dialog to show drug details
 class DrugDetailsDialog extends StatelessWidget {
   final DrugDetails drugDetails;
 
@@ -195,9 +192,9 @@ class DrugDetailsDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(20),
       ),
-      elevation: 16,
+      elevation: 8,
       backgroundColor: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -205,39 +202,44 @@ class DrugDetailsDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            // Title section
+            const Text(
               'Drug Details',
               style: TextStyle(
-                  fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xff613089)),
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+                color: Color(0xff613089),
+              ),
             ),
             const SizedBox(height: 15),
-            Text(
-              'Use: ${drugDetails.use}',
-              style: TextStyle(fontSize: 16),
-            ),
+
+            // Use section
+            _buildDetailRow('Use', drugDetails.use),
             const SizedBox(height: 10),
-            Text(
-              'Dose: ${drugDetails.dose}',
-              style: TextStyle(fontSize: 16),
-            ),
+
+            // Dose section
+            _buildDetailRow('Dose', drugDetails.dose),
             const SizedBox(height: 10),
-            Text(
-              'Time: ${drugDetails.time}',
-              style: TextStyle(fontSize: 16),
-            ),
+
+            // Time section
+            _buildDetailRow('Time', drugDetails.time),
             const SizedBox(height: 10),
-            Text(
-              'Notes: ${drugDetails.notes}',
-              style: TextStyle(fontSize: 16),
-            ),
+
+            // Notes section with overflow handling and scrolling
+            _buildDetailRow('Notes', drugDetails.notes, isMultiline: true),
             const SizedBox(height: 20),
+
+            // Close button
             Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text("Close"),
+                child: const Text(
+                  "Close",
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xff613089),
                   padding: EdgeInsets.symmetric(horizontal: 25, vertical: 12),
@@ -250,6 +252,40 @@ class DrugDetailsDialog extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, {bool isMultiline = false}) {
+    return Row(
+      crossAxisAlignment: isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+      children: [
+        Text(
+          '$label:',
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+            color: Color(0xff2a2a2a),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: isMultiline
+              ? Container(
+                  padding: const EdgeInsets.only(top: 5),
+                  child: Text(
+                    value,
+                    style: const TextStyle(fontSize: 16, color: Colors.black87),
+                    softWrap: true,
+                    overflow: TextOverflow.visible,
+                  ),
+                )
+              : Text(
+                  value,
+                  style: const TextStyle(fontSize: 16, color: Colors.black87),
+                  overflow: TextOverflow.ellipsis,
+                ),
+        ),
+      ],
     );
   }
 }
