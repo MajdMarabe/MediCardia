@@ -539,6 +539,7 @@ Widget _buildProfileHeader() {
           _buildInfoCard(
             'Please fill it\nyou should know that every doctor can see this', 
             'Your MediCard public information', 
+            
             Icons.favorite,
           ),
           // Add more info cards if needed
@@ -552,10 +553,9 @@ Widget _buildProfileHeader() {
 
 
 
-  // Helper method to build information cards like in the header
   Widget _buildInfoCard(String title, String value, IconData icon) {
   return Container(
-   // width: 100,
+    // width: 100,
     padding: const EdgeInsets.all(10),
     decoration: BoxDecoration(
       color: Colors.white,
@@ -575,10 +575,10 @@ Widget _buildProfileHeader() {
         const SizedBox(height: 5),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Color(0xff613089), // Custom color for this text
           ),
         ),
         const SizedBox(height: 3),
@@ -593,6 +593,7 @@ Widget _buildProfileHeader() {
     ),
   );
 }
+
 
   // Helper method to build section titles
   Widget _buildSectionTitle(String title) {

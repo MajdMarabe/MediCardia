@@ -463,7 +463,7 @@ List<Map<String, dynamic>> treatmentPlans = [
     ),
     SizedBox(height: 8), // Space between the icon and the text
     Text(
-      'Your MediCard Private Info',
+      'Your MediCard Private Information',
       style: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.bold,
