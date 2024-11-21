@@ -103,12 +103,12 @@ class DrugInfoPage extends StatelessWidget {
                     notes: "Take with food for better absorption",
                   );
 
-                  // Navigate to the details page
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DrugDetailsPage(drugDetails: drugDetails),
-                    ),
+                  // Show a dialog or overlay with the drug details
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return DrugDetailsDialog(drugDetails: drugDetails);
+                    },
                   );
                 }
               },
@@ -144,18 +144,16 @@ class DrugInfoPage extends StatelessWidget {
             // Additional Info
             Container(
               padding: const EdgeInsets.all(15),
-              
               decoration: BoxDecoration(
-                
-                 gradient: LinearGradient(
-                        colors: [
-                          Colors.purple.shade50,
-                          Colors.purple.shade50,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      color: Colors.purple.shade200, // Updated background color
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.purple.shade50,
+                    Colors.purple.shade50,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                color: Colors.purple.shade200, // Updated background color
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Column(
@@ -187,29 +185,35 @@ class DrugInfoPage extends StatelessWidget {
   }
 }
 
-class DrugDetailsPage extends StatelessWidget {
+// Custom Dialog to show drug details
+class DrugDetailsDialog extends StatelessWidget {
   final DrugDetails drugDetails;
 
-  DrugDetailsPage({required this.drugDetails});
+  const DrugDetailsDialog({required this.drugDetails});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Drug Details'),
-        backgroundColor: const Color(0xff613089),
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
       ),
-      body: Padding(
+      elevation: 16,
+      backgroundColor: Colors.white,
+      child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 20),
-
-            // Drug Details
+            Text(
+              'Drug Details',
+              style: TextStyle(
+                  fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xff613089)),
+            ),
+            const SizedBox(height: 15),
             Text(
               'Use: ${drugDetails.use}',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 10),
             Text(
@@ -225,6 +229,23 @@ class DrugDetailsPage extends StatelessWidget {
             Text(
               'Notes: ${drugDetails.notes}',
               style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 20),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text("Close"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xff613089),
+                  padding: EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+              ),
             ),
           ],
         ),

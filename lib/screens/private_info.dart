@@ -463,7 +463,7 @@ List<Map<String, dynamic>> treatmentPlans = [
     ),
     SizedBox(height: 8), // Space between the icon and the text
     Text(
-      'Your MediCarde Private Info',
+      'Your MediCard Private Info',
       style: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.bold,
@@ -638,8 +638,8 @@ List<Map<String, dynamic>> treatmentPlans = [
 
                 _buildTextFormField(
                   controller: _alternativeTherapiesController,
-                  label: 'Alternative Therapies',
-                  hint: 'Enter alternative therapies',
+                  label: 'Additional Notes',
+                  hint: 'Enter additional notes',
                   icon: Icons.local_hospital,
                   maxLines: 2,
                 ),
