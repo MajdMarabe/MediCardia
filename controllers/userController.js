@@ -408,7 +408,7 @@ module.exports.UpdatemedicalHistory = asyncHandler(async (req, res) => {
 module.exports.UpdalabTests = asyncHandler(async (req, res) => {
     // Destructure medicalHistory from the request body
     const { labTests } = req.body;
-
+console.log(labTests);
     // Validate that medicalHistory is an array
     if (!Array.isArray(labTests)) {
         return res.status(400).json({ message: "labTests must be an array" });
