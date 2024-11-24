@@ -7,6 +7,9 @@ import 'package:flutter_application_3/screens/home.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http; // Import http package
 import 'constants.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+final storage = FlutterSecureStorage();
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -48,14 +51,20 @@ class _SignInScreenState extends State<SignInScreen> {
       try {
         // Make the POST request
         final response = await http.post(url, headers: headers, body: body);
-
+        
         // Check for a successful response
         if (response.statusCode == 200) {
           final responseData = jsonDecode(response.body);
+          final userid = responseData['_id'];
+          final token =  responseData['token'];
+          await storage.write(key: 'userid', value: userid);
+          await storage.write(key: 'token', value: token);
+          final userJson = jsonEncode(responseData); // Convert user object to JSON string
+          await storage.write(key: 'user', value: userJson);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content:
-                    Text('Login Successful! Token: ${responseData['token']}')),
+                    Text('Login Successful! Token: $userid')),
           );
           // Navigate or store token after successful login
 

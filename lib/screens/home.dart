@@ -5,6 +5,11 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'drug_interaction_checker.dart';
 import 'drug_info.dart';
 
+import 'package:flutter_application_3/screens/private_info_view.dart'; // Ensure the correct path
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+final storage = FlutterSecureStorage();
+
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
@@ -50,6 +55,15 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Function to navigate to PublicInfoViewPage
+  void _navigateToPublicInfoView() {
+    
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => PrivateDataPage()), // Navigate to PublicInfoViewPage
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,7 +80,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           _pages[_selectedIndex], // Show the selected page
 
-          // Add the "Drug Interaction" section within Home Page content
+          // Add the "Public Info View" section within Home Page content
           if (_selectedIndex == 0) // Only show in the 'Home Page' section
             Center(
               child: Column(
@@ -148,11 +162,11 @@ class _HomePageState extends State<HomePage> {
                       child: Row(
                         children: [
                           Image.asset(
-                    'assets/images/barcode.png', // The path to your image
-                    width: 35,
-                    height: 35,
-                    color: Color(0xff613089),
-                  ),
+                            'assets/images/barcode.png', // The path to your image
+                            width: 35,
+                            height: 35,
+                            color: Color(0xff613089),
+                          ),
                           const SizedBox(width: 20),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,6 +182,54 @@ class _HomePageState extends State<HomePage> {
                               SizedBox(height: 5),
                               Text(
                                 'Scan barcodes to get drug details',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Box for Public Info View
+                  GestureDetector(
+                    onTap: _navigateToPublicInfoView,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            spreadRadius: 2,
+                            blurRadius: 10,
+                            offset: Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.visibility, size: 40, color: Color(0xff613089)),
+                          const SizedBox(width: 20),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'Public Info View',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff613089),
+                                ),
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                'View your private information',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey,

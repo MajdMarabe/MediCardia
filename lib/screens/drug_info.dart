@@ -1,17 +1,67 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart'; // Import the package
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:http/http.dart' as http;
+import 'constants.dart';
 
-// Mock Drug Data
+// DrugDetails class to store the API data
 class DrugDetails {
+  final String drugName; // Add drug name
   final String use;
   final String dose;
   final String time;
   final String notes;
 
-  DrugDetails({required this.use, required this.dose, required this.time, required this.notes});
+  DrugDetails({
+    required this.drugName,
+    required this.use,
+    required this.dose,
+    required this.time,
+    required this.notes,
+  });
+
+  factory DrugDetails.fromJson(Map<String, dynamic> json, String drugName) {
+    return DrugDetails(
+      drugName: drugName,
+      use: json['Use'] ?? "Not specified",
+      dose: json['Dose'] ?? "Not specified",
+      time: json['Time'] ?? "Not specified",
+      notes: json['Notes'] ?? "Not specified",
+    );
+  }
 }
 
 class DrugInfoPage extends StatelessWidget {
+  const DrugInfoPage({Key? key}) : super(key: key);
+
+  // Function to fetch drug details from the API
+  Future<DrugDetails?> fetchDrugDetails(String barcode) async {
+    const String apiUrl = '${ApiConstants.baseUrl}/drugs/barcodeUse'; // Replace with your API endpoint
+
+    try {
+      final response = await http.get(Uri.parse('$apiUrl?barcode=$barcode'));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        if (data['drug'] != null && data['drug']['details'] != null && data['drug']['details'].isNotEmpty) {
+          final String drugName = data['drug']['Drugname'] ?? "Unknown Drug";
+          // Extract the first detail from the "details" array
+          return DrugDetails.fromJson(data['drug']['details'][0], drugName);
+        } else {
+          throw Exception("No details found for this drug.");
+        }
+      } else if (response.statusCode == 404) {
+        throw Exception("Drug not found.");
+      } else {
+        throw Exception("Failed to fetch drug details.");
+      }
+    } catch (e) {
+      print('Error fetching drug details: $e');
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,7 +108,6 @@ class DrugInfoPage extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Use the barcode.png image as an icon
                   Image.asset(
                     'assets/images/barcode.png', // The path to your image
                     width: 150,
@@ -85,7 +134,7 @@ class DrugInfoPage extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // Modern Scan Button
+            // Scan Button
             ElevatedButton(
               onPressed: () async {
                 String barcodeScanResult = await FlutterBarcodeScanner.scanBarcode(
@@ -94,22 +143,22 @@ class DrugInfoPage extends StatelessWidget {
                   true, // Show flash icon
                   ScanMode.BARCODE, // Scan mode (can also be QR_CODE)
                 );
-                if (barcodeScanResult != "-1") {
-                  // Simulate fetching drug details after scanning
-                  DrugDetails drugDetails = DrugDetails(
-                    use: "Pain relief",
-                    dose: "6 months",
-                    time: "Once a day",
-                    notes: "Take with food for better absorption",
-                  );
 
-                  // Show a dialog or overlay with the drug details
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return DrugDetailsDialog(drugDetails: drugDetails);
-                    },
-                  );
+                if (barcodeScanResult != "-1") {
+                  DrugDetails? drugDetails = await fetchDrugDetails(barcodeScanResult);
+
+                  if (drugDetails != null) {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return DrugDetailsDialog(drugDetails: drugDetails);
+                      },
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to fetch drug details.')),
+                    );
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -186,7 +235,7 @@ class DrugInfoPage extends StatelessWidget {
 class DrugDetailsDialog extends StatelessWidget {
   final DrugDetails drugDetails;
 
-  const DrugDetailsDialog({required this.drugDetails});
+  const DrugDetailsDialog({required this.drugDetails, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -213,19 +262,23 @@ class DrugDetailsDialog extends StatelessWidget {
             ),
             const SizedBox(height: 15),
 
-            // Use section
-            _buildDetailRow('Use', drugDetails.use),
+            // Drug Name
+            _buildDetailRow('Drug Name', drugDetails.drugName),
             const SizedBox(height: 10),
 
+            // Use section
+            _buildDetailRow('Use', drugDetails.use,isMultiline: true),
+            const SizedBox(height: 20),
+
             // Dose section
-            _buildDetailRow('Dose', drugDetails.dose),
+            _buildDetailRow('Dose', drugDetails.dose, isMultiline: true),
             const SizedBox(height: 10),
 
             // Time section
-            _buildDetailRow('Time', drugDetails.time),
+            _buildDetailRow('Time', drugDetails.time, isMultiline: true),
             const SizedBox(height: 10),
 
-            // Notes section with overflow handling and scrolling
+            // Notes section
             _buildDetailRow('Notes', drugDetails.notes, isMultiline: true),
             const SizedBox(height: 20),
 
@@ -241,8 +294,8 @@ class DrugDetailsDialog extends StatelessWidget {
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xff613089),
-                  padding: EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+                  backgroundColor: const Color(0xff613089),
+                  padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
