@@ -9,73 +9,75 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,  // Ensures image fills the entire screen
-      body: Stack(
-        children: [
-          // Background Image
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/Background.jpg',
-              fit: BoxFit.cover,  // Ensures the image covers the screen
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // App Logo
+            CircleAvatar(
+              radius: 80.0,
+              backgroundColor: const Color(0xffF0E5FF), // Subtle background for logo
+              child: Image.asset(
+                'assets/images/appLogo.png',
+                height: 120.0,
+                width: 120.0,
+                color: const Color(0xff613089),
+              ),
             ),
-          ),
-          // Foreground content
+            const SizedBox(height: 20.0),
+            // App Name
+            const Text(
+              'MediCardia',
+              style: TextStyle(
+                fontFamily: 'BAUHS93',
+                fontSize: 48.0,
+                fontWeight: FontWeight.bold,
+                color: Color(0xff613089),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16.0),
+            // Tagline
+            const Text(
+              'Your Health, Your Priority',
+              style: TextStyle(
+                fontFamily: 'Arial',
+                fontSize: 18.0,
+                fontStyle: FontStyle.italic,
+                color: Colors.grey,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 50.0),
+            // Buttons Section
           Column(
-            children: [
-              Flexible(
-                flex: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 0,
-                    horizontal: 40.0,
-                  ),
-                  child: Center(
-                    child: RichText(
-                      textAlign: TextAlign.center,
-                      text: const TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'Welcome Back!\n',
-                            style: TextStyle(
-                              fontSize: 45.0,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const Flexible(
-                flex: 1,
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: WelcomeButton(
-                          buttonText: 'Log in',
-                          onTap: SignInScreen(),
-                          color: Colors.transparent,
-                          textColor: Colors.white,
-                        ),
-                      ),
-                      Expanded(
-                        child: WelcomeButton(
-                          buttonText: 'Sign up',
-                          onTap: SignUpScreen(),
-                          color: Colors.white,
-                          textColor: Color(0xff613089),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+  children: [
+    // Login Button
+    WelcomeButton(
+      buttonText: 'Log In',
+      onTap: SignInScreen(),
+      color: const Color(0xff613089), // Purple background
+      textColor: Colors.white, // White text
+      width: 200.0, // Fixed width for consistency
+    ),
+    const SizedBox(height: 12.0), // Spacing between buttons
+    // Sign Up Button
+    WelcomeButton(
+      buttonText: 'Sign Up',
+      onTap: SignUpScreen(),
+      color: Colors.white, // White background
+      textColor: const Color(0xff613089), // Purple text
+      borderColor: const Color(0xff613089), // Purple border
+      borderWidth: 1.5, // Thin border
+      width: 200.0, // Fixed width for consistency
+    ),
+  ],
+),
+
+          ],
+        ),
       ),
     );
   }

@@ -1,39 +1,56 @@
 import 'package:flutter/material.dart';
 
 class WelcomeButton extends StatelessWidget {
-  const WelcomeButton(
-      {super.key, this.buttonText, this.onTap, this.color, this.textColor});
-  final String? buttonText;
-  final Widget? onTap;
-  final Color? color;
-  final Color? textColor;
+  final String buttonText;
+  final Widget onTap;
+  final Color color;
+  final Color textColor;
+  final Color? borderColor; // Optional parameter for border color
+  final double? borderWidth; // Optional parameter for border width
+  final double width; // Added width parameter for consistent button size
+
+  const WelcomeButton({
+    required this.buttonText,
+    required this.onTap,
+    required this.color,
+    required this.textColor,
+    this.borderColor,
+    this.borderWidth,
+    this.width = double.infinity, // Default width is full width
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (e) => onTap!,
+    return SizedBox(
+      width: width, // Apply the fixed width
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => onTap),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: textColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(40.0), // Rounded corners
+            side: borderColor != null && borderWidth != null
+                ? BorderSide(
+                    color: borderColor!,
+                    width: borderWidth!,
+                  )
+                : BorderSide.none, // No border if not specified
           ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(30.0),
-        decoration: BoxDecoration(
-          color: color!,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(50),
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 14.0),
         ),
         child: Text(
-          buttonText!,
-          textAlign: TextAlign.center,
+          buttonText,
           style: TextStyle(
-            fontSize: 20.0,
+            color: textColor,
+            fontSize: 18.0,
             fontWeight: FontWeight.bold,
-            color: textColor!,
           ),
         ),
       ),
