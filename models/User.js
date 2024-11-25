@@ -46,6 +46,12 @@ const UserSchema = new mongoose.Schema({
     passwordChangedAt: {
         type: Date
     },
+    role: {
+        type: String,
+        required: true,
+        enum: ['patient', 'doctor','admin'],
+        default: 'patient' 
+    },
     medicalCard: {
         publicData: {
             idNumber: { type: String, trim: true, default: null }, 
@@ -100,6 +106,7 @@ const UserSchema = new mongoose.Schema({
                 }
             ]*/
         }
+        
     }
     /*passwordChangedAt: Date,
     passwordResetToken: String,

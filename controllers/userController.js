@@ -1,5 +1,7 @@
 const jwt =require("jsonwebtoken");
 const asyncHandler= require("express-async-handler"); 
+const {Doctor}= require("../models/Doctor");
+
 const {validateCreatUser,validateLoginUser,validateUpdateUser,validatePublicData,validateHistory,validatelabTests,User}= require("../models/User");
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
@@ -62,6 +64,39 @@ module.exports.register =  asyncHandler(async(req, res) => {
 
 
 });
+/**
+ * @desc  login
+ * @route /api/users/login
+ * @method Post
+ * @access public
+ */
+module.exports.login = asyncHandler(async (req, res) => {
+    console.log(req.body);
+
+    const { error } = validateLoginUser(req.body);
+    if (error) {
+        return res.status(400).json({ message: error.details[0].message });
+    }
+
+    let user = await User.findOne({ email: req.body.email });
+    if (!user) {
+        user = await Doctor.findOne({ email: req.body.email });
+        if (!user) {
+            return res.status(400).json({ message: "Invalid email" });
+        }
+    }
+
+    const passwordMatch = await bcrypt.compare(req.body.password_hash, user.password_hash);
+    if (!passwordMatch) {
+        return res.status(400).json({ message: "Invalid password" });
+    }
+
+    const token = user.generateToken();
+
+    const { password_hash, ...other } = user._doc;
+
+    res.status(200).json({ ...other, token });
+});
 
 
  /**
@@ -70,6 +105,7 @@ module.exports.register =  asyncHandler(async(req, res) => {
  * @method Post
  * @access public
  */
+/*
 module.exports.login= asyncHandler(async(req,res) =>{
 
     
@@ -98,7 +134,7 @@ module.exports.login= asyncHandler(async(req,res) =>{
     res.status(200).json({...other, token }); 
     
      
-    });
+    });*/
     ////
     /**
  * @desc get all users 

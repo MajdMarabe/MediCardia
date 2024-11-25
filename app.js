@@ -22,6 +22,7 @@ app.use(express.urlencoded({ limit: '10mb', extended: true })); // For URL-encod
 
 app.use("/api/users",require("./routes/users"))
 app.use("/api/drugs",require("./routes/drugs"))
+app.use("/api/doctors",require("./routes/doctors"))
 
 ///
 
