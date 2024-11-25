@@ -181,36 +181,39 @@ Widget build(BuildContext context) {
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
               decoration: BoxDecoration(
                 color: interactionMessage.contains('interactions found')
-                    ? const Color.fromARGB(255, 153, 105, 177)
+                    ? const Color.fromARGB(255, 153, 105, 177) 
                     : Colors.green,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Text(
-                      interactionMessage,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  if (interactionMessage.contains('interactions found')) ...[
-                    const SizedBox(height: 10),
-                    const Text(
-                      'See details below',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Center(
+      child: Text(
+        interactionMessage,
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+    ),
+    if (interactionMessage.contains('interactions found')) ...[
+      const SizedBox(height: 10),
+      Center(
+        child: Text(
+          'See details below',
+          style: TextStyle(
+            fontSize: 14,
+            fontStyle: FontStyle.italic,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    ],
+  ],
+),
+
             ),
           ],
           const SizedBox(height: 20),

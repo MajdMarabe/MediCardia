@@ -47,6 +47,7 @@ dependencies:
   ionicons: ^0.2.2
   table_calendar: ^3.0.0
   flutter_secure_storage: ^9.2.2
+  animated_text_kit: ^4.2.1
 
 dev_dependencies:
   flutter_test:
@@ -102,3 +103,11 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  fonts:
+    - family: BAUHS93
+      fonts:
+        - asset: assets/fonts/BAUHS93.ttf
+    - family: ScriptMTBold
+      fonts:
+        - asset: assets/fonts/ScriptMTBold.ttf
