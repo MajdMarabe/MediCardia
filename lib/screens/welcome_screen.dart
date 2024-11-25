@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_3/screens/login_screen.dart';
 import 'package:flutter_application_3/screens/signup_screen.dart';
 import 'package:flutter_application_3/widgets/welcome_button.dart';
+import 'package:flutter_application_3/screens/select_type.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -64,7 +65,7 @@ class WelcomeScreen extends StatelessWidget {
                       Expanded(
                         child: WelcomeButton(
                           buttonText: 'Sign up',
-                          onTap: SignUpScreen(),
+                          onTap: AccountTypeSelectionScreen(),
                           color: Colors.white,
                           textColor: Color(0xff613089),
                         ),
