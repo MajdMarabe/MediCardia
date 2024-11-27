@@ -3,7 +3,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter_application_3/screens/profile.dart';
-
+import 'package:flutter_application_3/screens/drugs_view.dart';
+import 'drugshome.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -164,7 +165,7 @@ class _HomePageState extends State<HomePage> {
             child: TextField(
               decoration: InputDecoration(
                 border: InputBorder.none,
-                hintText: 'Search for doctor, drugs, etc.',
+                hintText: 'Search for doctor,  etc.',
                 hintStyle: TextStyle(color: Colors.grey[400]),
               ),
             ),
@@ -369,8 +370,10 @@ class _HomePageState extends State<HomePage> {
         icon: FontAwesomeIcons.capsules, // Directly passing the FontAwesomeIcons
         label: 'Drugs',
         onTap: () {
-          // Functionality for Drugs
-        },
+        Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => OnlineMedicineHomePage()),
+      );     },
       ),
       const SizedBox(width: 20),
       buildCircleButton(

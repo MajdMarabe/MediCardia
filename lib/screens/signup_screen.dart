@@ -4,6 +4,10 @@ import 'package:flutter_application_3/widgets/custom_scaffold.dart';
 import 'package:flutter_application_3/screens/public_info.dart';
 import 'package:http/http.dart' as http; // HTTP package for sending requests
 import 'constants.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_application_3/screens/verification_code.dart';
+
+final storage = FlutterSecureStorage();
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -57,20 +61,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
         }),
       );
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200) {
         // Parse the response body to get the user ID
         final responseData = jsonDecode(response.body);
+        
         final userId = responseData['_id']; // Extract user ID from the response
+        await storage.write(key: 'userid', value: userId);
 
         // Success
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sign up successful')),
+           SnackBar(content: Text('Sign up successful: $responseData')),
         );
 
         // Navigate to PublicInfo screen and pass userId
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => PublicInfo(userId: userId)), // Pass userId to the PublicInfo screen
+          MaterialPageRoute(builder: (context) =>  VerificationCodeScreen(email: _emailController.text,flag: '3')), // PublicInfo(userId: userId) Pass userId to the PublicInfo screen
         );
       } else {
         // Server error or validation issue

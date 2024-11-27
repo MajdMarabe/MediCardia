@@ -4,6 +4,8 @@ import 'package:flutter_application_3/widgets/custom_scaffold.dart';
 import 'package:flutter_application_3/screens/login_screen.dart';
 import 'package:http/http.dart' as http; 
 import 'constants.dart';
+import 'package:flutter_application_3/screens/verification_code.dart';
+
 
 class SignUpDoctorScreen extends StatefulWidget {
   const SignUpDoctorScreen({super.key});
@@ -66,7 +68,7 @@ class _SignUpDoctorScreenState extends State<SignUpDoctorScreen> {
         }),
       );
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         final doctorId = responseData['_id'];
 
@@ -76,7 +78,7 @@ class _SignUpDoctorScreenState extends State<SignUpDoctorScreen> {
 
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => SignInScreen()),
+          MaterialPageRoute(builder: (context) => VerificationCodeScreen(email: _emailController.text,flag: '2')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

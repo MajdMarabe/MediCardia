@@ -5,6 +5,9 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_application_3/screens/login_screen.dart';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+final storage = FlutterSecureStorage();
 
 class PrivateInfo extends StatefulWidget {
    final String userId; // Accepting userId from the constructor
@@ -688,7 +691,7 @@ ElevatedButton(
                 // Skip Button
                 ElevatedButton(
   onPressed: () {
-   
+     storage.delete(key: 'userid');
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => SignInScreen()), 
@@ -702,7 +705,7 @@ ElevatedButton(
     ),
   ),
   child: const Text(
-    'Skip',
+    'Next',
     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
   ),
 ),

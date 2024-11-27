@@ -7,6 +7,8 @@ import 'package:flutter_application_3/screens/home.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http; // Import http package
 import 'constants.dart';
+import 'package:flutter_application_3/screens/select_type.dart';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 final storage = FlutterSecureStorage();
@@ -30,61 +32,74 @@ class _SignInScreenState extends State<SignInScreen> {
 
   // Function to handle the login process
   Future<void> login() async {
-    if (_formSignInKey.currentState!.validate()) {
-      // Show a loading indicator
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Logging in...'),
-        ),
-      );
+  if (_formSignInKey.currentState!.validate()) {
+    // Show a loading indicator
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Logging in...'),
+      ),
+    );
 
-      // Prepare the API request
-      final url = Uri.parse(
-          '${ApiConstants.baseUrl}/users/login'); // Replace with your actual API URL
-      final headers = {'Content-Type': 'application/json'};
-      final body = jsonEncode({
-        'email': _emailController.text,
-        'password_hash': _passwordController
-            .text, // Ensure this matches your API's expected field
-      });
+    // Prepare the API request
+    final url = Uri.parse('${ApiConstants.baseUrl}/users/login'); // Replace with your actual API URL
+    final headers = {'Content-Type': 'application/json'};
+    final body = jsonEncode({
+      'email': _emailController.text,
+      'password_hash': _passwordController.text, // Ensure this matches your API's expected field
+    });
 
-      try {
-        // Make the POST request
-        final response = await http.post(url, headers: headers, body: body);
-        
-        // Check for a successful response
-        if (response.statusCode == 200) {
-          final responseData = jsonDecode(response.body);
-          final userid = responseData['_id'];
-          final token =  responseData['token'];
-          await storage.write(key: 'userid', value: userid);
-          await storage.write(key: 'token', value: token);
-          final userJson = jsonEncode(responseData); // Convert user object to JSON string
-          await storage.write(key: 'user', value: userJson);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content:
-                    Text('Login Successful! Token: $userid')),
-          );
-          // Navigate or store token after successful login
+    try {
+      // Make the POST request
+      final response = await http.post(url, headers: headers, body: body);
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => HomePage()),
-          );
-        } else {
-          final errorMessage = jsonDecode(response.body)['message'];
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login Failed: $errorMessage')),
-          );
-        }
-      } catch (error) {
+      // Check for a successful response
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body); // Parse the response JSON
+        final userid = responseData['_id']; // Extract the user ID
+        final token = responseData['token']; // Extract the token
+        final role = responseData['role']; // Extract the role from the response
+
+        // Store the data locally
+        await storage.write(key: 'userid', value: userid);
+        await storage.write(key: 'token', value: token);
+        final userJson = jsonEncode(responseData); // Convert the full response to JSON string
+        await storage.write(key: 'user', value: userJson);
+
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $error')),
+          SnackBar(content: Text('Login Successful! User ID: $userid')),
+        );
+
+        // Navigate based on role
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              if (role == 'patient') {
+                return HomePage(); // Replace with the actual Patient's HomePage widget
+              } else if (role == 'doctor') {
+                return HomePage(); // Replace with the actual Doctor's HomePage widget
+              } else {
+                // Default return if no condition matches
+                return HomePage(); // Replace with a fallback HomePage widget
+              }
+            },
+          ),
+        );
+      } else {
+        final errorMessage = jsonDecode(response.body)['message']; // Extract the error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login Failed: $errorMessage')),
         );
       }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $error')),
+      );
     }
   }
+}
+
 
   void _togglePasswordVisibility() {
     setState(() {
@@ -307,7 +322,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => const SignUpScreen()),
+                                    builder: (context) => const AccountTypeSelectionScreen()),
                               );
                             },
                             child: const Text(

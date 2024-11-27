@@ -5,11 +5,15 @@ import 'package:flutter_application_3/widgets/custom_scaffold.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'constants.dart';
+import 'package:flutter_application_3/screens/login_screen.dart';
+import 'package:flutter_application_3/screens/public_info.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+final storage = FlutterSecureStorage();
 class VerificationCodeScreen extends StatefulWidget {
   final String email; // To send verification code to email
-
-  const VerificationCodeScreen({super.key, required this.email});
+  final String flag;
+  const VerificationCodeScreen({super.key, required this.email, required this.flag});
 
   @override
   State<VerificationCodeScreen> createState() => _VerificationCodeScreenState();
@@ -31,15 +35,32 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
         }),
       );
 
-      if (response.statusCode == 200) {
-        final token = jsonDecode(response.body)['token']; // Extract token
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => UpdatePasswordScreen(token: token),
-          ),
-        );
-      } else {
+     if (response.statusCode == 200) {
+  final token = jsonDecode(response.body)['token']; // Extract token
+
+  // Make sure you await the result from storage.read
+final userid = await storage.read(key: 'userid') ?? 'default_user_id';
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) {
+        // Access flag from the current widget's state
+        if (widget.flag == '1') {
+          return UpdatePasswordScreen(token: token);
+        } else if (widget.flag == '2') {
+          return SignInScreen();
+        } else if (widget.flag == '3') {
+          return PublicInfo(userId: userid);
+        } else {
+          // Default return if no condition matches
+          return SignInScreen(); // You can replace this with any default screen widget
+        }
+      },
+    ),
+  );
+}
+ else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Invalid verification code')),
         );

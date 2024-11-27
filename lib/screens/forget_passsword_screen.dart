@@ -119,7 +119,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => VerificationCodeScreen(email: _emailController.text),
+                                    builder: (context) => VerificationCodeScreen(email: _emailController.text,flag: '1'),
                                   ),
                                 );
                                 ScaffoldMessenger.of(context).showSnackBar(
