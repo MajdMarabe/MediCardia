@@ -1,6 +1,7 @@
 const jwt =require("jsonwebtoken");
 const asyncHandler= require("express-async-handler"); 
 const {Doctor}= require("../models/Doctor");
+const { Drug } = require("../models/Drug");
 
 const {validateCreatUser,validateLoginUser,validateUpdateUser,validatePublicData,validateHistory,validatelabTests,User}= require("../models/User");
 const bcrypt = require('bcryptjs');
@@ -16,54 +17,99 @@ class CustomError extends Error {
         Error.captureStackTrace(this, this.constructor);
     }
 }
-
 /**
- * @desc add new user (sign up)
+ * @desc Add new user (Sign Up)
  * @route /api/users/register
- * @method get
+ * @method POST
  * @access public 
-*/
-module.exports.register =  asyncHandler(async(req, res) => {
-    // Validate the request body
+ */
+module.exports.register = asyncHandler(async (req, res, next) => {
     const { error } = validateCreatUser(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
     }
 
-    // Check if the user already exists
     let user = await User.findOne({ email: req.body.email });
     if (user) {
-        return res.status(400).json({ message: "This user already registered" });
+        return res.status(400).json({ message: "This email is already registered" });
     }
 
-
-    //hashing pass
     const salt = await bcrypt.genSalt(10);
-    req.body.password_hash = await bcrypt.hash(req.body.password_hash,salt);
-    // Create a new user object with the skill's ObjectId
+    req.body.password_hash = await bcrypt.hash(req.body.password_hash, salt);
+
     user = new User({
         username: req.body.username,
         email: req.body.email,
         location: req.body.location,
-      
         password_hash: req.body.password_hash,
-        
     });
 
-    try {
-        const result = await user.save();
-      const token =user.generateToken();
-      
-        const { password_hash, ...other } = result._doc;
-        res.status(201).json({ ...other, token });
-    } catch (err) {
-        console.error(err);  // Log the error message
-        res.status(500).json({ message: " the user name already registered" });
+    await user.save();
+
+    // Trigger email verification
+    const verifyResponse = await module.exports.verifyEmail({ body: { email: user.email } }, res, next);
+    if (!verifyResponse) {
+        return; // Prevent further execution if verification fails
     }
-    
 
+    const token = user.generateToken();
 
+    // Include the user's `_id` in the response
+    res.status(201).json({
+       // message: 'User registered successfully. Please verify your email.',
+        token,
+        _id: user._id, // Add the user ID to the response
+    });
 });
+
+/**
+ * @desc Verify Email
+ * @route /api/users/verifyemail
+ * @method POST
+ * @access public
+ */
+module.exports.verifyEmail = asyncHandler(async (req, res, next) => {
+    const { email } = req.body;
+
+    // Find user or doctor by email
+    const user = await User.findOne({ email }) || await Doctor.findOne({ email });
+    if (!user) {
+        return next(new CustomError('Email not found', 404));
+    }
+
+    // Generate a random 4-digit verification code
+    const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+
+    // Save the verification code and expiration in the user/doctor document
+    user.verificationCode = verificationCode;
+    user.verificationCodeExpires = Date.now() + 10 * 60 * 1000; // 10 minutes expiration
+    await user.save({ validateBeforeSave: false });
+
+    // Send verification code to email
+    const message = `Your email verification code is: ${verificationCode}. It will expire in 10 minutes.`;
+
+    try {
+        await sendEmail({
+            email: user.email,
+            subject: 'Email Verification Code',
+            message,
+        });
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Verification code sent to your email',
+            _id: user._id
+        });
+    } catch (err) {
+        user.verificationCode = undefined;
+        user.verificationCodeExpires = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        return next(new CustomError('Error sending verification code. Please try again.', 500));
+    }
+});
+
+
 /**
  * @desc  login
  * @route /api/users/login
@@ -215,184 +261,202 @@ module.exports.login= asyncHandler(async(req,res) =>{
         res.status(404).json({ message:"user not found"});
     }
     });
-
-    module.exports.forgetPassword = asyncHandler(async (req, res, next) => {
-        // 1. Get user based on email
-        const user = await User.findOne({ email: req.body.email });
+/**
+ * @desc forget password
+ * @route /api/user/forgetPassword
+ * @method POST
+ * @access public
+ */
+module.exports.forgetPassword = asyncHandler(async (req, res, next) => {
+    // 1. Get user or doctor based on email
+    let user = await User.findOne({ email: req.body.email });
+    if (!user) {
+        user = await Doctor.findOne({ email: req.body.email });
         if (!user) {
-            const error = new CustomError('Invalid email', 404);
-            return next(error);
+            return next(new CustomError('Invalid email', 404));
         }
-    
-        // 2. Generate a random 6-digit verification code
-        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    
-        // Save the verification code and expiration in the user document
-        user.verificationCode = verificationCode;
-        user.verificationCodeExpires = Date.now() + 10 * 60 * 1000; // Code valid for 10 minutes
-    
-        await user.save({ validateBeforeSave: false });
-    
-        // 3. Send the verification code to the user's email
-        const message = `Your password reset verification code is: ${verificationCode}. This code will expire in 10 minutes.`;
-    
-        try {
-            await sendEmail({
-                email: user.email,
-                subject: 'Password Reset Verification Code',
-                message: message
-            });
-    
-            res.status(200).json({
-                status: 'success',
-                message: 'Verification code sent to the user\'s email'
-            });
-        } catch (err) {
-            // If there is an error, clear the verification code fields and save the user again
-            user.verificationCode = undefined;
-            user.verificationCodeExpires = undefined;
-            await user.save({ validateBeforeSave: false });
-    
-            return next(new CustomError('There was an error sending the verification code. Please try again later.', 500));
-        }
-    });
-    module.exports.forgetPassword = asyncHandler(async (req, res, next) => {
-        // 1. Get user based on email
-        const user = await User.findOne({ email: req.body.email });
-        if (!user) {
-            const error = new CustomError('Invalid email', 404);
-            return next(error);
-        }
-    
-        // 2. Generate a random 4-digit verification code
-        const verificationCode = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit code
-        
-        // Save the verification code and expiration in the user document
-        user.verificationCode = verificationCode;
-        user.verificationCodeExpires = Date.now() + 10 * 60 * 1000; // Code valid for 10 minutes
-    
-        await user.save({ validateBeforeSave: false });
-    
-        // 3. Send the verification code to the user's email
-        const message = `Your password reset verification code is: ${verificationCode}. This code will expire in 10 minutes.`;
-    
-        try {
-            await sendEmail({
-                email: user.email,
-                subject: 'Password Reset Verification Code',
-                message: message
-            });
-    
-            res.status(200).json({
-                status: 'success',
-                message: 'Verification code sent to the user\'s email'
-            });
-        } catch (err) {
-            // If there is an error, clear the verification code fields and save the user again
-            user.verificationCode = undefined;
-            user.verificationCodeExpires = undefined;
-            await user.save({ validateBeforeSave: false });
-    
-            return next(new CustomError('There was an error sending the verification code. Please try again later.', 500));
-        }
-    });
-    
-    
+    }
 
-    module.exports.verifyCode = asyncHandler(async (req, res, next) => {
-        const { verificationCode } = req.body;
-    
-        // 1. Find the user by the verification code and check if it hasn't expired
-        const user = await User.findOne({
-            verificationCode: verificationCode,
-            verificationCodeExpires: { $gt: Date.now() } // Check if the code hasn't expired
+    // 2. Generate a random 4-digit verification code
+    const verificationCode = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit code
+
+    // Save the verification code and expiration in the user document
+    user.verificationCode = verificationCode;
+    user.verificationCodeExpires = Date.now() + 10 * 60 * 1000; // Code valid for 10 minutes
+
+    await user.save({ validateBeforeSave: false });
+
+    // 3. Send the verification code to the user's email
+    const message = `Your password reset verification code is: ${verificationCode}. This code will expire in 10 minutes.`;
+
+    try {
+        await sendEmail({
+            email: user.email,
+            subject: 'Password Reset Verification Code',
+            message: message,
         });
-    
-        if (!user) {
-            return next(new CustomError('Invalid or expired verification code', 400));
-        }
-    
-        // 2. Generate a temporary token for password reset
-        const tempToken = jwt.sign(
-            { id: user._id }, // Store user ID in the token
-           process.env.JWT_SECRET_KEY, // Use your secret key
-            { expiresIn: '10m' } // Token expires in 10 minutes
-        );
-    
-        // 3. Send the temporary token to the client
+
         res.status(200).json({
             status: 'success',
-            message: 'Verification code is valid. Use the provided token to reset your password.',
-            token: tempToken // Client will use this token for the password reset step
+            message: "Verification code sent to the user's email",
         });
+    } catch (err) {
+        // If there is an error, clear the verification code fields and save the user again
+        user.verificationCode = undefined;
+        user.verificationCodeExpires = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        return next(new CustomError('There was an error sending the verification code. Please try again later.', 500));
+    }
+});
+
+   /**
+ * @desc Verify the reset password code
+ * @route /api/user/verifyCode
+ * @method POST
+ * @access public
+ */
+module.exports.verifyCode = asyncHandler(async (req, res, next) => {
+    const { verificationCode } = req.body;
+
+    // 1. Find the user or doctor by the verification code and check expiration
+    let userOrDoctor = await User.findOne({
+        verificationCode: verificationCode,
+        verificationCodeExpires: { $gt: Date.now() } // Check if verification code has expired
     });
-    module.exports.resetPassword = asyncHandler(async (req, res, next) => {
-        const { token, newPassword, confirmPassword } = req.body;
-    
-        // 1. Verify the token to extract the user ID
-        let decoded;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); // Verify the token
-        } catch (err) {
-            return next(new CustomError('Invalid or expired token', 400));
+
+    // If user not found, check in the doctor collection
+    if (!userOrDoctor) {
+        userOrDoctor = await Doctor.findOne({
+            verificationCode: verificationCode,
+            verificationCodeExpires: { $gt: Date.now() } // Check if verification code has expired
+        });
+
+        if (!userOrDoctor) {
+            // If no user or doctor found with the code or the code expired
+            return next(new CustomError('Invalid or expired verification code', 400));
         }
-    
-        // 2. Find the user by ID
-        const user = await User.findById(decoded.id);
+    }
+
+    // 2. Generate a temporary token for password reset (valid for 10 minutes)
+    const tempToken = jwt.sign(
+        { id: userOrDoctor._id, role: userOrDoctor.constructor.modelName }, // Add model name (User or Doctor) as role
+        process.env.JWT_SECRET_KEY, // Use your secret key
+        { expiresIn: '10m' } // Token expires in 10 minutes
+    );
+
+    // 3. Send the temporary token to the client for password reset
+    res.status(200).json({
+        status: 'success',
+        message: 'Verification code is valid. Use the provided token to reset your password.',
+        token: tempToken // Client will use this token to reset the password
+    });
+});
+
+
+
+    /**
+ * @desc Reset Password
+ * @route /api/user/resetPassword
+ * @method POST
+ * @access public
+ */
+module.exports.resetPassword = asyncHandler(async (req, res, next) => {
+    const { token, newPassword, confirmPassword } = req.body;
+
+    // 1. Verify the token to extract the user ID
+    let decoded;
+    try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); // Verify the token
+    } catch (err) {
+        return next(new CustomError('Invalid or expired token', 400));
+    }
+
+    // 2. Find the user by ID in both collections
+    let user = await User.findById(decoded.id);
+    if (!user) {
+        user = await Doctor.findById(decoded.id);
         if (!user) {
             return next(new CustomError('User not found', 404));
         }
-    
-        // 3. Check if the new password and confirm password match
-        if (newPassword !== confirmPassword) {
-            return res.status(400).json({ message: "Passwords do not match" });
-        }
-    
-        // 4. Hash the new password and update the user
-        const salt = await bcrypt.genSalt(10);
-        user.password_hash = await bcrypt.hash(newPassword, salt);
-    
-        // Clear the verification code and expiration
-        user.verificationCode = undefined;
-        user.verificationCodeExpires = undefined;
-    
-        // Update the passwordChangedAt field
-        user.passwordChangedAt = Date.now();
-    
-        await user.save();
-    
-        res.status(200).json({ message: 'Password has been reset successfully' });
-    });
-    /**
- * @desc PublicData
- * @route /:id/public-medical-card
- * @method put
- * @access public
- */
-    module.exports.updatePublicMedicalCardData = asyncHandler(async (req, res) => {
-        const { publicData } = req.body; // Expecting userId and publicData in request body
-    
-        // Validate the incoming data
-        const { error } = validatePublicData(publicData); // Assume this function validates the public data
-        if (error) {
-            return res.status(400).json({ message: error.details[0].message });
-        }
-    
-        // Update the user's public medical card data
-      
+    }
 
-        const user = await User.findByIdAndUpdate(
-            req.params.id ,
-            { $set: { 'medicalCard.publicData': publicData} },
-            { new: true } // Return the updated document
-        );
-    
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+    // 3. Check if the new password and confirm password match
+    if (newPassword !== confirmPassword) {
+        return res.status(400).json({ message: "Passwords do not match" });
+    }
+
+    // 4. Hash the new password and update the user
+    const salt = await bcrypt.genSalt(10);
+    user.password_hash = await bcrypt.hash(newPassword, salt);
+
+    // Clear the verification code and expiration
+    user.verificationCode = undefined;
+    user.verificationCodeExpires = undefined;
+
+    // Update the passwordChangedAt field
+    user.passwordChangedAt = Date.now();
+
+    await user.save();
+
+    res.status(200).json({ message: 'Password has been reset successfully' });
+});
+
+/**
+ * @desc Update Public Medical Card Data
+ * @route /api/users/:id/public-medical-card
+ * @method PUT
+ * @access Public
+ */
+module.exports.updatePublicMedicalCardData = asyncHandler(async (req, res) => {
+    const { publicData } = req.body; // البيانات العامة المدخلة من المستخدم
+
+    // التحقق من صحة البيانات المدخلة
+    const { error } = validatePublicData(publicData);
+    if (error) {
+        return res.status(400).json({ message: error.details[0].message });
+    }
+
+    // معالجة الأدوية
+    const drugIds = [];
+    if (publicData.Drugs && Array.isArray(publicData.Drugs)) {
+        for (const drugName of publicData.Drugs) {
+            // التحقق من نوع الدواء
+            if (typeof drugName !== "string" || drugName.trim() === "") {
+                return res.status(400).json({ message: "Invalid drug name provided" });
+            }
+
+            // التحقق إذا كان الدواء موجودًا
+            let existingDrug = await Drug.findOne({ Drugname: drugName.trim() });
+
+            // إذا لم يكن الدواء موجودًا، قم بإنشائه
+            if (!existingDrug) {
+                existingDrug = await Drug.create({ Drugname: drugName.trim(), Barcode: `AUTO-${Date.now()}` });
+            }
+
+            // إضافة معرف الدواء إلى القائمة
+            drugIds.push(existingDrug._id);
         }
-    
-        res.status(200).json({ message: 'Public medical card data updated successfully', user });
-    });
+    }
+
+    // تحديث بيانات المستخدم
+    const user = await User.findById(req.params.id);
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
+    // تحديث الحقول العامة للمستخدم
+    user.medicalCard.publicData = {
+        ...user.medicalCard.publicData,
+        ...publicData,
+        Drugs: drugIds, // إضافة الأدوية المحدثة
+    };
+
+    // حفظ التعديلات
+    await user.save();
+
+    res.status(200).json({ message: "Public medical card data updated successfully", user });
+});
 
 /**
  * @desc Update Medical History
@@ -555,6 +619,7 @@ module.exports.UpdatreatmentPlans = asyncHandler(async (req, res) => {
     res.status(200).json({ message: 'treatment Plans updated successfully', user });
 });
 
+
 /*
     module.exports.verifyCodeAndResetPassword = asyncHandler(async (req, res, next) => {
         const {  verificationCode, newPassword, confirmPassword } = req.body;
@@ -659,3 +724,94 @@ if(req.body.password == req.body.confirmPassword ){
 
     });
     */
+
+   /**
+ * @desc Add Drug to a User
+ * @route POST /api/users/:id/adddrugs
+ * @method POST
+ * @access Public
+ */
+   module.exports.addDrugToUser = asyncHandler(async (req, res) => {
+    const { id } = req.params; // User ID
+    const { drugName } = req.body; // Drug name sent in the request body
+
+    // Find the user
+    const user = await User.findById(id);
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Find the drug by name
+    const drug = await Drug.findOne({ Drugname: drugName });
+    if (!drug) {
+        return res.status(404).json({ message: 'Drug not found' });
+    }
+
+    // Check if the drug is already added
+    if (user.medicalCard.publicData.Drugs.includes(drug._id)) {
+        return res.status(400).json({ message: 'Drug is already added to this user' });
+    }
+
+    // Add the drug's ObjectId to the user's Drugs array
+    user.medicalCard.publicData.Drugs.push(drug._id);
+
+    // Save the user document
+    await user.save();
+
+    res.status(200).json({ message: 'Drug added to user successfully', user });
+});
+
+/**
+ * @desc Delete Drug from a User
+ * @route DELETE /api/users/:id/deletedrugs
+ * @method DELETE
+ * @access Public
+ */
+module.exports.deleteDrugFromUser = asyncHandler(async (req, res) => {
+    const { id } = req.params; // User ID
+    const { drugName } = req.body; // Drug name sent in the request body
+
+    // Find the user
+    const user = await User.findById(id);
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Find the drug by name
+    const drug = await Drug.findOne({ Drugname: drugName });
+    if (!drug) {
+        return res.status(404).json({ message: 'Drug not found' });
+    }
+
+    // Remove the drug's ObjectId from the user's Drugs array
+    user.medicalCard.publicData.Drugs = user.medicalCard.publicData.Drugs.filter(
+        (drugId) => !drugId.equals(drug._id)
+    );
+
+    // Save the user document
+    await user.save();
+
+    res.status(200).json({ message: 'Drug removed from user successfully', user });
+});
+
+/** @desc Get Drug for a User
+ * @route GET /api/users/:id/getUserDrugs
+ * @method GET
+ * @access Public
+ */
+module.exports.getUserDrugs = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const user = await User.findById(id).populate(
+        'medicalCard.publicData.Drugs',
+        'Drugname Barcode details'
+    );
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    const drugs = user.medicalCard.publicData.Drugs;
+
+    res.status(200).json({ message: 'Drugs fetched successfully', drugs });
+});
+

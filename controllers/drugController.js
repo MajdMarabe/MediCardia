@@ -56,13 +56,11 @@ module.exports.getDrugUseByBar = asyncHandler(async (req, res) => {
 * @access public
 */
 module.exports.addDrug = asyncHandler(async (req, res) => {
-   // Validate the request body
-   const { error } = validateDrug(req.body); // Assuming validateDrug is a Joi validation function for the drug
+   const { error } = validateDrug(req.body);
    if (error) {
        return res.status(400).json({ message: error.details[0].message });
    }
 
-   // Check if the drug already exists by barcode
    let drug = await Drug.findOne({ Barcode: req.body.Barcode });
    if (drug) {
        return res.status(400).json({ message: "Drug with this barcode already exists" });
@@ -203,13 +201,13 @@ const fetchRelevantDrugIds = async (drugNames) => {
       let selectedId = null;
       for (const ref of references) {
         if (ref.text.toLowerCase() === drugName.toLowerCase()) {
-          selectedId = ref.id; // Exact match
+          selectedId = ref.id; 
           break;
         }
       }
 
       if (!selectedId && references.length > 0) {
-        selectedId = references[0].id; // Default to the first result
+        selectedId = references[0].id; 
       }
 
       if (selectedId) {
@@ -225,3 +223,25 @@ const fetchRelevantDrugIds = async (drugNames) => {
 
   return drugIds;
 };
+/**
+ * @desc Get drug by name
+ * @route /drugUse
+ * @method GET
+ * @access public 
+ */
+module.exports.getDrugUseByName = asyncHandler(async (req, res) => {
+  const drugName = req.query.name; 
+
+  console.log(`drug name: ${drugName}`);
+
+  if (!drugName) {
+    return res.status(400).json({ message: "Drug name is required" });
+  }
+
+  let drug = await Drug.findOne({ Drugname: drugName });
+  if (!drug) {
+    return res.status(404).json({ message: "Drug not found" });
+  }
+
+  res.status(200).json({ drug: drug });
+});

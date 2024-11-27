@@ -62,7 +62,12 @@ const UserSchema = new mongoose.Schema({
             allergies: { type: [String], trim: true, default: [] },
             lastBloodDonationDate: { type: Date, default: null },
             phoneNumber: { type: String, trim: true, default: null },
-            Drugs: { type: [String], trim: true, default: [] },
+            Drugs:[
+                { 
+                    type: mongoose.Schema.Types.ObjectId, 
+                    ref: "Drug" // الربط مع جدول الأدوية
+                },
+            ], //{ type: [String], trim: true, default: [] },
             image: { 
                 type: String,  // Store base64 image string
                 default: null 

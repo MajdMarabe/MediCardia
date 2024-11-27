@@ -1,7 +1,12 @@
 const express = require ("express");
 const router = express.Router();
-const {verifyCode,resetPassword,verifyCodeAndResetPassword,forgetPassword,register,login,getAllUsers,getUserById,updateUserById,deleteUserById,updatePublicMedicalCardData,UpdatemedicalHistory,UpdalabTests,UpdamedicalNotes,UpdatreatmentPlans}=require("../controllers/userController");
+const {verifyCode,resetPassword,verifyCodeAndResetPassword,forgetPassword,register,login,getAllUsers,getUserById,updateUserById,deleteUserById,updatePublicMedicalCardData,UpdatemedicalHistory,UpdalabTests,UpdamedicalNotes,UpdatreatmentPlans,verifyEmail,addDrugToUser,deleteDrugFromUser,getUserDrugs}=require("../controllers/userController");
 
+router.post('/:id/adddrugs', addDrugToUser);
+
+// Delete Drug from User
+router.delete('/:id/deletedrugs', deleteDrugFromUser);
+router.get('/:id/getUserDrugs', getUserDrugs);
 
 /////
 
@@ -25,6 +30,8 @@ router.delete("/:id",deleteUserById);
 router.post("/forgetPassword",forgetPassword);
 router.post('/verifyCode', verifyCode);
 router.post('/resetPassword', resetPassword);
+router.post('/verifyEmail', verifyEmail);
+
 
 //router.post('/verifyCode', verifyCodeAndResetPassword);
 
