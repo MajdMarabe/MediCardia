@@ -1,9 +1,9 @@
 import 'dart:convert'; // For JSON encoding
 import 'package:flutter/material.dart';
-import 'package:flutter_application_3/screens/signup_screen.dart';
+import 'package:flutter_application_3/screens/doctor_home.dart';
 import 'package:flutter_application_3/screens/forget_passsword_screen.dart';
 import 'package:flutter_application_3/widgets/custom_scaffold.dart';
-import 'package:flutter_application_3/screens/home.dart';
+import 'package:flutter_application_3/screens/user_home.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http; // Import http package
 import 'constants.dart';
@@ -78,7 +78,7 @@ class _SignInScreenState extends State<SignInScreen> {
               if (role == 'patient') {
                 return HomePage(); // Replace with the actual Patient's HomePage widget
               } else if (role == 'doctor') {
-                return HomePage(); // Replace with the actual Doctor's HomePage widget
+                return DoctorHomePage(); // Replace with the actual Doctor's HomePage widget
               } else {
                 // Default return if no condition matches
                 return HomePage(); // Replace with a fallback HomePage widget
@@ -130,16 +130,28 @@ class _SignInScreenState extends State<SignInScreen> {
               child: SingleChildScrollView(
                 child: Form(
                   key: _formSignInKey,
-                  child: Column(
+                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Text(
-                        'Welcome Back ',
-                        style: TextStyle(
-                          fontSize: 30.0,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xff613089), // Matching color
-                        ),
+                      // Logo and App Name
+                      Column(
+                        children: [
+                          Image.asset(
+                            'assets/images/appLogo.png', // Path to the logo
+                            height: 100,
+                            color: const Color(0xff613089), // Adjust color if needed
+                          ),
+                          const SizedBox(height: 10),
+                          const Text(
+                            'MediCardia', // App name
+                            style: TextStyle(
+                              fontSize: 40.0,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'BAUHS93', // Set font family
+                              color: Color(0xff613089),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 40.0),
                       // Email Field with Icon

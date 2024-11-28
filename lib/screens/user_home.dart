@@ -13,10 +13,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final items = const [
-    Icon(Icons.home, size: 30),
-    Icon(FontAwesomeIcons.search, size: 30),
-    Icon(Icons.notifications, size: 30),
-    Icon(FontAwesomeIcons.userCircle, size: 30),
+    Icon(Icons.home, size: 30,color: Colors.white,),
+    Icon(FontAwesomeIcons.search, size: 30,color: Colors.white),
+    Icon(Icons.notifications, size: 30,color: Colors.white),
+    Icon(FontAwesomeIcons.userCircle, size: 30,color: Colors.white),
   ];
 
   int _selectedIndex = 0;
@@ -77,52 +77,49 @@ class _HomePageState extends State<HomePage> {
 }
 
 
-  // Function to build user info card
+ // Function to build user info card
   Widget buildUserInfo() {
     return Container(
       padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.symmetric(horizontal: 20),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: const Color(0xff613089),
+        borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 12,
+            blurRadius: 10,
             spreadRadius: 2,
-            offset: const Offset(0, 5),
           ),
         ],
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundColor: Colors.grey[300],
-            child: const Icon(
-              Icons.person,
-              size: 50,
-              color: Colors.white,
-            ),
-          ),
+     CircleAvatar(
+  radius: 40,
+  backgroundColor: Colors.white,
+  backgroundImage: AssetImage('assets/images/doctor1.jpg'), // Set the image here
+),
+
+
           const SizedBox(width: 20),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
               Text(
-                'John Doe',
+                'Majd',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xff613089),
+                  color: Colors.white,
                 ),
               ),
               SizedBox(height: 5),
               Text(
-                'Age: 29',
+                'Age: 22',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey,
+                  color: Colors.white,
                 ),
               ),
               SizedBox(height: 5),
@@ -130,7 +127,7 @@ class _HomePageState extends State<HomePage> {
                 'Blood Type: O+',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey,
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -139,6 +136,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
 
   // Function to build search section
   Widget buildSearchSection() {
@@ -427,9 +425,10 @@ class _HomePageState extends State<HomePage> {
         height: 70,
         backgroundColor: Colors.white,
         color: Color(0xff613089),
-        buttonBackgroundColor: Colors.white,
+        buttonBackgroundColor: Color(0xff613089),
         animationDuration: const Duration(milliseconds: 300),
       ),
+
     );
   }
 }
