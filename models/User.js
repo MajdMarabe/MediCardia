@@ -62,12 +62,22 @@ const UserSchema = new mongoose.Schema({
             allergies: { type: [String], trim: true, default: [] },
             lastBloodDonationDate: { type: Date, default: null },
             phoneNumber: { type: String, trim: true, default: null },
-            Drugs:[
+          /*  Drugs:[
                 { 
                     type: mongoose.Schema.Types.ObjectId, 
-                    ref: "Drug" // الربط مع جدول الأدوية
+                    ref: "Drug" 
                 },
-            ], //{ type: [String], trim: true, default: [] },
+            ],*/
+
+            Drugs: [
+                { 
+                    drug: { type: mongoose.Schema.Types.ObjectId, ref: "Drug" }, // الربط مع جدول الأدوية
+                   isPermanent: { type: Boolean, default: false }, // دائم أم مؤقت
+                usageStartDate: { type: Date, default: null }, // تاريخ البدء
+                    usageEndDate: { type: Date, default: null } // تاريخ الانتهاء (للأدوية المؤقتة)
+                },
+            ],
+             //{ type: [String], trim: true, default: [] },
             image: { 
                 type: String,  // Store base64 image string
                 default: null 

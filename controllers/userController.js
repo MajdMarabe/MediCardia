@@ -408,6 +408,38 @@ module.exports.resetPassword = asyncHandler(async (req, res, next) => {
  * @method PUT
  * @access Public
  */
+
+module.exports.updatePublicMedicalCardData = asyncHandler(async (req, res) => {
+    const { publicData } = req.body; // The public data sent by the user
+
+    // Validate the public data
+    const { error } = validatePublicData(publicData);
+    if (error) {
+        return res.status(400).json({ message: error.details[0].message });
+    }
+
+    // Fetch the user to be updated
+    const user = await User.findById(req.params.id);
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
+    // Remove the Drugs field from the update data
+    const { Drugs, ...updatedPublicData } = publicData;
+
+    // Update the user's public medical card data
+    user.medicalCard.publicData = {
+        ...user.medicalCard.publicData,
+        ...updatedPublicData, // Merge the updated public data, excluding Drugs
+    };
+
+    // Save the updated user document
+    await user.save();
+
+    res.status(200).json({ message: "Public medical card data updated successfully", user });
+});
+
+/*
 module.exports.updatePublicMedicalCardData = asyncHandler(async (req, res) => {
     const { publicData } = req.body; // البيانات العامة المدخلة من المستخدم
 
@@ -457,7 +489,7 @@ module.exports.updatePublicMedicalCardData = asyncHandler(async (req, res) => {
 
     res.status(200).json({ message: "Public medical card data updated successfully", user });
 });
-
+*/
 /**
  * @desc Update Medical History
  * @route /:id/medicalhistory
@@ -724,6 +756,53 @@ if(req.body.password == req.body.confirmPassword ){
 
     });
     */
+/**
+ * @desc Add Drug to a User
+ * @route POST /api/users/:id/adddrugs
+ * @method POST
+ * @access Public
+ */
+module.exports.addDrugToUser = asyncHandler(async (req, res) => {
+    const { id } = req.params; // User ID
+    const { drugName, isPermanent, usageStartDate, usageEndDate } = req.body; // Drug data sent in the request body
+
+    // Find the user
+    const user = await User.findById(id);
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Find the drug by name
+    const drug = await Drug.findOne({ Drugname: drugName });
+    if (!drug) {
+        return res.status(404).json({ message: 'Drug not found' });
+    }
+
+    // Check if the drug is already added
+    const existingDrug = user.medicalCard.publicData.Drugs.find(
+        (drugEntry) => drugEntry.drug.toString() === drug._id.toString()
+    );
+    
+    if (existingDrug) {
+        return res.status(400).json({ message: 'Drug is already added to this user' });
+    }
+
+    // Prepare the new drug entry with additional fields
+    const drugEntry = {
+        drug: drug._id,
+        isPermanent: isPermanent || false, // Default to false if not provided
+        usageStartDate: usageStartDate || null, // Set to null if not provided
+        usageEndDate: usageEndDate || null, // Set to null if not provided
+    };
+
+    // Add the drug entry to the user's Drugs array
+    user.medicalCard.publicData.Drugs.push(drugEntry);
+
+    // Save the user document
+    await user.save();
+
+    res.status(200).json({ message: 'Drug added to user successfully', user });
+});
 
    /**
  * @desc Add Drug to a User
@@ -731,6 +810,7 @@ if(req.body.password == req.body.confirmPassword ){
  * @method POST
  * @access Public
  */
+/*
    module.exports.addDrugToUser = asyncHandler(async (req, res) => {
     const { id } = req.params; // User ID
     const { drugName } = req.body; // Drug name sent in the request body
@@ -759,10 +839,9 @@ if(req.body.password == req.body.confirmPassword ){
     await user.save();
 
     res.status(200).json({ message: 'Drug added to user successfully', user });
-});
-
+});*/
 /**
- * @desc Delete Drug from a User
+ * @desc Delete Drug from a User's medical card
  * @route DELETE /api/users/:id/deletedrugs
  * @method DELETE
  * @access Public
@@ -783,16 +862,24 @@ module.exports.deleteDrugFromUser = asyncHandler(async (req, res) => {
         return res.status(404).json({ message: 'Drug not found' });
     }
 
-    // Remove the drug's ObjectId from the user's Drugs array
-    user.medicalCard.publicData.Drugs = user.medicalCard.publicData.Drugs.filter(
-        (drugId) => !drugId.equals(drug._id)
+    // Find the drug entry in the user's Drugs array
+    const drugEntryIndex = user.medicalCard.publicData.Drugs.findIndex(
+        (entry) => entry.drug.toString() === drug._id.toString()
     );
 
-    // Save the user document
+    if (drugEntryIndex === -1) {
+        return res.status(404).json({ message: 'Drug not found in user\'s records' });
+    }
+
+    // Remove the drug from the user's Drugs array
+    user.medicalCard.publicData.Drugs.splice(drugEntryIndex, 1);
+
+    // Save the updated user document
     await user.save();
 
     res.status(200).json({ message: 'Drug removed from user successfully', user });
 });
+
 
 /** @desc Get Drug for a User
  * @route GET /api/users/:id/getUserDrugs

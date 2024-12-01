@@ -52,11 +52,22 @@ function verifyTokenAndAdmin(req, res, next){
     }) 
 
 }
+const verifyTokenAndDoctor = (req, res, next) => {
+    verifyToken(req, res, () => {
+        if (req.user.role === 'doctor') {
+            next();
+        } else {
+            res.status(403).json({ message: 'Access denied, not a doctor' });
+        }
+    });
+};
+
 
 
 
 
 module.exports={
+    verifyTokenAndDoctor,
     verifyToken,
   verifyTokenAndAuthorization ,
     verifyTokenAndAdmin

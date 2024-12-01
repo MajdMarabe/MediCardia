@@ -116,3 +116,24 @@ module.exports.verifyEmail = asyncHandler(async (req, res, next) => {
     }
 });
 
+/**
+ * @desc Get all doctors and their info
+ * @route /api/doctors
+ * @method GET
+ * @access public
+ */
+module.exports.getAllDoctors = asyncHandler(async (req, res, next) => {
+    try {
+        // Fetch all doctors from the database
+        const doctors = await Doctor.find().select('-password_hash'); // Exclude password hash for security
+
+        if (!doctors || doctors.length === 0) {
+            return res.status(404).json({ message: "No doctors found." });
+        }
+
+        res.status(200).json(doctors);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "There was an error retrieving the doctors." });
+    }
+});

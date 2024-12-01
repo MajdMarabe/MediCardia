@@ -245,3 +245,60 @@ module.exports.getDrugUseByName = asyncHandler(async (req, res) => {
 
   res.status(200).json({ drug: drug });
 });
+
+/**
+ * @desc Get drug by ID
+ * @route GET /drugs/:drugId
+ * @method GET
+ * @access public
+ */
+
+
+module.exports.getDrugById = asyncHandler(async (req, res) => {
+  
+  const drugId = req.params.drugId; // Extract the drug ID from the route parameter
+
+  console.log(`Fetching details for drug ID: ${drugId}`);
+
+  if (!drugId) {
+    return res.status(400).json({ message: "Drug ID is required" });
+  }
+
+  // Find the drug by ID
+  const drug = await Drug.findById(drugId);
+
+  if (!drug) {
+    return res.status(404).json({ message: "Drug not found" });
+  }
+  console.log(`Ffffffffffffff: ${drug}`);
+
+  res.status(200).json({ drug });
+});
+/**
+ * @desc Get drug suggestions by query
+ * @route GET /getDrugSuggestions
+ * @method GET
+ * @access public
+ */
+module.exports.getDrugSuggestions = asyncHandler(async (req, res) => {
+  const query = req.query.query; // استلام قيمة الاستعلام
+
+  if (!query) {
+    return res.status(400).json({ message: "Query parameter is required" });
+  }
+
+  try {
+    // البحث عن الأدوية التي تحتوي على النص المدخل في حقل Drugname
+    const suggestions = await Drug.find({
+      Drugname: { $regex: `.*${query}.*`, $options: 'i' } // البحث باستخدام التعبير المنتظم (Regex)
+    }).select('Drugname -_id'); // حصر النتائج في اسم الدواء فقط
+
+    if (suggestions.length === 0) {
+      return res.status(404).json({ message: "No suggestions found ",query });
+    }
+
+    res.status(200).json({ suggestions });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error" });
+  }
+});
