@@ -15,9 +15,57 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
   final TextEditingController _searchController = TextEditingController();
   Map<String, dynamic>? _drugData;
   String? _errorMessage;
+  List<String> _suggestions = []; // قائمة الاقتراحات
+  bool _isFetchingSuggestions = false;
+
+  Future<void> fetchSuggestions(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _suggestions = [];
+      });
+      return;
+    }
+
+    final apiUrl = "${ApiConstants.baseUrl}/drugs//getDrug/Suggestions?query=$query";
+
+    try {
+      setState(() {
+        _isFetchingSuggestions = true;
+      });
+
+      final response = await http.get(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _suggestions = List<String>.from(data['suggestions'].map((item) => item['Drugname']));
+          _errorMessage = null;
+        });
+      } else if (response.statusCode == 404) {
+        setState(() {
+          _suggestions = [];
+          _errorMessage = "No suggestions found.";
+        });
+      } else {
+        setState(() {
+          _suggestions = [];
+          _errorMessage = "Error: ${response.statusCode}";
+        });
+      }
+    } catch (error) {
+      setState(() {
+        _suggestions = [];
+        _errorMessage = "An error occurred. Please try again.";
+      });
+    } finally {
+      setState(() {
+        _isFetchingSuggestions = false;
+      });
+    }
+  }
 
   Future<void> searchDrug(String drugName) async {
-    final apiUrl = "${ApiConstants.baseUrl}/drugs/getDrugbyName?name=$drugName"; 
+    final apiUrl = "${ApiConstants.baseUrl}/drugs/getDrugbyName?name=$drugName";
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
@@ -91,7 +139,6 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Section with Gradient
               Text(
                 "Medicine Hub",
                 style: TextStyle(
@@ -101,7 +148,6 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
                 ),
               ),
               SizedBox(height: 24),
-              // Gradient Background Effect
               Container(
                 height: 5,
                 decoration: BoxDecoration(
@@ -114,7 +160,7 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
               ),
               SizedBox(height: 32),
 
-              // Search Bar with Drop Shadow and Gradient Border
+              // Search Bar with Auto Complete
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
@@ -129,31 +175,52 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
                     ),
                   ],
                 ),
-                child: Row(
+                child: Column(
                   children: [
-                    Icon(Icons.search, color: Color(0xFF6A4C9C), size: 28),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: "Search for drugs.",
-                          hintStyle: TextStyle(color: Colors.grey),
+                    Row(
+                      children: [
+                        Icon(Icons.search, color: Color(0xFF6A4C9C), size: 28),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              hintText: "Search for drugs.",
+                              hintStyle: TextStyle(color: Colors.grey),
+                            ),
+                            onChanged: (value) {
+                              fetchSuggestions(value);
+                            },
+                            onSubmitted: (value) {
+                              if (value.isNotEmpty) {
+                                searchDrug(value);
+                              }
+                            },
+                          ),
                         ),
-                        onSubmitted: (value) {
-                          if (value.isNotEmpty) {
-                            searchDrug(value);
-                          }
+                      ],
+                    ),
+                    if (_suggestions.isNotEmpty)
+                      ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _suggestions.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            title: Text(_suggestions[index]),
+                            onTap: () {
+                              _searchController.text = _suggestions[index];
+                              _suggestions.clear();
+                              searchDrug(_searchController.text);
+                            },
+                          );
                         },
                       ),
-                    ),
                   ],
                 ),
               ),
               SizedBox(height: 32),
 
-              // Option Buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -181,9 +248,8 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
                       );
                     },
                   ),
-                  // Changed barcode icon to image
                   OptionButtonWithImage(
-                    imagePath: 'assets/images/barcode.png', // Image for barcode
+                    imagePath: 'assets/images/barcode.png',
                     label: "Find by Barcode",
                     backgroundColor: Color(0xFF9575CD),
                     iconColor: Color(0xFF6A4C9C),
@@ -197,7 +263,6 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
                 ],
               ),
 
-              // Display Search Results with Images and Animation
               if (_drugData != null) ...[
                 SizedBox(height: 32),
                 GestureDetector(
@@ -223,10 +288,9 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
                       children: [
                         Row(
                           children: [
-                            // Add image of drug if available
                             if (_drugData!['image'] != null)
                               Image.network(
-                                _drugData!['image'], // assuming image URL is provided
+                                _drugData!['image'],
                                 height: 50,
                                 width: 50,
                                 fit: BoxFit.cover,
@@ -240,18 +304,19 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
                         ),
                         Text("Use: ${_drugData!['details'][0]['Use']}"),
                         SizedBox(height: 8),
-                        Text("Tap to view more details", style: TextStyle(color: Colors.blue)),
+                        Text("Dose: ${_drugData!['details'][0]['Dose']}"),
                       ],
                     ),
                   ),
                 ),
-              ] else if (_errorMessage != null) ...[
-                SizedBox(height: 32),
-                Text(
-                  _errorMessage!,
-                  style: TextStyle(color: Colors.red),
-                ),
               ],
+              if (_errorMessage != null)
+                Center(
+                  child: Text(
+                    _errorMessage!,
+                    style: TextStyle(color: Colors.red, fontSize: 16),
+                  ),
+                ),
             ],
           ),
         ),
@@ -260,7 +325,6 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
   }
 }
 
-// Option Button Widget with Animated Effect (for icon)
 class OptionButton extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -268,44 +332,36 @@ class OptionButton extends StatelessWidget {
   final Color iconColor;
   final VoidCallback onTap;
 
-  OptionButton({
-    required this.icon,
-    required this.label,
-    required this.backgroundColor,
-    required this.iconColor,
-    required this.onTap,
-  });
+  OptionButton({required this.icon, required this.label, required this.backgroundColor, required this.iconColor, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 5,
-                  offset: Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Icon(icon, color: iconColor, size: 32),
-          ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 100,
+        height: 100,
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(12),
         ),
-        SizedBox(height: 8),
-        Text(label, style: TextStyle(fontSize: 14, color: Color(0xFF6A4C9C))),
-      ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 40, color: iconColor),
+            SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white, fontSize: 14),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
-// Option Button with Image (for barcode option)
 class OptionButtonWithImage extends StatelessWidget {
   final String imagePath;
   final String label;
@@ -313,44 +369,32 @@ class OptionButtonWithImage extends StatelessWidget {
   final Color iconColor;
   final VoidCallback onTap;
 
-  OptionButtonWithImage({
-    required this.imagePath,
-    required this.label,
-    required this.backgroundColor,
-    required this.iconColor,
-    required this.onTap,
-  });
+  OptionButtonWithImage({required this.imagePath, required this.label, required this.backgroundColor, required this.iconColor, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 5,
-                  offset: Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Image.asset(
-              imagePath,
-              width: 32,
-              height: 32,
-              color: iconColor, // Optional: You can apply a color filter here if needed
-            ),
-          ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 100,
+        height: 100,
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(12),
         ),
-        SizedBox(height: 8),
-        Text(label, style: TextStyle(fontSize: 14, color: Color(0xFF6A4C9C))),
-      ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(imagePath, width: 40, height: 40, color: iconColor),
+            SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white, fontSize: 14),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -1,9 +1,15 @@
+
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'doctor_profile.dart';
 import 'doctor_calender.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'constants.dart';
 
+final storage = FlutterSecureStorage();
 class DoctorHomePage extends StatefulWidget {
   @override
   _DoctorHomePageState createState() => _DoctorHomePageState();
@@ -50,7 +56,46 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   }
 }
 
-class HomePageContent extends StatelessWidget {
+class HomePageContent extends StatefulWidget {
+  @override
+  _HomePageContentState createState() => _HomePageContentState();
+}
+
+class _HomePageContentState extends State<HomePageContent> {
+  List<dynamic> _patients = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPatients();
+  }
+
+  Future<void> _fetchPatients() async {
+    try {
+      final doctorId = await storage.read(key: 'userid'); // Fetch doctor ID
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/doctorsusers/relations/doctor/$doctorId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _patients = data;
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load patients');
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('Error fetching patients: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,20 +106,18 @@ class HomePageContent extends StatelessWidget {
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-               children: [
+              children: [
                 const SizedBox(height: 50),
                 // Header with Profile and Stats
                 _buildDoctorProfile(),
                 const SizedBox(height: 20),
-                // Search Section (Moved after Doctor Profile)
+                // Search Section
                 buildSearchSection(),
                 const SizedBox(height: 20),
-                
-               // Patient List
-                _buildPatientList(),
-                const SizedBox(height: 20),
-               
-                
+                // Patient List
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _buildPatientList(),
               ],
             ),
           ),
@@ -83,44 +126,42 @@ class HomePageContent extends StatelessWidget {
     );
   }
 
- // Function to build search section that fills the page
-Widget buildSearchSection() {
-  return Container(
-    padding: const EdgeInsets.all(15),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(15),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.1),
-          blurRadius: 10,
-          spreadRadius: 2,
-          offset: const Offset(0, 5),
-        ),
-      ],
-    ),
-    width: double.infinity,  // Makes the search section fill the entire page width
-    child: Row(
-      children: [
-        const Icon(Icons.search, size: 30, color: Color(0xff613089)),
-        const SizedBox(width: 10),
-        Expanded(
-          child: TextField(
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: 'Search for patient by ID...',
-              hintStyle: TextStyle(color: Colors.grey[500]),
-            ),
-            onChanged: (value) {
-              // Logic for searching by patient ID (e.g., filtering patient list)
-            },
+  Widget buildSearchSection() {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            spreadRadius: 2,
+            offset: const Offset(0, 5),
           ),
-        ),
-      ],
-    ),
-  );
-}
-
+        ],
+      ),
+      width: double.infinity,
+      child: Row(
+        children: [
+          const Icon(Icons.search, size: 30, color: Color(0xff613089)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: 'Search for patient by ID...',
+                hintStyle: TextStyle(color: Colors.grey[500]),
+              ),
+              onChanged: (value) {
+                // Logic for searching by patient ID (e.g., filtering patient list)
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildDoctorProfile() {
     return Container(
@@ -179,47 +220,19 @@ Widget buildSearchSection() {
     );
   }
 
- 
-  Widget _buildBloodSugarTracking() {
-    return _buildSectionContainer(
-      title: "Blood Sugar Tracking",
-      content: Column(
-        children: [
-          _buildPatientInfoTile(
-            "John Doe",
-            "Morning: 110 mg/dL | After Meal: 145 mg/dL",
-            Colors.green,
-            Icons.timeline,
-          ),
-          _buildPatientInfoTile(
-            "Mary Jane",
-            "Morning: 180 mg/dL | Alert: High",
-            Colors.red,
-            Icons.warning,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildPatientList() {
     return _buildSectionContainer(
       title: "Patient List",
       content: Column(
-        children: [
-          _buildPatientInfoTile(
-            "John Doe",
-            "ID: 12345 | Blood Type: A+",
+        children: _patients.map((patient) {
+          final patientData = patient['patientId'];
+          return _buildPatientInfoTile(
+            patientData['username'] ?? 'Unknown',
+            "ID: ${patientData['_id']} | Location: ${patientData['location'] ?? 'N/A'}",
             Colors.green,
             Icons.account_circle,
-          ),
-          _buildPatientInfoTile(
-            "Mary Jane",
-            "ID: 67890 | Blood Type: O-",
-            Colors.orange,
-            Icons.account_circle,
-          ),
-        ],
+          );
+        }).toList(),
       ),
     );
   }
@@ -264,15 +277,12 @@ Widget buildSearchSection() {
       ),
       title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(details),
-      trailing: Icon(Icons.arrow_forward_ios, size: 16, color:Colors.white),
       onTap: () {
         // Action on tap (e.g., navigate to patient details)
       },
     );
   }
 }
-
-
 
 class NotificationsPage extends StatelessWidget {
   @override

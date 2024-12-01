@@ -5,6 +5,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter_application_3/screens/profile.dart';
 import 'package:flutter_application_3/screens/drugs_view.dart';
 import 'drugshome.dart';
+import 'viewdoctors.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -402,7 +403,10 @@ class _HomePageState extends State<HomePage> {
         icon: FontAwesomeIcons.userMd,
         label: 'Ask Doctor',
         onTap: () {
-          // Functionality for Ask Doctor
+          Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => FindDoctorPage()),
+      );  
         },
       ),
     ],

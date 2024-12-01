@@ -48,6 +48,9 @@ dependencies:
   table_calendar: ^3.0.0
   flutter_secure_storage: ^9.2.2
   animated_text_kit: ^4.2.1
+  flutter_typeahead: ^4.0.0
+
+
 
 dev_dependencies:
   flutter_test:

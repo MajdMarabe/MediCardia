@@ -27,8 +27,15 @@ class _PublicInfoState extends State<PublicInfo> {
   final TextEditingController _ageController = TextEditingController();
   final TextEditingController _sensitivityController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _drugsController = TextEditingController();
+  final TextEditingController _drugNameController = TextEditingController();
+ final TextEditingController _startDateController = TextEditingController();
+  final TextEditingController _endDateController = TextEditingController();
 
+  // Variables
+  String? _selectedDrugType;
+  bool _isTemporary = false;
+  bool _isActive = true;
+  List<Map<String, dynamic>> _drugsList = [];
   String? _selectedBloodType;
   String? _selectedGender;
   List<String> _selectedChronicDiseases = [];
@@ -71,37 +78,6 @@ String? encodeImageToBase64(XFile? imageFile) {
 
   // Return the Base64-encoded string of the image bytes
   return base64Encode(bytes);
-}
- Future<void> getDrugByBarcode(String barcode) async {
-  final String apiUrl = '${ApiConstants.baseUrl}/drugs/barcode?barcode=$barcode'; // Query parameter in URL
-
-  try {
-    final response = await http.get(
-      Uri.parse(apiUrl),
-      headers: {'Content-Type': 'application/json'},
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final drugName = data['drugName'];
-
-      setState(() {
-if (_drugsController.text.isEmpty) {
-    _drugsController.text = drugName;
-  } else {
-    _drugsController.text = '${_drugsController.text}, $drugName';
-  }      });
-    } else {
-      setState(() {
-        _drugsController.text = 'Drug not found';
-      });
-    }
-  } catch (e) {
-    print('Error: $e');
-    setState(() {
-      _drugsController.text = 'Error retrieving drug information';
-    });
-  }
 }
 
 
@@ -222,117 +198,114 @@ Future<void> _selectLastDonationDate(BuildContext context) async {
 
 
 //////
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Medical Information',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text(
+        'Medical Information',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xff613089), Color(0xffb41391)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        elevation: 5,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(30),
+      ),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xff613089), Color(0xffb41391)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
         ),
       ),
-      body: Container(
-        color: Colors.white,
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            // Profile Header Section
-            _buildProfileHeader(),
-            const SizedBox(height: 20),
+      elevation: 5,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(30),
+        ),
+      ),
+    ),
+    body: Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          _buildProfileHeader(),
+          const SizedBox(height: 20),
 
-            // Scrollable Form Section
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Personal Info Section
-                      _buildSectionTitle('Personal Info'),
-                      const SizedBox(height: 10),
-                      _buildTextFormField(
-                        controller: _idNumberController,
-                        label: 'ID Number',
-                        hint: 'Enter ID Number',
-                        icon: Icons.person,
-                        validator: (value) {
-                          if (value == null || value.isEmpty || value.length != 9) {
-                            return 'Please enter a valid 9-digit ID number';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      _buildTextFormField(
-                        controller: _ageController,
-                        label: 'Age',
-                        hint: 'Enter Age',
-                        icon: Icons.mood,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your age';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                     _buildDropdownField(
-            label: 'Gender',
-            hint: 'Select Gender',
-            items: genders,
-            selectedValue: _selectedGender,
-            onChanged: (value) {
-              setState(() {
-                _selectedGender = value;
-              });
-            },
-          ),
-                      const SizedBox(height: 20),
-                      _buildTextFormField(
-                        controller: _phoneController,
-                        label: 'Phone Number',
-                        hint: 'Enter Phone Number',
-                        icon: Icons.phone,
-                        keyboardType: TextInputType.phone,
-                        validator: (value) {
-                          if (value == null || value.isEmpty || value.length < 10) {
-                            return 'Please enter a valid phone number';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 30),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildSectionTitle('Personal Info'),
+                    const SizedBox(height: 10),
+                    _buildTextFormField(
+                      controller: _idNumberController,
+                      label: 'ID Number',
+                      hint: 'Enter ID Number',
+                      icon: Icons.person,
+                      validator: (value) {
+                        if (value == null || value.isEmpty || value.length != 9) {
+                          return 'Please enter a valid 9-digit ID number';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    _buildTextFormField(
+                      controller: _ageController,
+                      label: 'Age',
+                      hint: 'Enter Age',
+                      icon: Icons.mood,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your age';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    _buildDropdownField(
+                      label: 'Gender',
+                      hint: 'Select Gender',
+                      items: genders,
+                      selectedValue: _selectedGender,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedGender = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    _buildTextFormField(
+                      controller: _phoneController,
+                      label: 'Phone Number',
+                      hint: 'Enter Phone Number',
+                      icon: Icons.phone,
+                      keyboardType: TextInputType.phone,
+                      validator: (value) {
+                        if (value == null || value.isEmpty || value.length < 10) {
+                          return 'Please enter a valid phone number';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 30),
 
-                      // Medical Info Section
-                      _buildSectionTitle('Medical Info'),
-                      const SizedBox(height: 10),
-                                      // Blood Type with Validation
+                    _buildSectionTitle('Medical Info'),
+                    const SizedBox(height: 10),
+                  // Blood Type with Validation
                   FormField<String>(
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -387,92 +360,358 @@ Future<void> _selectLastDonationDate(BuildContext context) async {
                       );
                     },
                   ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        'Select Chronic Diseases',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xff613089)),
-                      ),
-                      const SizedBox(height: 10),
-                      _buildChronicDiseasesChips(),
-                      const SizedBox(height: 20),
-                      _buildTextFormField(
-                        controller: _sensitivityController,
-                        label: 'Allergies',
-                        hint: 'Enter Allergies',
-                        icon: Icons.safety_check,
-                      ),
-                      const SizedBox(height: 20),
-                       _buildTextFormField(
-                        controller: _drugsController,
-                        label: 'Drugs',
-                        hint: 'i.e Rovatin,Advil,..',
-                        
-                        icon: Icons.medical_services,
+                      const SizedBox(height: 20),                    const SizedBox(height: 20),
+                    const Text(
+                      'Select Chronic Diseases',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xff613089)),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildChronicDiseasesChips(),
+                    const SizedBox(height: 20),
+                    _buildTextFormField(
+                      controller: _sensitivityController,
+                      label: 'Allergies',
+                      hint: 'Enter Allergies',
+                      icon: Icons.safety_check,
+                    ),
+                    const SizedBox(height: 20),
 
- suffixIcon: IconButton(
-    icon: const Icon(Icons.camera_alt, color: Color(0xff613089)), // Camera icon
-    onPressed: () async {
-      String barcodeScanResult = await FlutterBarcodeScanner.scanBarcode(
-        "#ff6666", // Color for the scan line
-        "Cancel", // Cancel button text
-        true, // Show flash icon
-        ScanMode.BARCODE, // Scan mode (can also be QR_CODE)
-      );
+                    // Drugs Section with Barcode
+                    const Text(
+                      'Add Drugs',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xff613089)),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildDrugForm(),
 
-      // Check if the scan was successful and update the drugs controller
-      if (barcodeScanResult != '-1') {
-            print("Scanned Barcode: $barcodeScanResult");
 
-        await getDrugByBarcode(barcodeScanResult);
-
-        //  _drugsController.text = barcodeScanResult; // Set scanned value to the text field
-       
-      }
-    },
-  ),
-
-                      ),
-                      const SizedBox(height: 20),
-                      _buildDatePickerField(),
+                    const SizedBox(height: 30),
+  _buildDatePickerField(),
                       const SizedBox(height: 30),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState?.validate() ?? false) {
+                          _submitForm();
 
-                      // Submit Button
-                     ElevatedButton(
-  onPressed: () {
-    if (_formKey.currentState?.validate() ?? false) {
-      _submitForm(); // Keep submit function as-is
-
-      // Navigate to the PrivateInfo page after form submission
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => PrivateInfo(userId: widget.userId)), // Make sure PrivateInfo is imported
-      );
-    }
-    
-  },
-  style: ElevatedButton.styleFrom(
-    padding: const EdgeInsets.symmetric(vertical: 15),
-    backgroundColor: const Color(0xffb41391),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    PrivateInfo(userId: widget.userId)),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        backgroundColor: const Color(0xffb41391),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        'Submit',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     ),
-  ),
-  child: const Text(
-    'Submit',
-    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-  ),
-),
+  );
+}
+Widget _buildDrugForm() {
+  return Column(
+    children: [
+      // Drug Name Row
+      Row(
+        children: [
+          Expanded(
+            child: _buildTextFormField(
+              controller: _drugNameController,
+              label: 'Drug Name',
+              hint: 'e.g., Rovatin',
+              icon: Icons.medical_services,
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.camera_alt, color: Color(0xff613089)), 
+            onPressed: () async {
+              String barcodeScanResult = await FlutterBarcodeScanner.scanBarcode(
+                "#ff6666", 
+                "Cancel", 
+                true, 
+                ScanMode.BARCODE, 
+              );
 
-                    ],
+              if (barcodeScanResult != '-1') {
+                print("Scanned Barcode: $barcodeScanResult");
+                await getDrugByBarcode(barcodeScanResult);
+              }
+            },
+          ),
+        ],
+      ),
+      
+      // Add space between fields
+      SizedBox(height: 16.0),
+
+      // Drug Type Dropdown
+      DropdownButtonFormField<String>(
+        value: _selectedDrugType,
+        items: ['Permanent', 'Temporary']
+            .map((type) => DropdownMenuItem(value: type, child: Text(type)))
+            .toList(),
+        onChanged: (value) {
+          setState(() {
+            _selectedDrugType = value!;
+            _isTemporary = _selectedDrugType == 'Temporary';
+          });
+        },
+        decoration: InputDecoration(
+          labelText: 'Drug Type',
+          prefixIcon: Icon(Icons.category, color: Color(0xff613089)),
+          contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+          filled: true,
+          fillColor: Color(0xFFF3F3F3), 
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(color: Color(0xff613089), width: 1.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: BorderSide(color: Color(0xff613089), width: 2.0),
+          ),
+        ),
+      ),
+      
+      SizedBox(height: 16.0),
+
+      if (_isTemporary)
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _startDateController,
+                readOnly: true,
+                decoration: InputDecoration(
+                  labelText: 'Start Date',
+                  prefixIcon: Icon(Icons.calendar_today, color: Color(0xff613089)),
+                  contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+                  filled: true,
+                  fillColor: Color(0xFFF3F3F3), 
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(color: Color(0xff613089), width: 1.5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(color: Color(0xff613089), width: 2.0),
                   ),
                 ),
+                onTap: () async {
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                  );
+                  if (pickedDate != null) {
+                    setState(() {
+                      _startDateController.text =
+                          DateFormat('yyyy-MM-dd').format(pickedDate);
+                    });
+                  }
+                },
+              ),
+            ),
+            SizedBox(width: 10),
+            Expanded(
+              child: TextFormField(
+                controller: _endDateController,
+                readOnly: true,
+                decoration: InputDecoration(
+                  labelText: 'End Date',
+                  prefixIcon: Icon(Icons.calendar_today, color: Color(0xff613089)),
+                  contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+                  filled: true,
+                  fillColor: Color(0xFFF3F3F3), 
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(color: Color(0xff613089), width: 1.5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(color: Color(0xff613089), width: 2.0),
+                  ),
+                ),
+                onTap: () async {
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                  );
+                  if (pickedDate != null) {
+                    setState(() {
+                      _endDateController.text =
+                          DateFormat('yyyy-MM-dd').format(pickedDate);
+                    });
+                  }
+                },
               ),
             ),
           ],
         ),
+      
+      SizedBox(height: 16.0),
+/*
+      CheckboxListTile(
+        value: _isActive,
+        onChanged: (value) {
+          setState(() {
+            _isActive = value!;
+          });
+        },
+        title: const Text('Still in Use'),
+        activeColor: Color(0xff613089), 
       ),
+      */
+      SizedBox(height: 16.0),
+
+      ElevatedButton(
+        onPressed: _addDrug,
+        child: const Text('Add Drug'),
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.white, backgroundColor: Color(0xff613089), // Text color
+          padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+
+
+Future<void> _scanBarcode() async {
+  try {
+    String barcodeScanResult = await FlutterBarcodeScanner.scanBarcode(
+      "#ff6666", 
+      "Cancel", 
+      true, 
+      ScanMode.BARCODE, 
+    );
+
+    if (barcodeScanResult != '-1') {
+      print("Scanned Barcode: $barcodeScanResult");
+
+     await getDrugByBarcode(barcodeScanResult);
+
+    
+    }
+  } catch (e) {
+    print("Error scanning barcode: $e");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to scan barcode')),
     );
   }
+}
+Future<void> _addDrug() async {
+  if (_drugNameController.text.isNotEmpty) {
+    Map<String, dynamic> drugData = {
+      'drugName': _drugNameController.text.trim(),
+      'isPermanent': !_isTemporary, 
+      'usageStartDate': _isTemporary ? _startDateController.text : null,
+      'usageEndDate': _isTemporary ? _endDateController.text : null,
+    };
+
+    print('Drug Data: ${json.encode(drugData)}');
+
+    String userId = widget.userId;
+    String apiUrl = '${ApiConstants.baseUrl}/users/$userId/adddrugs';
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode(drugData),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Drug added successfully')),
+        );
+        setState(() {
+          _drugsList.add({
+            'name': _drugNameController.text.trim(),
+            'type': _selectedDrugType,
+            'startDate': _isTemporary ? _startDateController.text : null,
+            'endDate': _isTemporary ? _endDateController.text : null,
+            'isActive': _isActive,
+          });
+           _drugNameController.clear();
+           _endDateController.clear();
+           _startDateController.clear();
+           
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add drug: ${response.body}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+}
+
+
+ Future<void> getDrugByBarcode(String barcode) async {
+  final String apiUrl = '${ApiConstants.baseUrl}/drugs/barcode?barcode=$barcode'; 
+
+  try {
+    final response = await http.get(
+      Uri.parse(apiUrl),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final drugName = data['drugName'];
+
+      setState(() {
+if (_drugNameController.text.isEmpty) {
+    _drugNameController.text = drugName;
+  } else {
+    _drugNameController.text = '${_drugNameController.text}, $drugName';
+  }      });
+    } else {
+      setState(() {
+        _drugNameController.text = 'Drug not found';
+      });
+    }
+  } catch (e) {
+    print('Error: $e');
+    setState(() {
+      _drugNameController.text = 'Error retrieving drug information';
+    });
+  }
+}
 
 
 
@@ -782,8 +1021,7 @@ Widget _buildDatePickerField() {
 
 
 
-  // Keep the submit function the same as before
-Future<void> _submitForm() async {
+  Future<void> _submitForm() async {
   String? base64Image;
   if (_imageFile != null) {
     base64Image = encodeImageToBase64(_imageFile);
@@ -802,9 +1040,6 @@ Future<void> _submitForm() async {
       "chronicConditions": _selectedChronicDiseases.isNotEmpty ? _selectedChronicDiseases : [],
       "allergies": allergiesArray.isNotEmpty ? allergiesArray : [],
       "phoneNumber": _phoneController.text.isNotEmpty ? _phoneController.text : null,
-      "Drugs": _drugsController.text.isNotEmpty
-          ? _drugsController.text.split(',').map((drug) => drug.trim()).toList()
-          : [],
       "lastBloodDonationDate": _lastDonationDate?.toIso8601String() ?? "",
     }
   };
@@ -844,5 +1079,6 @@ Future<void> _submitForm() async {
     );
   }
 }
+
 
 }
