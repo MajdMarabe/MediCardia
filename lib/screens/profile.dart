@@ -27,7 +27,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void _logOut() {
     // Add your logout logic here (e.g., clearing user session, etc.)
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Logged out successfully!")),
+      const SnackBar(content: Text("Logged out successfully!")),
     );
   }
 
@@ -42,7 +42,7 @@ class _ProfilePageState extends State<ProfilePage> {
           boxShadow: [
             BoxShadow(
               offset: const Offset(0, 5),
-              color: Color(0xff613089).withOpacity(.2),
+              color: const Color(0xff613089).withOpacity(.2),
               spreadRadius: 2,
               blurRadius: 10,
             ),
@@ -51,7 +51,7 @@ class _ProfilePageState extends State<ProfilePage> {
         child: ListTile(
           title: Text(title),
           subtitle: Text(subtitle),
-          leading: Icon(iconData, color: Color(0xff613089)),
+          leading: Icon(iconData, color: const Color(0xff613089)),
           trailing: Icon(Icons.arrow_forward, color: Colors.grey.shade400),
         ),
       ),
@@ -191,7 +191,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       onTap: _pickImage,
                       child: Container(
                         padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: Color(0xff613089),
                           shape: BoxShape.circle,
                         ),
@@ -314,8 +314,8 @@ class AboutUsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('About Us')),
-      body: Center(child: Text('About Us Content')),
+      appBar: AppBar(title: const Text('About Us')),
+      body: const Center(child: Text('About Us Content')),
     );
   }
 }
@@ -324,8 +324,8 @@ class InformationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Information')),
-      body: Center(child: Text('Information Content')),
+      appBar: AppBar(title: const Text('Information')),
+      body: const Center(child: Text('Information Content')),
     );
   }
 }

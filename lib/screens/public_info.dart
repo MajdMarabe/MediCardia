@@ -480,6 +480,7 @@ Widget _buildDrugForm() {
         },
         decoration: InputDecoration(
           labelText: 'Drug Type',
+          labelStyle: const TextStyle(color: Color(0xff613089)),
           prefixIcon: Icon(Icons.category, color: Color(0xff613089)),
           contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
           filled: true,
@@ -495,9 +496,9 @@ Widget _buildDrugForm() {
         ),
       ),
       
-      SizedBox(height: 16.0),
+      const SizedBox(height: 16.0),
 
-      if (_isTemporary)
+        if (_isTemporary)
         Row(
           children: [
             Expanded(
@@ -506,17 +507,18 @@ Widget _buildDrugForm() {
                 readOnly: true,
                 decoration: InputDecoration(
                   labelText: 'Start Date',
-                  prefixIcon: Icon(Icons.calendar_today, color: Color(0xff613089)),
-                  contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+                  labelStyle: const TextStyle(color: Color(0xff613089)),
+                  prefixIcon: const Icon(Icons.calendar_today, color: Color(0xff613089)),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
                   filled: true,
-                  fillColor: Color(0xFFF3F3F3), 
+                  fillColor: const Color(0xFFF3F3F3),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: Color(0xff613089), width: 1.5),
+                    borderSide: const BorderSide(color: Color(0xff613089), width: 1.5),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: Color(0xff613089), width: 2.0),
+                    borderSide: const BorderSide(color: Color(0xff613089), width: 2.0),
                   ),
                 ),
                 onTap: () async {
@@ -525,6 +527,16 @@ Widget _buildDrugForm() {
                     initialDate: DateTime.now(),
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2100),
+                     builder: (BuildContext context, Widget? child) {
+      return Theme(
+        data: ThemeData.light().copyWith(
+          primaryColor: const Color(0xff613089), // Apply same primary color as in the calendar
+          hintColor: const Color(0xffb41391), // Accent color for selection
+          buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
+        ),
+        child: child!,
+      );
+    },
                   );
                   if (pickedDate != null) {
                     setState(() {
@@ -535,24 +547,25 @@ Widget _buildDrugForm() {
                 },
               ),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Expanded(
               child: TextFormField(
                 controller: _endDateController,
                 readOnly: true,
                 decoration: InputDecoration(
                   labelText: 'End Date',
-                  prefixIcon: Icon(Icons.calendar_today, color: Color(0xff613089)),
-                  contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+                  labelStyle: const TextStyle(color: Color(0xff613089)),
+                  prefixIcon: const Icon(Icons.calendar_today, color: Color(0xff613089)),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
                   filled: true,
-                  fillColor: Color(0xFFF3F3F3), 
+                  fillColor: const Color(0xFFF3F3F3),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: Color(0xff613089), width: 1.5),
+                    borderSide: const BorderSide(color: Color(0xff613089), width: 1.5),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: Color(0xff613089), width: 2.0),
+                    borderSide: const BorderSide(color: Color(0xff613089), width: 2.0),
                   ),
                 ),
                 onTap: () async {
@@ -561,20 +574,32 @@ Widget _buildDrugForm() {
                     initialDate: DateTime.now(),
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2100),
+                     builder: (BuildContext context, Widget? child) {
+      return Theme(
+        data: ThemeData.light().copyWith(
+          primaryColor: const Color(0xff613089), // Apply same primary color as in the calendar
+          hintColor: const Color(0xffb41391), // Accent color for selection
+          buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
+        ),
+        child: child!,
+      );
+    },
                   );
                   if (pickedDate != null) {
                     setState(() {
                       _endDateController.text =
                           DateFormat('yyyy-MM-dd').format(pickedDate);
-                    });
+                     });
                   }
                 },
               ),
             ),
           ],
         ),
+  
+
       
-      SizedBox(height: 16.0),
+      const SizedBox(height: 16.0),
 /*
       CheckboxListTile(
         value: _isActive,
@@ -587,14 +612,14 @@ Widget _buildDrugForm() {
         activeColor: Color(0xff613089), 
       ),
       */
-      SizedBox(height: 16.0),
+      const SizedBox(height: 16.0),
 
       ElevatedButton(
         onPressed: _addDrug,
         child: const Text('Add Drug'),
         style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white, backgroundColor: Color(0xff613089), // Text color
-          padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+          foregroundColor: Colors.white, backgroundColor: const Color(0xff613089), // Text color
+          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
           ),
@@ -625,7 +650,7 @@ Future<void> _scanBarcode() async {
   } catch (e) {
     print("Error scanning barcode: $e");
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Failed to scan barcode')),
+      const SnackBar(content: Text('Failed to scan barcode')),
     );
   }
 }
@@ -814,7 +839,7 @@ Widget _buildProfileHeader() {
         const SizedBox(height: 5),
         Text(
           value,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Color(0xff613089), // Custom color for this text

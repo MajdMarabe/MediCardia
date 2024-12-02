@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_3/screens/signup_screen.dart';
+import 'package:flutter_application_3/screens/signup_user.dart';
 import 'package:flutter_application_3/widgets/custom_scaffold.dart';
 import 'package:flutter_application_3/screens/signup_doctor.dart';
 
@@ -19,7 +19,7 @@ class AccountTypeSelectionScreen extends StatelessWidget {
             flex: 7,
             child: Container(
               padding: const EdgeInsets.fromLTRB(30.0, 50.0, 30.0, 30.0), // More padding for better spacing
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
                     Color(0xfff7f5f7), // Light background color

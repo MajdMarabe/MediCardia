@@ -4,9 +4,8 @@ import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
 
-// DrugDetails class to store the API data
 class DrugDetails {
-  final String drugName; // Add drug name
+  final String drugName; 
   final String use;
   final String dose;
   final String time;
@@ -31,8 +30,15 @@ class DrugDetails {
   }
 }
 
-class DrugInfoPage extends StatelessWidget {
+class DrugInfoPage extends StatefulWidget {
   const DrugInfoPage({Key? key}) : super(key: key);
+
+  @override
+  _DrugInfoPageState createState() => _DrugInfoPageState();
+}
+
+class _DrugInfoPageState extends State<DrugInfoPage> {
+  bool isScanButtonVisible = true;  // Controls the visibility of the scan button
 
   // Function to fetch drug details from the API
   Future<DrugDetails?> fetchDrugDetails(String barcode) async {
@@ -65,21 +71,24 @@ class DrugInfoPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+         backgroundColor: Colors.white,
+         elevation: 0,
+         centerTitle: true,
         title: const Text(
           'Barcode Scanner',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold,
+        color: Color(0xff613089),
+            letterSpacing: 1.5),
         ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: const Color(0xff613089),
+      
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 30),
 
             // Scanner Area
             Center(
@@ -108,11 +117,44 @@ class DrugInfoPage extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Image.asset(
-                    'assets/images/barcode.png', // The path to your image
-                    width: 150,
-                    height: 150,
-                    color: Colors.purple.shade300,
+                  GestureDetector(
+                    onTap: () async {
+                      // When the barcode image is clicked, trigger the scanner
+                      String barcodeScanResult = await FlutterBarcodeScanner.scanBarcode(
+                        "#ff6666", // Color for the scan line
+                        "Cancel", // Cancel button text
+                        true, // Show flash icon
+                        ScanMode.BARCODE, // Scan mode (can also be QR_CODE)
+                      );
+
+                      if (barcodeScanResult != "-1") {
+                        DrugDetails? drugDetails = await fetchDrugDetails(barcodeScanResult);
+
+                        if (drugDetails != null) {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return DrugDetailsDialog(drugDetails: drugDetails);
+                            },
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Failed to fetch drug details.')),
+                          );
+                        }
+                      }
+
+                      // Hide the scan button after clicking the barcode image
+                      setState(() {
+                        isScanButtonVisible = false;
+                      });
+                    },
+                    child: Image.asset(
+                      'assets/images/barcode.png', // The path to your image
+                      width: 150,
+                      height: 150,
+                      color: Colors.purple.shade300,
+                    ),
                   ),
                 ],
               ),
@@ -127,104 +169,15 @@ class DrugInfoPage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+                  color: Colors.black54,
                 ),
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
 
-            // Scan Button
-            ElevatedButton(
-              onPressed: () async {
-                String barcodeScanResult = await FlutterBarcodeScanner.scanBarcode(
-                  "#ff6666", // Color for the scan line
-                  "Cancel", // Cancel button text
-                  true, // Show flash icon
-                  ScanMode.BARCODE, // Scan mode (can also be QR_CODE)
-                );
-
-                if (barcodeScanResult != "-1") {
-                  DrugDetails? drugDetails = await fetchDrugDetails(barcodeScanResult);
-
-                  if (drugDetails != null) {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return DrugDetailsDialog(drugDetails: drugDetails);
-                      },
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Failed to fetch drug details.')),
-                    );
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xff613089), // Button color
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                elevation: 5,
-                shadowColor: const Color(0xff613089),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    'assets/images/barcode.png', // The path to your image
-                    width: 20,
-                    height: 20,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Scan Medicine Barcode',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            // Tip Section
-            Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: Colors.purple.shade100,
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Row(
-                children: [
-                  Icon(
-                    Icons.lightbulb,
-                    color: Color(0xff613089),
-                    size: 30,
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Ensure the barcode is clear and well-lit for the best results.',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          
+           
           ],
         ),
       ),
@@ -251,17 +204,8 @@ class DrugDetailsDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title section
-            const Text(
-              'Drug Details',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: Color(0xff613089),
-              ),
-            ),
-            const SizedBox(height: 15),
-
+          
+const SizedBox(height: 10),
             // Drug Name
             _buildDetailRow('Drug Name', drugDetails.drugName),
             const SizedBox(height: 10),

@@ -176,8 +176,8 @@ class _SignInScreenState extends State<SignInScreen> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: const Color(
+                            borderSide: const BorderSide(
+                              color: Color(
                                   0xffb41391), // Set focused border color
                               width: 2.0,
                             ),

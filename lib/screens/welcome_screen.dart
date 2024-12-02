@@ -52,24 +52,24 @@ class WelcomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 50.0),
             // Buttons Section
-          Column(
+          const Column(
   children: [
     // Login Button
     WelcomeButton(
       buttonText: 'Log In',
       onTap: SignInScreen(),
-      color: const Color(0xff613089), // Purple background
+      color: Color(0xff613089), // Purple background
       textColor: Colors.white, // White text
       width: 200.0, // Fixed width for consistency
     ),
-    const SizedBox(height: 12.0), // Spacing between buttons
+    SizedBox(height: 12.0), // Spacing between buttons
     // Sign Up Button
     WelcomeButton(
       buttonText: 'Sign Up',
       onTap:  AccountTypeSelectionScreen(),
       color: Colors.white, // White background
-      textColor: const Color(0xff613089), // Purple text
-      borderColor: const Color(0xff613089), // Purple border
+      textColor: Color(0xff613089), // Purple text
+      borderColor: Color(0xff613089), // Purple border
       borderWidth: 1.5, // Thin border
       width: 200.0, // Fixed width for consistency
     ),

@@ -96,8 +96,8 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: const Color(0xffb41391),  // Set focused border color
+                            borderSide: const BorderSide(
+                              color: Color(0xffb41391),  // Set focused border color
                               width: 2.0,  // Set the border width to make it bold
                             ),
                             borderRadius: BorderRadius.circular(10),

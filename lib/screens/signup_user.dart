@@ -1,8 +1,7 @@
-import 'dart:convert'; // For converting response to JSON
+import 'dart:convert'; 
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/widgets/custom_scaffold.dart';
-import 'package:flutter_application_3/screens/public_info.dart';
-import 'package:http/http.dart' as http; // HTTP package for sending requests
+import 'package:http/http.dart' as http; 
 import 'constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_application_3/screens/verification_code.dart';
@@ -120,13 +119,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Text(
-                        'Get Started',
-                        style: TextStyle(
-                          fontSize: 30.0,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xff613089),
-                        ),
+                        // App Logo and Name
+                      Column(
+                        children: [
+                          Image.asset(
+                            'assets/images/appLogo.png', // Path to the logo
+                            height: 100,
+                            color: Color(0xff613089),
+                          ),
+                          const SizedBox(height: 10),
+                          const Text(
+                            'MediCardia', // App name
+                            style: TextStyle(
+                              fontSize: 40.0,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'BAUHS93', // Set font family
+                              color: Color(0xff613089),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 40.0),
 

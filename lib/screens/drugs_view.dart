@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 
 final storage = FlutterSecureStorage();
@@ -26,6 +25,7 @@ final TextEditingController _drugNameController = TextEditingController();
   String? _selectedDrugType;
   bool _isTemporary = false;
   bool _isActive = true;
+
   @override
   void initState() {
     super.initState();
@@ -164,243 +164,254 @@ drugDetailsList.add({
 
 // Show the Add Drug Dialog with a more creative design and form fields
 void _showAddDrugDialog() {
+  // Reset the form fields before showing the dialog
+  _drugNameController.clear();
+  _startDateController.clear();
+  _endDateController.clear();
+  
+  _selectedDrugType = 'Permanent'; // Default drug type
+  _isTemporary = false; // Default value for temporary drugs
+
   showDialog(
     context: context,
     builder: (context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-        elevation: 5,
-        backgroundColor: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Dialog Title with Icon
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            elevation: 5,
+            backgroundColor: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.add_circle_outline,
-                    color: Color(0xff613089),
-                    size: 40,
-                  ),
-                  SizedBox(width: 10),
-                  Text(
-                    'Add a New Drug',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xff613089),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-
-              // Drug Name Text Field with Custom Styling
-              TextField(
-                controller: _drugNameController,
-                decoration: InputDecoration(
-                  hintText: 'Enter drug name',
-                  prefixIcon: Icon(FontAwesomeIcons.capsules, color: Color(0xff613089)),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Color(0xff613089), width: 2),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xff613089), width: 2),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-
-              // Drug Type Dropdown
-              DropdownButtonFormField<String>(
-                value: _selectedDrugType,
-                items: ['Permanent', 'Temporary']
-                    .map((type) => DropdownMenuItem(value: type, child: Text(type)))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedDrugType = value!;
-                    _isTemporary = _selectedDrugType == 'Temporary'; // Always show dates if 'Temporary' is selected
-                  });
-                },
-                decoration: InputDecoration(
-                  labelText: 'Drug Type',
-                  prefixIcon: Icon(Icons.category, color: Color(0xff613089)),
-                  contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
-                  filled: true,
-                  fillColor: Color(0xFFF3F3F3), // Light grey background
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: Color(0xff613089), width: 1.5),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: Color(0xff613089), width: 2.0),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-
-              // Start & End Date Fields for Temporary Drugs
-              Column(
-                children: [
-                  // Start Date Field
-                  GestureDetector(
-                    onTap: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (pickedDate != null) {
-                        setState(() {
-                          _startDateController.text =
-                              DateFormat('yyyy-MM-dd').format(pickedDate);
-                        });
-                      }
-                    },
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        controller: _startDateController,
-                        decoration: InputDecoration(
-                          labelText: 'Start Date',
-                          prefixIcon: Icon(Icons.calendar_today, color: Color(0xff613089)),
-                          contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
-                          filled: true,
-                          fillColor: Color(0xFFF3F3F3), // Light grey background
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Color(0xff613089), width: 1.5),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Color(0xff613089), width: 2.0),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  // End Date Field
-                  GestureDetector(
-                    onTap: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (pickedDate != null) {
-                        setState(() {
-                          _endDateController.text =
-                              DateFormat('yyyy-MM-dd').format(pickedDate);
-                        });
-                      }
-                    },
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        controller: _endDateController,
-                        decoration: InputDecoration(
-                          labelText: 'End Date',
-                          prefixIcon: Icon(Icons.calendar_today, color: Color(0xff613089)),
-                          contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
-                          filled: true,
-                          fillColor: Color(0xFFF3F3F3), // Light grey background
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Color(0xff613089), width: 1.5),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide(color: Color(0xff613089), width: 2.0),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-
-              // Checkbox for Active Status
-             /* CheckboxListTile(
-                value: _isActive,
-                onChanged: (value) {
-                  setState(() {
-                    _isActive = value!;
-                  });
-                },
-                title: const Text('Still in Use'),
-                activeColor: Color(0xff613089), // Checkbox color
-              ),
-              SizedBox(height: 20),*/
-
-              // Action Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Cancel Button
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[300],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 3,
-                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                    ),
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(
+                  // Dialog Title with Icon
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_circle_outline,
                         color: Color(0xff613089),
-                        fontWeight: FontWeight.bold,
+                        size: 40,
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'Add a New Drug',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xff613089),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+
+                  // Drug Name Text Field with Custom Styling
+                  TextFormField(
+                    controller: _drugNameController,
+                    decoration: InputDecoration(
+                      labelText: 'Drug name',
+                      labelStyle: const TextStyle(color: Color(0xff613089)),
+                      prefixIcon: Icon(FontAwesomeIcons.capsules, color: Color(0xff613089)),
+                      contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+                      filled: true,
+                      fillColor: Color(0xFFF3F3F3),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: BorderSide(color: Color(0xff613089), width: 1.5),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: BorderSide(color: Color(0xff613089), width: 2.0),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
-                  // Add Drug Button
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_drugNameController.text.isNotEmpty) {
-                        _addDrug(_drugNameController.text,_isTemporary,_startDateController.text,_endDateController.text); // Add the drug
-                        _drugNameController.clear();
-                        Navigator.pop(context);
-                      } else {
-                        _showMessage('Please enter a drug name');
-                      }
+                  SizedBox(height: 20),
+
+                  // Drug Type Dropdown
+                  DropdownButtonFormField<String>(
+                    value: _selectedDrugType,
+                    items: ['Permanent', 'Temporary']
+                        .map((type) => DropdownMenuItem(value: type, child: Text(type)))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedDrugType = value!;
+                        _isTemporary = _selectedDrugType == 'Temporary'; // Update visibility of dates
+                      });
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xff613089),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                    decoration: InputDecoration(
+                      labelText: 'Drug Type',
+                      labelStyle: const TextStyle(color: Color(0xff613089)),
+                      prefixIcon: Icon(Icons.category, color: Color(0xff613089)),
+                      contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+                      filled: true,
+                      fillColor: Color(0xFFF3F3F3),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: BorderSide(color: Color(0xff613089), width: 1.5),
                       ),
-                      elevation: 5,
-                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                    ),
-                    child: Text(
-                      'Add Drug',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: BorderSide(color: Color(0xff613089), width: 2.0),
                       ),
                     ),
                   ),
-                ],
-              ),
-            ],
+                  const SizedBox(height: 16.0),
+
+                  // Show Start & End Dates only if Temporary is selected
+                  // Show Start & End Dates only if Temporary is selected
+if (_isTemporary)
+  Column(
+    children: [
+      TextFormField(
+        controller: _startDateController,
+        readOnly: true,
+        decoration: InputDecoration(
+          labelText: 'Start Date',
+          labelStyle: const TextStyle(color: Color(0xff613089)),
+          prefixIcon: const Icon(Icons.calendar_today, color: Color(0xff613089)),
+          contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+          filled: true,
+          fillColor: const Color(0xFFF3F3F3),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: const BorderSide(color: Color(0xff613089), width: 1.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: const BorderSide(color: Color(0xff613089), width: 2.0),
           ),
         ),
+        onTap: () => _selectDateTime(context, _startDateController),
+      ),
+      const SizedBox(height: 10),
+      TextFormField(
+        controller: _endDateController,
+        readOnly: true,
+        decoration: InputDecoration(
+          labelText: 'End Date',
+          labelStyle: const TextStyle(color: Color(0xff613089)),
+          prefixIcon: const Icon(Icons.calendar_today, color: Color(0xff613089)),
+          contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+          filled: true,
+          fillColor: const Color(0xFFF3F3F3),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: const BorderSide(color: Color(0xff613089), width: 1.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: const BorderSide(color: Color(0xff613089), width: 2.0),
+          ),
+        ),
+        onTap: () => _selectDateTime(context, _endDateController),
+      ),
+    ],
+  ),
+
+                  const SizedBox(height: 16.0),
+
+                  // Action Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Cancel Button
+                      ElevatedButton(
+                        onPressed: () {
+                          // Reset the fields when canceled
+                          _drugNameController.clear();
+                          _startDateController.clear();
+                          _endDateController.clear();
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[300],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 3,
+                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                        ),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: Color(0xff613089),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      // Add Drug Button
+                      ElevatedButton(
+                        onPressed: () {
+                          if (_drugNameController.text.isNotEmpty) {
+                            _addDrug(_drugNameController.text, _isTemporary, _startDateController.text, _endDateController.text);
+                            _drugNameController.clear();
+                            _startDateController.clear();
+                            _endDateController.clear();
+                            Navigator.pop(context);
+                          } else {
+                            _showMessage('Please enter a drug name');
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xff613089),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 5,
+                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                        ),
+                        child: const Text(
+                          'Add Drug',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       );
     },
   );
 }
+
+Future<void> _selectDateTime(BuildContext context, TextEditingController controller) async {
+  DateTime selectedDate = await showDatePicker(
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime(2000),
+    lastDate: DateTime(2101),
+    builder: (BuildContext context, Widget? child) {
+      return Theme(
+        data: ThemeData.light().copyWith(
+          primaryColor: const Color(0xff613089), // Apply same primary color as in the calendar
+          hintColor: const Color(0xffb41391), // Accent color for selection
+          buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
+        ),
+        child: child!,
+      );
+    },
+  ) ?? DateTime.now();
+
+  controller.text = DateFormat('yyyy-MM-dd').format(selectedDate);
+}
+
+
 
 
 
@@ -498,77 +509,91 @@ void _showAddDrugDialog() {
 }
 
 
-  // Function to build search section (full width)
- Widget buildSearchSection() {
+// Function to build search section (full width)
+Widget buildSearchSection() {
   return Container(
-    padding: const EdgeInsets.all(15),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     decoration: BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(15),
+      borderRadius: BorderRadius.circular(30),
+      border: Border.all(color: const Color(0xFF6A4C9C), width: 2),
       boxShadow: [
         BoxShadow(
           color: Colors.black.withOpacity(0.1),
-          blurRadius: 10,
-          spreadRadius: 2,
-          offset: const Offset(0, 5),
+          blurRadius: 5,
+          offset: const Offset(0, 3),
         ),
       ],
     ),
-    child: Row(
+    child: Column(
       children: [
-        const Icon(Icons.search, size: 30, color: Color(0xff613089)),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Autocomplete<String>(
-            optionsBuilder: (TextEditingValue textEditingValue) {
-              if (textEditingValue.text.isEmpty) {
-                return const Iterable<String>.empty();
-              }
-              // فلترة قائمة أسماء الأدوية بناءً على الإدخال
-              return drugs
-                  .map((drug) => drug['name'] as String)
-                  .where((name) =>
-                      name.toLowerCase().contains(textEditingValue.text.toLowerCase()));
-            },
-            onSelected: (String selectedDrug) {
-              // تحديث حالة البحث وعرض النتائج
-              setState(() {
-                searchController.text = selectedDrug;
-                drugs = drugs
-                    .where((drug) =>
-                        drug['name']!.toLowerCase() == selectedDrug.toLowerCase())
-                    .toList();
-              });
-            },
-            fieldViewBuilder: (BuildContext context, TextEditingController controller,
-                FocusNode focusNode, VoidCallback onFieldSubmitted) {
-              searchController = controller; // تحديث التحكم النصي للبحث
-              return TextField(
-                controller: controller,
-                focusNode: focusNode,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Search drugs...',
-                  hintStyle: TextStyle(color: Colors.grey[400]),
-                ),
-              );
-            },
-          ),
+        Row(
+          children: [
+            const Icon(Icons.search, color: Color(0xFF6A4C9C), size: 28),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Autocomplete<String>(
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  if (textEditingValue.text.isEmpty) {
+                    return const Iterable<String>.empty();
+                  }
+                  return drugs
+                      .map((drug) => drug['name'] as String)
+                      .where((name) => name
+                          .toLowerCase()
+                          .contains(textEditingValue.text.toLowerCase()));
+                },
+                onSelected: (String selectedDrug) {
+                  setState(() {
+                    searchController.text = selectedDrug;
+                    drugs = drugs
+                        .where((drug) => drug['name']!
+                            .toLowerCase() ==
+                            selectedDrug.toLowerCase())
+                        .toList();
+                  });
+                },
+                fieldViewBuilder: (BuildContext context,
+                    TextEditingController controller,
+                    FocusNode focusNode,
+                    VoidCallback onFieldSubmitted) {
+                  searchController = controller;
+                  return TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'Search for drugs...',
+                      hintStyle: TextStyle(color: Colors.grey),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
+       
       ],
     ),
   );
 }
 
-
   @override
  Widget build(BuildContext context) {
   return Scaffold(
+    backgroundColor: Colors.white,
     appBar: AppBar(
-      title: const Text('Medicines'),
-      backgroundColor: const Color(0xff613089),
-      centerTitle: true,
-    ),
+         backgroundColor: Colors.white,
+         elevation: 0,
+         centerTitle: true,
+        title: const Text(
+          'Medicines',
+          style: TextStyle(fontWeight: FontWeight.bold,
+        color: Color(0xff613089),
+            letterSpacing: 1.5),
+        ),
+      
+      ),
     body: Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -594,6 +619,7 @@ void _showAddDrugDialog() {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         elevation: 5,
+                        color: Colors.purple.shade50,
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Column(
@@ -602,7 +628,7 @@ void _showAddDrugDialog() {
                               // Placeholder Image or Icon
                               Container(
                                 alignment: Alignment.center,
-                                child: Icon(
+                                child: const Icon(
                                   Icons.medical_services,
                                   size: 48,
                                   color: Color(0xff613089),
@@ -628,7 +654,7 @@ void _showAddDrugDialog() {
                               const SizedBox(height: 12),
                               // Expired Label (if applicable)
                               if (drug['isExpired'])
-                                Text(
+                                const Text(
                                   'Not Used',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
@@ -652,7 +678,7 @@ void _showAddDrugDialog() {
                                     ),
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    icon: const Icon(Icons.delete,  color: Color(0xff613089)),
                                     onPressed: () {
                                       _deleteDrug(drug['name'] ?? '');
                                     },

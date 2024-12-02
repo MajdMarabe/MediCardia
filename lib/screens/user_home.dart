@@ -3,7 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter_application_3/screens/profile.dart';
-import 'package:flutter_application_3/screens/drugs_view.dart';
+import 'package:flutter_application_3/screens/diabetes_control.dart';
 import 'drugshome.dart';
 import 'viewdoctors.dart';
 
@@ -94,7 +94,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      child: Row(
+      child: const Row(
         children: [
      CircleAvatar(
   radius: 40,
@@ -103,10 +103,10 @@ class _HomePageState extends State<HomePage> {
 ),
 
 
-          const SizedBox(width: 20),
+          SizedBox(width: 20),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
+            children: [
               Text(
                 'Majd',
                 style: TextStyle(
@@ -375,6 +375,20 @@ class _HomePageState extends State<HomePage> {
       );     },
       ),
       const SizedBox(width: 20),
+       buildCircleButton(
+        icon: Icons.bloodtype, // Icon for Diabetes Control
+        label: 'Diabetes',
+        onTap: () {
+          // Navigate to the Diabetes Control page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DiabetesControlPage(), // Replace with your Diabetes Control page
+            ),
+          );
+        },
+      ),
+      const SizedBox(width: 20),
       buildCircleButton(
         icon: Icons.health_and_safety,
         label: 'Diseases',
@@ -428,8 +442,8 @@ class _HomePageState extends State<HomePage> {
         onTap: _onItemTapped,
         height: 70,
         backgroundColor: Colors.white,
-        color: Color(0xff613089),
-        buttonBackgroundColor: Color(0xff613089),
+        color: const Color(0xff613089),
+        buttonBackgroundColor: const Color(0xff613089),
         animationDuration: const Duration(milliseconds: 300),
       ),
 

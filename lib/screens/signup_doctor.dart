@@ -1,7 +1,6 @@
 import 'dart:convert'; 
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/widgets/custom_scaffold.dart';
-import 'package:flutter_application_3/screens/login_screen.dart';
 import 'package:http/http.dart' as http; 
 import 'constants.dart';
 import 'package:flutter_application_3/screens/verification_code.dart';

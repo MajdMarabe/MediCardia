@@ -133,7 +133,7 @@ void showAddDialog(String section, List<String> fields, List<String> labels) {
                         controller: controllers[index],
                         decoration: InputDecoration(
                           labelText: labels[index],
-                          suffixIcon: Icon(Icons.calendar_today),
+                          suffixIcon: const Icon(Icons.calendar_today),
                         ),
                       ),
                     ),
@@ -153,7 +153,7 @@ void showAddDialog(String section, List<String> fields, List<String> labels) {
             onPressed: () {
               Navigator.pop(context);
             },
-            child: Text("Cancel"),
+            child: const Text("Cancel"),
           ),
           TextButton(
             onPressed: () {
@@ -166,7 +166,7 @@ void showAddDialog(String section, List<String> fields, List<String> labels) {
               addItem(section, newItem);
               Navigator.pop(context);
             },
-            child: Text("Add"),
+            child: const Text("Add"),
           ),
         ],
       );
@@ -195,7 +195,7 @@ void showAddDialog(String section, List<String> fields, List<String> labels) {
             child: Text("Add New $title"),
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -205,7 +205,7 @@ void showAddDialog(String section, List<String> fields, List<String> labels) {
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
           color: Colors.purple,
@@ -217,7 +217,7 @@ void showAddDialog(String section, List<String> fields, List<String> labels) {
   Widget buildEditableCard(Map<String, dynamic> item, List<String> keys, List<String> labels) {
     return Card(
       elevation: 3,
-      margin: EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -229,7 +229,7 @@ void showAddDialog(String section, List<String> fields, List<String> labels) {
                 initialValue: item[keys[index]].toString(),
                 decoration: InputDecoration(
                   labelText: labels[index],
-                  icon: Icon(Icons.edit),
+                  icon: const Icon(Icons.edit),
                 ),
                 onChanged: (value) {
                   setState(() {
@@ -252,7 +252,7 @@ void showAddDialog(String section, List<String> fields, List<String> labels) {
         backgroundColor: Colors.purple,
       ),
       body: privateData == null
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(16.0),
               child: ListView(
