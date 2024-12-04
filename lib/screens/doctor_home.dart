@@ -8,6 +8,7 @@ import 'doctor_profile.dart';
 import 'doctor_calender.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
+import 'patient_view.dart';
 
 final storage = FlutterSecureStorage();
 class DoctorHomePage extends StatefulWidget {
@@ -99,7 +100,7 @@ class _HomePageContentState extends State<HomePageContent> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xfff2f4f8),
+      backgroundColor: const Color(0xFFF2F5FF),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(15.0),
@@ -229,7 +230,7 @@ class _HomePageContentState extends State<HomePageContent> {
           return _buildPatientInfoTile(
             patientData['username'] ?? 'Unknown',
             "ID: ${patientData['_id']} | Location: ${patientData['location'] ?? 'N/A'}",
-            Colors.green,
+            Color(0xff613089),
             Icons.account_circle,
           );
         }).toList(),
@@ -277,9 +278,15 @@ class _HomePageContentState extends State<HomePageContent> {
       ),
       title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(details),
-      onTap: () {
+     
         // Action on tap (e.g., navigate to patient details)
-      },
+         onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => PatientViewPage()),
+                      );
+                    },
+    
     );
   }
 }

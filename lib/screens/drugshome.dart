@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'drug_interaction_checker.dart';
-import 'drug_info.dart';
+import 'drug_info_barcode.dart';
 import 'drugs_view.dart';
 
 class OnlineMedicineHomePage extends StatefulWidget {
@@ -124,9 +124,9 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF2F5FF),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF2F5FF),
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Color(0xFF6A4C9C)),
@@ -262,7 +262,7 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
                   ),
                 ],
               ),
-
+              SizedBox(height: 15),
               if (_drugData != null) ...[
                 SizedBox(height: 32),
                 GestureDetector(
@@ -284,10 +284,13 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
                       ],
                     ),
                     child: Column(
+                      
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          
                           children: [
+      
                             if (_drugData!['image'] != null)
                               Image.network(
                                 _drugData!['image'],
@@ -295,26 +298,28 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
                                 width: 50,
                                 fit: BoxFit.cover,
                               ),
-                            SizedBox(width: 16),
+                            //SizedBox(width: 16),
                             Text(
                               "Name: ${_drugData!['Drugname']}",
                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF6A4C9C)),
                             ),
                           ],
                         ),
+                        SizedBox(height: 8),
                         Text("Use: ${_drugData!['details'][0]['Use']}"),
                         SizedBox(height: 8),
                         Text("Dose: ${_drugData!['details'][0]['Dose']}"),
                       ],
                     ),
                   ),
-                ),
+                ),   
               ],
               if (_errorMessage != null)
                 Center(
                   child: Text(
                     _errorMessage!,
-                    style: TextStyle(color: Colors.red, fontSize: 16),
+                    style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold),
+
                   ),
                 ),
             ],

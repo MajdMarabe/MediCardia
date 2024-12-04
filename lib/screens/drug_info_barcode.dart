@@ -71,18 +71,24 @@ class _DrugInfoPageState extends State<DrugInfoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF2F5FF),
       appBar: AppBar(
-         backgroundColor: Colors.white,
+         backgroundColor: const Color(0xFFF2F5FF),
          elevation: 0,
          centerTitle: true,
+         
         title: const Text(
           'Barcode Scanner',
           style: TextStyle(fontWeight: FontWeight.bold,
         color: Color(0xff613089),
             letterSpacing: 1.5),
         ),
-      
+      leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),

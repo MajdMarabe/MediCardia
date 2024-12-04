@@ -40,7 +40,7 @@ class _PublicInfoState extends State<PublicInfo> {
   String? _selectedGender;
   List<String> _selectedChronicDiseases = [];
   String _userName = 'Loading...'; // Initialize username
-
+  DateTime? _selectedDate;
   List<String> bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
   List<String> genders = ['Male', 'Female'];
   List<Map<String, dynamic>> chronicDiseases = [
@@ -196,18 +196,71 @@ Future<void> _selectLastDonationDate(BuildContext context) async {
   );
 }
 
+Future<void> _selectDate(BuildContext context, bool isStartDate) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Select Date', style: TextStyle(color: Color(0xff613089))),
+          content: SizedBox(
+            width: 300,
+            height: 400,
+            child: Column(
+              children: [
+                Expanded(
+                  child: TableCalendar(
+                    firstDay: DateTime.utc(2020, 1, 1),
+                    lastDay: DateTime.utc(2030, 12, 31),
+                    focusedDay: _selectedDate ?? DateTime.now(),
+                    onDaySelected: (selectedDay, focusedDay) {
+                      setState(() {
+                        _selectedDate = selectedDay;
+                        if (isStartDate) {
+                          _startDateController.text = "${selectedDay.toLocal()}".split(' ')[0];
+                        } else {
+                          _endDateController.text = "${selectedDay.toLocal()}".split(' ')[0];
+                        }
+                      });
+                      Navigator.of(context).pop();
+                    },
+                    calendarStyle: CalendarStyle(
+                      selectedDecoration: BoxDecoration(
+                        color: Color(0xffb41391),
+                        shape: BoxShape.circle,
+                      ),
+                      todayDecoration: BoxDecoration(
+                        color: Color(0xff613089),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    headerStyle: HeaderStyle(
+                      formatButtonVisible: false,
+                      titleTextStyle: TextStyle(color: Color(0xff613089), fontSize: 20),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
 
 //////
 
 @override
 Widget build(BuildContext context) {
   return Scaffold(
+   
     appBar: AppBar(
       title: const Text(
         'Medical Information',
         style: TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 20,
+          letterSpacing: 1.5
         ),
       ),
       leading: IconButton(
@@ -501,105 +554,69 @@ Widget _buildDrugForm() {
         if (_isTemporary)
         Row(
           children: [
-            Expanded(
-              child: TextFormField(
-                controller: _startDateController,
-                readOnly: true,
-                decoration: InputDecoration(
-                  labelText: 'Start Date',
-                  labelStyle: const TextStyle(color: Color(0xff613089)),
-                  prefixIcon: const Icon(Icons.calendar_today, color: Color(0xff613089)),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
-                  filled: true,
-                  fillColor: const Color(0xFFF3F3F3),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: const BorderSide(color: Color(0xff613089), width: 1.5),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: const BorderSide(color: Color(0xff613089), width: 2.0),
-                  ),
-                ),
-                onTap: () async {
-                  DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                     builder: (BuildContext context, Widget? child) {
-      return Theme(
-        data: ThemeData.light().copyWith(
-          primaryColor: const Color(0xff613089), // Apply same primary color as in the calendar
-          hintColor: const Color(0xffb41391), // Accent color for selection
-          buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
-        ),
-        child: child!,
-      );
+         // TextFormField for Start Date
+Expanded(
+  child: TextFormField(
+    controller: _startDateController,
+    readOnly: true,
+    decoration: InputDecoration(
+      labelText: 'Start Date',
+      labelStyle: const TextStyle(color: Color(0xff613089)),
+      prefixIcon: const Icon(Icons.calendar_today, color: Color(0xff613089)),
+      contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+      filled: true,
+      fillColor: const Color(0xFFF3F3F3),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: const BorderSide(color: Color(0xff613089), width: 1.5),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: const BorderSide(color: Color(0xff613089), width: 2.0),
+      ),
+    ),
+    onTap: () async {
+      // Call _selectDate and pass true for Start Date
+      await _selectDate(context, true); // Pass the isStartDate flag
     },
-                  );
-                  if (pickedDate != null) {
-                    setState(() {
-                      _startDateController.text =
-                          DateFormat('yyyy-MM-dd').format(pickedDate);
-                    });
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextFormField(
-                controller: _endDateController,
-                readOnly: true,
-                decoration: InputDecoration(
-                  labelText: 'End Date',
-                  labelStyle: const TextStyle(color: Color(0xff613089)),
-                  prefixIcon: const Icon(Icons.calendar_today, color: Color(0xff613089)),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
-                  filled: true,
-                  fillColor: const Color(0xFFF3F3F3),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: const BorderSide(color: Color(0xff613089), width: 1.5),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: const BorderSide(color: Color(0xff613089), width: 2.0),
-                  ),
-                ),
-                onTap: () async {
-                  DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                     builder: (BuildContext context, Widget? child) {
-      return Theme(
-        data: ThemeData.light().copyWith(
-          primaryColor: const Color(0xff613089), // Apply same primary color as in the calendar
-          hintColor: const Color(0xffb41391), // Accent color for selection
-          buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
-        ),
-        child: child!,
-      );
+  ),
+),
+const SizedBox(width: 10.0),
+// TextFormField for End Date
+Expanded(
+  child: TextFormField(
+    controller: _endDateController,
+    readOnly: true,
+    decoration: InputDecoration(
+      labelText: 'End Date',
+      labelStyle: const TextStyle(color: Color(0xff613089)),
+      prefixIcon: const Icon(Icons.calendar_today, color: Color(0xff613089)),
+      contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+      filled: true,
+      fillColor: const Color(0xFFF3F3F3),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: const BorderSide(color: Color(0xff613089), width: 1.5),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: const BorderSide(color: Color(0xff613089), width: 2.0),
+      ),
+    ),
+    onTap: () async {
+      // Call _selectDate and pass false for End Date
+      await _selectDate(context, false); // Pass the isStartDate flag
     },
-                  );
-                  if (pickedDate != null) {
-                    setState(() {
-                      _endDateController.text =
-                          DateFormat('yyyy-MM-dd').format(pickedDate);
-                     });
-                  }
-                },
-              ),
-            ),
+  ),
+),
+
+
           ],
         ),
   
 
       
-      const SizedBox(height: 16.0),
+      const SizedBox(height: 10.0),
 /*
       CheckboxListTile(
         value: _isActive,
@@ -612,7 +629,7 @@ Widget _buildDrugForm() {
         activeColor: Color(0xff613089), 
       ),
       */
-      const SizedBox(height: 16.0),
+      //const SizedBox(height: 3.0),
 
       ElevatedButton(
         onPressed: _addDrug,

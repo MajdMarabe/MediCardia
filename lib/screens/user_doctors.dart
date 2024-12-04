@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
-import'user_doctors.dart';
+import 'user_doctors.dart';
 import 'viewdoctors.dart';
+
+
 final storage = FlutterSecureStorage();
 
 class DoctorsPage extends StatefulWidget {
@@ -17,50 +19,52 @@ class _DoctorsPageState extends State<DoctorsPage> {
   List<Map<String, dynamic>> filteredDoctors = [];
   bool isLoading = true;
   String searchQuery = '';
+  TextEditingController searchController = TextEditingController(); // Add controller for search
 
   @override
   void initState() {
     super.initState();
     fetchDoctors();
   }
-Future<void> fetchDoctors() async {
+
+  Future<void> fetchDoctors() async {
     final patientId = await storage.read(key: 'userid'); 
 
-  try {
-    final response = await http.get(
-      Uri.parse('${ApiConstants.baseUrl}/doctorsusers/relations/patient/$patientId'),
-    );
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/doctorsusers/relations/patient/$patientId'),
+      );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
 
-      setState(() {
-        doctors = data.map((relation) {
-          final doctor = relation['doctorId'];
-          return {
-            'name': doctor['fullName'] ?? 'Unknown',
-            'specialty': doctor['specialization'] ?? 'Unknown',
-            'price': doctor['price'] ?? 0, 
-            'rating': doctor['rating'] ?? 0.0, 
-            'image': doctor['image'] ?? 'https://via.placeholder.com/150',
-          };
-        }).toList();
-        filteredDoctors = doctors; 
-        isLoading = false;
-      });
-    } else {
-      _showMessage('Failed to load doctors: ${response.body}');
+        setState(() {
+          doctors = data.map((relation) {
+            final doctor = relation['doctorId'];
+            return {
+              'name': doctor['fullName'] ?? 'Unknown',
+              'specialty': doctor['specialization'] ?? 'Unknown',
+              'price': doctor['price'] ?? 0, 
+              'rating': doctor['rating'] ?? 0.0, 
+              'image': doctor['image'] ?? 'https://via.placeholder.com/150',
+            };
+          }).toList();
+          filteredDoctors = doctors; 
+          isLoading = false;
+        });
+      } else {
+        _showMessage('Failed to load doctors: ${response.body}');
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      _showMessage('Error: $e');
       setState(() {
         isLoading = false;
       });
     }
-  } catch (e) {
-    _showMessage('Error: $e');
-    setState(() {
-      isLoading = false;
-    });
   }
-}
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -79,46 +83,72 @@ Future<void> fetchDoctors() async {
     });
   }
 
+  // Function to build search section (full width)
+  Widget buildSearchSection() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: const Color(0xFF6A4C9C), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.search, color: Color(0xFF6A4C9C), size: 28),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: searchController,
+              onChanged: updateSearchResults,
+              decoration: const InputDecoration(
+                hintText: 'Search doctors...',
+                hintStyle: TextStyle(color: Colors.grey),
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF2F5FF),
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 29, 70, 123),
+        backgroundColor: const Color(0xFFF2F5FF),
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+       leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Color(0xFF613089)),
           onPressed: () {
-
-
-              Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => FindDoctorPage()),
-      );  
+            Navigator.of(context).pop();
           },
         ),
         title: const Text(
-          " Your Doctors",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          "Your Doctors",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF613089),
+            letterSpacing: 1.5,
+            fontSize: 22,
+          ),
         ),
         centerTitle: true,
-      
       ),
       body: Column(
         children: [
-          // Search bar
+          // Search section
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              onChanged: updateSearchResults,
-              decoration: InputDecoration(
-                hintText: 'Search doctors...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            
+            child: buildSearchSection(),
           ),
           Expanded(
             child: isLoading
@@ -141,16 +171,7 @@ Future<void> fetchDoctors() async {
                       ),
           ),
         ],
-      ),/*
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => FindDoctorPage()),
-          );
-        },
-        child: const Icon(Icons.arrow_forward),
-      ),*/
+      ),
     );
   }
 }
@@ -163,6 +184,7 @@ class DoctorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
-import'user_doctors.dart';
+import 'user_doctors.dart';
 import 'user_home.dart';
 
 final storage = FlutterSecureStorage();
@@ -18,6 +18,7 @@ class FindDoctorPage extends StatefulWidget {
 class _FindDoctorPageState extends State<FindDoctorPage> {
   List<Map<String, dynamic>> doctors = [];
   bool isLoading = true;
+  TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
@@ -27,12 +28,12 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
 
   Future<void> fetchDoctors() async {
     try {
-      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/doctors/getAllDoctors'));
+      final response = await http
+          .get(Uri.parse('${ApiConstants.baseUrl}/doctors/getAllDoctors'));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
-
           doctors = data.map((doc) {
             return {
               'id': doc['_id'],
@@ -70,100 +71,131 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
     );
   }
 
-  @override
-  @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFFEFF3FF),
-    appBar: AppBar(
-      backgroundColor: const Color(0xFFEFF3FF),
-      elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.black),
-        onPressed: () {
- Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => HomePage()),
-                  );        },
-      ),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: CircleAvatar(
-            backgroundColor: Colors.grey[300],
-            child: const Icon(Icons.person, color: Colors.white),
+  // Function to build search section (full width)
+  Widget buildSearchSection() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: const Color(0xFF6A4C9C), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 3),
           ),
-        ),
-      ],
-    ),
-    body: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ),
+      child: Row(
         children: [
-          const Text(
-            "Let’s Find Your\nDoctor",
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+          const Icon(Icons.search, color: Color(0xFF6A4C9C), size: 28),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: searchController,
+              decoration: const InputDecoration(
+                hintText: 'Search for doctors...',
+                border: InputBorder.none,
+                hintStyle: TextStyle(color: Colors.grey),
+              ),
+              onChanged: (query) {
+                setState(() {
+                  if (query.isEmpty) {
+                    // If the search field is empty, show all doctors
+                    fetchDoctors(); // Re-fetch the doctors list
+                  } else {
+                    doctors = doctors.where((doctor) {
+                      return doctor['name']
+                          .toLowerCase()
+                          .contains(query.toLowerCase());
+                    }).toList();
+                  }
+                });
+              },
             ),
           ),
-          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
 
-          // Categories Row
+  // Function to build categories section
+  Widget buildCategoriesSection() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16.0),
+      child: Column(
+        children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              GestureDetector(
-                child: _CategoryIcon(icon: Icons.remove_red_eye, label: "Eye"),
-                onTap: () {
-                /*  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => EyeDoctorsPage()),
-                  );*/
-                },
-              ),
-              GestureDetector(
-                child: _CategoryIcon(icon: Icons.favorite, label: "Heart"),
-                onTap: () {
-               /*   Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => HeartDoctorsPage()),
-                  );*/
-                },
-              ),
-              GestureDetector(
-                child: _CategoryIcon(icon: Icons.note, label: "Nose"),
-                onTap: () {
-                  /*Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => NoseDoctorsPage()),
-                  );*/
-                },
-              ),
-              GestureDetector(
-                child: _CategoryIcon(icon: Icons.apps, label: "Your Doctors"),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => DoctorsPage()),
-                  );
-                },
-              ),
+              _CategoryIcon(
+                  icon: Icons.remove_red_eye, label: "Eye", onTap: () {}),
+              _CategoryIcon(icon: Icons.favorite, label: "Heart", onTap: () {}),
+              _CategoryIcon(icon: Icons.note, label: "Nose", onTap: () {}),
+              _CategoryIcon(
+                  icon: Icons.apps,
+                  label: "Your Doctors",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => DoctorsPage()),
+                    );
+                  }),
             ],
           ),
+        ],
+      ),
+    );
+  }
 
-          const SizedBox(height: 24),
-          const Text(
-            "All Doctors",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF2F5FF),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF2F5FF),
+        elevation: 0, // Subtle elevation for a clean look
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Color(0xFF613089)),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Let’s Find Your\nDoctor",
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF6A4C9C),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
+            // Search section
+            buildSearchSection(),
+
+            const SizedBox(height: 20),
+
+            // Categories section
+            buildCategoriesSection(),
+
+            const SizedBox(height: 24),
+            const Text(
+              "All Doctors",
+              style: TextStyle(
+                fontSize: 20, // Increased font size for emphasis
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF613089),
+              ),
+            ),
+      const SizedBox(height: 16),
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -200,136 +232,91 @@ Widget build(BuildContext context) {
 
 
 }
-
 class _CategoryIcon extends StatelessWidget {
   final IconData icon;
   final String label;
+  final Function onTap;
 
-  const _CategoryIcon({required this.icon, required this.label, Key? key})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          height: 60,
-          width: 60,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: Colors.blue, size: 30),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14, color: Colors.black),
-        ),
-      ],
-    );
-  }
-}
-
-class DoctorCard extends StatelessWidget {
-  final Map<String, dynamic> doctor;
-
-  const DoctorCard({
-    required this.doctor,
+  const _CategoryIcon({
+    required this.icon,
+    required this.label,
+    required this.onTap,
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundImage: NetworkImage(doctor['image']),
-              backgroundColor: Colors.grey[300],
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    doctor['name'],
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    doctor['specialty'],
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "Workplace: ${doctor['workplace']['name']}",
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-            Row(
-              children: [
-                Icon(Icons.star, color: Colors.yellow[700], size: 18),
-                const SizedBox(width: 4),
-                Text(
-                  doctor['rating'].toString(),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+    return GestureDetector(
+      onTap: () => onTap(),
+      child: Column(
+        children: [
+          Container(
+            height: 60,
+            width: 60,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  spreadRadius: 2,
                 ),
               ],
             ),
-          ],
-        ),
+            child: Icon(icon, color: const Color(0xFF613089), size: 30),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 14, color: Colors.black),
+          ),
+        ],
       ),
     );
   }
 }
 
-
-class DoctorDetailPage extends StatelessWidget {
+class DoctorDetailPage extends StatefulWidget {
   final Map<String, dynamic> doctor;
 
-  const DoctorDetailPage({
-    Key? key,
-    required this.doctor,
-  }) : super(key: key);
+  const DoctorDetailPage({Key? key, required this.doctor}) : super(key: key);
+
+  @override
+  _DoctorDetailPageState createState() => _DoctorDetailPageState();
+}
+
+class _DoctorDetailPageState extends State<DoctorDetailPage> {
+  int? selectedDay;
+  int? selectedTime;
+  bool isFavorite = false;
 
   Future<void> _setAsMyDoctor(BuildContext context) async {
     final url = Uri.parse('${ApiConstants.baseUrl}/doctorsusers/relations');
-  final patientId = await storage.read(key: 'userid'); 
+    final patientId = await storage.read(key: 'userid');
 
     try {
       final response = await http.post(
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer your_auth_token' 
+          'Authorization': 'Bearer your_auth_token',
         },
         body: json.encode({
-          'doctorId': doctor['id'], 
-          'patientId': patientId, 
+          'doctorId': widget.doctor['id'],
+          'patientId': patientId,
           'relationType': 'Primary',
-          'notes': 'Patient added doctor as primary care provider'
+          'notes': 'Patient added doctor as primary care provider',
         }),
       );
 
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("${doctor['name']} has been set as your doctor.")),
+          SnackBar(content: Text("${widget.doctor['name']} has been set as your doctor.")),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("${doctor['name']} is aleady your doctor.")),
+          SnackBar(content: Text("${widget.doctor['name']} is already your doctor.")),
         );
       }
     } catch (e) {
@@ -339,181 +326,276 @@ class DoctorDetailPage extends StatelessWidget {
     }
   }
 
+  void _startChat(BuildContext context) {
+    // Implement the chat start functionality here
+  }
+
   @override
   Widget build(BuildContext context) {
+    List<String> days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    List<String> availableTimes = ["9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM"];
+
     return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Color(0xFF613089)),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        centerTitle: true,
+        title: Text(
+          'Doctor Details',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xff613089),
+            letterSpacing: 1.5,
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Stack(
-              children: [
-                Container(
-                  height: 200,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: Column(
+            children: [
+              // Combined box with image, name, and specialty
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/Background.jpg'), // Add your own asset path
-                      fit: BoxFit.cover,
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                   
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(0),
+                    child: Column(
+                      
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Doctor Image
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            widget.doctor['image'],
+                            width: double.infinity, // Image takes the full width
+                            height: 180, // Set a fixed height for the image
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        const SizedBox(height: 12), // Space between image and text
+                        // Doctor Details (name and specialty with icons)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Doctor's name and specialty in the left
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                               Text(
+  'Dr ${widget.doctor['name']}',
+  style: const TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+    color: Color(0xFF613089),
+  ),
+),
+                                const SizedBox(height: 4),
+                                Text(
+                                  widget.doctor['specialty'],
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            // Icons for favorite and chat in the right
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                                    color: const Color(0xFF613089),
+                                    size: 30,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      isFavorite = !isFavorite;
+                                    });
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.chat,
+                                    color: Color(0xFF613089),
+                                    size: 30,
+                                  ),
+                                  onPressed: () {
+                                    _startChat(context);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                Positioned(
-                  top: 40,
-                  left: 16,
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
+              ),
+                            const SizedBox(height: 20),
+
+              // About section
+              Align(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  "About",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF613089),
                   ),
                 ),
-                Positioned(
-                  top: 140,
-                  left: MediaQuery.of(context).size.width / 2 - 50,
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundImage: NetworkImage(doctor['image']),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod sapien nec augue eleifend venenatis.",
+                style: TextStyle(fontSize: 16, color: Colors.black54),
+              ),
+              const SizedBox(height: 20),
+
+              // Location section
+              Align(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  "Location",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF613089),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 80),
-            // Doctor details
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+              const SizedBox(height: 8),
+              Row(
                 children: [
-                  Center(
+                  const Icon(Icons.location_on, color: Color(0xFF613089)),
+                  const SizedBox(width: 8),
+                  Expanded(
                     child: Text(
-                      doctor['name'],
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Center(
-                    child: Text(
-                      doctor['specialty'],
-                      style: const TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildContactIcon(Icons.chat, Colors.orange),
-                      _buildContactIcon(Icons.call, Colors.blue),
-                      _buildContactIcon(Icons.video_call, Colors.green),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  // Address and workplace
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on, color: Colors.red),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          "${doctor['workplace']['name']} - ${doctor['workplace']['address']}",
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: const [
-                      Icon(Icons.access_time, color: Colors.green),
-                      SizedBox(width: 8),
-                      Text(
-                        "Daily Practice: Monday - Friday ",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildActivityCard(
-                        title: "List of Schedule",
-                        icon: Icons.schedule,
-                        color: Colors.lightBlue,
-                      ),
-                      _buildActivityCard(
-                        title: "Doctor's Daily Post",
-                        icon: Icons.article,
-                        color: Colors.deepPurple,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: () => _setAsMyDoctor(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                          horizontal: 32,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        "Set as My Doctor",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
-                      ),
+                      "${widget.doctor['workplace']['name']} - ${widget.doctor['workplace']['address']}",
+                      style: const TextStyle(fontSize: 16, color: Colors.black54),
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+              const SizedBox(height: 20),
 
-  Widget _buildContactIcon(IconData icon, Color color) {
-    return CircleAvatar(
-      radius: 30,
-      backgroundColor: color.withOpacity(0.1),
-      child: Icon(icon, color: color, size: 30),
-    );
-  }
-
-  Widget _buildActivityCard({
-    required String title,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Expanded(
-      child: Card(
-        color: color.withOpacity(0.1),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 40, color: color),
+              // Appointment section
+              Align(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  "Appointment",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF613089),
+                  ),
+                ),
+              ),
               const SizedBox(height: 8),
-              Text(
-                title,
-                style: const TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
+
+              // Select Day of the Week
+              Align(
+                alignment: Alignment.centerLeft, // Align to the left
+                child: DropdownButton<int>(
+                  hint: Text(
+                    "Select Day",
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                  value: selectedDay,
+                  items: List.generate(7, (index) {
+                    return DropdownMenuItem<int>(
+                      value: index,
+                      child: Text(
+                        days[index],
+                        style: const TextStyle(color: Color(0xFF613089)),
+                      ),
+                    );
+                  }),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedDay = value;
+                      selectedTime = null;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              if (selectedDay != null)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Available Time",
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF613089),
+                      ),
+                    ),
+                                  const SizedBox(height: 8),
+
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: List.generate(
+                          availableTimes.length,
+                          (index) => Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: ChoiceChip(
+                              label: Text(availableTimes[index]),
+                              selected: selectedTime == index,
+                              onSelected: (selected) {
+                                setState(() {
+                                  selectedTime = selected ? index : null;
+                                });
+                              },
+                              selectedColor: const Color(0xFF613089),
+                              labelStyle: TextStyle(
+                                color: selectedTime == index
+                                    ? Colors.white
+                                    : Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 20),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () => _setAsMyDoctor(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF613089),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 32),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    "Set as My Doctor",
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  ),
+                ),
               ),
             ],
           ),

@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:flutter_application_3/screens/profile.dart';
+import 'package:flutter_application_3/screens/user_profile.dart';
 import 'package:flutter_application_3/screens/diabetes_control.dart';
+import 'package:flutter_application_3/screens/medical_history_view.dart';
+import 'package:flutter_application_3/screens/lab_tests_view.dart';
+import 'package:flutter_application_3/screens/medical_notes_view.dart';
+import 'package:flutter_application_3/screens/treatment_plans_view.dart';
 import 'drugshome.dart';
 import 'viewdoctors.dart';
 import 'notification_page.dart';
@@ -396,22 +400,48 @@ class _HomePageState extends State<HomePage> {
           // Functionality for Diseases
         },
       ),
-      const SizedBox(width: 20),
+       const SizedBox(width: 20),
       buildCircleButton(
-        icon: Icons.safety_check,
-        label: 'Allergies',
-        onTap: () {
-          // Functionality for Allergies
-        },
+        icon: Icons.fact_check,
+        label: 'Medical History',
+      onTap: () {
+        Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => MedicalHistoryPage()),
+      );     },
       ),
       const SizedBox(width: 20),
       buildCircleButton(
         icon: Icons.science,
         label: 'Lab Tests',
-        onTap: () {
-          // Functionality for Lab Tests
-        },
+       onTap: () {
+        Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => LabTestsPage()),
+      );     },
       ),
+      
+      const SizedBox(width: 20),
+      buildCircleButton(
+        icon: Icons.note_alt,
+        label: 'Medical Notes',
+       onTap: () {
+        Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => MedicalNotesPage()),
+      );     },
+      ),
+      const SizedBox(width: 20),
+      buildCircleButton(
+         icon: Icons.medication,
+        label: 'Treatment Plans',
+       onTap: () {
+        Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => TreatmentPlansPage()),
+      );     },
+      ),
+
       const SizedBox(width: 20),
       buildCircleButton(
         icon: FontAwesomeIcons.userMd,

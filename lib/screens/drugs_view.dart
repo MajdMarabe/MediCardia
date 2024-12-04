@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:table_calendar/table_calendar.dart';
 import 'constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -25,6 +26,8 @@ final TextEditingController _drugNameController = TextEditingController();
   String? _selectedDrugType;
   bool _isTemporary = false;
   bool _isActive = true;
+  DateTime? _selectedDate;
+
 
   @override
   void initState() {
@@ -107,6 +110,59 @@ drugDetailsList.add({
     _showMessage('Error: $e');
   }
 }
+
+Future<void> _selectDateTime(BuildContext context, TextEditingController controller, bool isStartDate) async {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Select Date', style: TextStyle(color: Color(0xff613089))),
+        content: SizedBox(
+          width: 300,
+          height: 400,
+          child: Column(
+            children: [
+              Expanded(
+                child: TableCalendar(
+                  firstDay: DateTime.utc(2020, 1, 1),
+                  lastDay: DateTime.utc(2030, 12, 31),
+                  focusedDay: _selectedDate ?? DateTime.now(),
+                  onDaySelected: (selectedDay, focusedDay) {
+                    setState(() {
+                      _selectedDate = selectedDay;
+                      // Update the correct controller (Start or End date)
+                      if (isStartDate) {
+                        controller.text = "${selectedDay.toLocal()}".split(' ')[0];
+                      } else {
+                        controller.text = "${selectedDay.toLocal()}".split(' ')[0];
+                      }
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  calendarStyle: CalendarStyle(
+                    selectedDecoration: BoxDecoration(
+                      color: Color(0xffb41391),
+                      shape: BoxShape.circle,
+                    ),
+                    todayDecoration: BoxDecoration(
+                      color: Color(0xff613089),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  headerStyle: HeaderStyle(
+                    formatButtonVisible: false,
+                    titleTextStyle: TextStyle(color: Color(0xff613089), fontSize: 20),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
 
 
   Future<void> _addDrug(String drugName, bool isTemporary, String? startDate, String? endDate) async {
@@ -268,10 +324,10 @@ void _showAddDrugDialog() {
                   const SizedBox(height: 16.0),
 
                   // Show Start & End Dates only if Temporary is selected
-                  // Show Start & End Dates only if Temporary is selected
 if (_isTemporary)
   Column(
     children: [
+      // Start Date TextFormField
       TextFormField(
         controller: _startDateController,
         readOnly: true,
@@ -291,9 +347,13 @@ if (_isTemporary)
             borderSide: const BorderSide(color: Color(0xff613089), width: 2.0),
           ),
         ),
-        onTap: () => _selectDateTime(context, _startDateController),
+        onTap: () async {
+          // Pass the controller and true for Start Date
+          await _selectDateTime(context, _startDateController, true);
+        },
       ),
       const SizedBox(height: 10),
+      // End Date TextFormField
       TextFormField(
         controller: _endDateController,
         readOnly: true,
@@ -313,10 +373,14 @@ if (_isTemporary)
             borderSide: const BorderSide(color: Color(0xff613089), width: 2.0),
           ),
         ),
-        onTap: () => _selectDateTime(context, _endDateController),
+        onTap: () async {
+          // Pass the controller and false for End Date
+          await _selectDateTime(context, _endDateController, false);
+        },
       ),
     ],
   ),
+
 
                   const SizedBox(height: 16.0),
 
@@ -388,27 +452,6 @@ if (_isTemporary)
       );
     },
   );
-}
-
-Future<void> _selectDateTime(BuildContext context, TextEditingController controller) async {
-  DateTime selectedDate = await showDatePicker(
-    context: context,
-    initialDate: DateTime.now(),
-    firstDate: DateTime(2000),
-    lastDate: DateTime(2101),
-    builder: (BuildContext context, Widget? child) {
-      return Theme(
-        data: ThemeData.light().copyWith(
-          primaryColor: const Color(0xff613089), // Apply same primary color as in the calendar
-          hintColor: const Color(0xffb41391), // Accent color for selection
-          buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
-        ),
-        child: child!,
-      );
-    },
-  ) ?? DateTime.now();
-
-  controller.text = DateFormat('yyyy-MM-dd').format(selectedDate);
 }
 
 
@@ -581,9 +624,9 @@ Widget buildSearchSection() {
   @override
  Widget build(BuildContext context) {
   return Scaffold(
-    backgroundColor: Colors.white,
+    backgroundColor: const Color(0xFFF2F5FF),
     appBar: AppBar(
-         backgroundColor: Colors.white,
+         backgroundColor: const Color(0xFFF2F5FF),
          elevation: 0,
          centerTitle: true,
         title: const Text(
@@ -592,7 +635,12 @@ Widget buildSearchSection() {
         color: Color(0xff613089),
             letterSpacing: 1.5),
         ),
-      
+      leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
     body: Padding(
       padding: const EdgeInsets.all(16.0),

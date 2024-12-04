@@ -95,11 +95,17 @@ class _DrugInteractionCheckerPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF2F5FF),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF2F5FF),
         elevation: 0,
         centerTitle: true,
+         leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         title: const Text(
           'Drugs Interaction Checker',
           style: TextStyle(
@@ -113,25 +119,37 @@ class _DrugInteractionCheckerPageState
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextFormField(
-              controller: _drugController,
-              decoration: InputDecoration(
-                labelText: 'Enter a drug, OTC or herbal supplement',
-                labelStyle: const TextStyle(color: Color(0xff613089)),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Color(0xffb41391), width: 2.0),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.grey, width: 1.0),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
+             children: [
+            // const Text(
+            //   "Drugs Interaction Checker",
+            //   style: TextStyle(
+            //     fontSize: 24,
+            //     fontWeight: FontWeight.bold,
+            //     color: Color(0xFF6A4C9C),
+            //   ),
+            // ),
+            // const SizedBox(height: 16),
+           TextFormField(
+  controller: _drugController,
+  decoration: InputDecoration(
+    labelText: 'Enter a drug, OTC or herbal supplement',
+    labelStyle: const TextStyle(color: Color(0xff613089)),
+    filled: true,  // This makes the background color visible
+    fillColor: Colors.white,  // Sets the background color to white
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderSide: const BorderSide(color: Color(0xffb41391), width: 2.0),
+      borderRadius: BorderRadius.circular(10),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+      borderRadius: BorderRadius.circular(10),
+    ),
+  ),
+),
+
             const SizedBox(height: 10),
 
             ElevatedButton(
