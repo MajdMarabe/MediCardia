@@ -1,6 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
+import 'package:http/http.dart' as http;
+import 'constants.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:intl/intl.dart';
 class DiabetesQuickAddPage extends StatefulWidget {
   @override
   _DiabetesQuickAddPageState createState() => _DiabetesQuickAddPageState();
@@ -11,6 +16,7 @@ class _DiabetesQuickAddPageState extends State<DiabetesQuickAddPage> {
     final TextEditingController _dateTimeClucoseController = TextEditingController();
       final TextEditingController _dateTimeInsulinController = TextEditingController();
   final TextEditingController _pillNameController = TextEditingController(); 
+final TextEditingController  _glucoseLevelController = TextEditingController(); 
   final Color primaryColor = Color(0xff613089);
   final Color accentColor = Color(0xff9c27b0);
   final Color backgroundColor = Color(0xfff4e6ff);
@@ -82,7 +88,7 @@ class _DiabetesQuickAddPageState extends State<DiabetesQuickAddPage> {
   required String title,
   required List<Color> gradientColors,
   required VoidCallback onTap,
-  BoxShape shape = BoxShape.rectangle, // Default shape is rectangle
+  BoxShape shape = BoxShape.rectangle, 
   BorderRadiusGeometry? borderRadius,
 }) {
   return GestureDetector(
@@ -129,7 +135,11 @@ class _DiabetesQuickAddPageState extends State<DiabetesQuickAddPage> {
   );
 }
 
-void _showAddGlucoseModal(BuildContext context) {
+
+void _showAddGlucoseModal(BuildContext context) async {
+  final storage = FlutterSecureStorage();
+  final token = await storage.read(key: 'token');
+
   showModalBottomSheet(
     context: context,
     shape: RoundedRectangleBorder(
@@ -143,7 +153,6 @@ void _showAddGlucoseModal(BuildContext context) {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Close icon in the top-right corner
             Align(
               alignment: Alignment.topRight,
               child: IconButton(
@@ -186,7 +195,7 @@ void _showAddGlucoseModal(BuildContext context) {
                       _dateTimeClucoseController.text.isEmpty
                           ? 'Select Date & Time'
                           : _dateTimeClucoseController.text,
-                      style: TextStyle(color: Colors.grey[600],fontStyle: FontStyle.italic),
+                      style: TextStyle(color: Colors.grey[600], fontStyle: FontStyle.italic),
                     ),
                   ),
                 ],
@@ -214,18 +223,19 @@ void _showAddGlucoseModal(BuildContext context) {
                   SizedBox(height: 8),
                   TextField(
                     keyboardType: TextInputType.number,
+                    controller: _glucoseLevelController, // Add your TextEditingController
                     decoration: InputDecoration(
                       hintText: 'Value',
-                        hintStyle: TextStyle(
-      color: Colors.grey.shade400, // لون النص الافتراضي
-      fontSize: 14, // حجم النص
-      fontStyle: FontStyle.italic, // نمط النص
-    ),
+                      hintStyle: TextStyle(
+                        color: Colors.grey.shade400, 
+                        fontSize: 14, 
+                        fontStyle: FontStyle.italic,
+                      ),
                       fillColor: Colors.white,
                       filled: true,
                       suffixText: 'mg/dl',
                       suffixStyle: TextStyle(
-                        color: Color(0xff613089), // Suffix color to match app color
+                        color: Color(0xff613089),
                       ),
                       contentPadding: EdgeInsets.symmetric(
                         vertical: 16.0,
@@ -245,12 +255,38 @@ void _showAddGlucoseModal(BuildContext context) {
             SizedBox(height: 24),
             // Save Button
             ElevatedButton(
-              onPressed: () {
-                // Handle Save Logic Here
+              onPressed: () async {
+                // Validate input
+                if (_glucoseLevelController.text.isEmpty || _dateTimeClucoseController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Please fill in all fields")),
+                  );
+                  return;
+                }
+
+                // Get glucose level and measurement type
+                final glucoseLevel = int.parse(_glucoseLevelController.text);
+                final measurementType = "before_meal";  // Update this based on your logic
+
+                // Call API to save the glucose level
+                final response = await _addGlucoseReading(glucoseLevel, measurementType, token);
+               final data = jsonDecode(response.body);
+
+                // Handle the response
+                if (response != null && response.statusCode == 201) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Reading added successfully!")),
+                  );
+                  Navigator.of(context).pop(); // Close modal after success
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Failed to add reading")),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(double.infinity, 48),
-                backgroundColor: Color(0xff613089), // Save button matches app color
+                backgroundColor: Color(0xff613089), 
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -269,6 +305,26 @@ void _showAddGlucoseModal(BuildContext context) {
     ),
   );
 }
+
+Future<http.Response> _addGlucoseReading(int glucoseLevel, String measurementType, String? token) async {
+  final url = Uri.parse('${ApiConstants.baseUrl}/bloodSugar/add');
+  
+  final headers = {
+    'Content-Type': 'application/json',
+    'token': token ?? '',
+  };
+
+  final body = jsonEncode({
+    'glucoseLevel': glucoseLevel,
+    'measurementType': measurementType,
+  'date': _dateTimeClucoseController.text
+  });
+
+  final response = await http.post(url, headers: headers, body: body);
+  
+  return response;
+}
+
 Future<void> _selectDateTime(BuildContext context, TextEditingController controller) async {
   DateTime selectedDate = await showDatePicker(
     context: context,
@@ -278,8 +334,8 @@ Future<void> _selectDateTime(BuildContext context, TextEditingController control
     builder: (BuildContext context, Widget? child) {
       return Theme(
         data: ThemeData.light().copyWith(
-          primaryColor: Color(0xff613089), // Apply same primary color as in the calendar
-          hintColor: Color(0xffb41391), // Accent color for selection
+          primaryColor: Color(0xff613089), 
+          hintColor: Color(0xffb41391), 
           buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
         ),
         child: child!,
@@ -293,13 +349,13 @@ Future<void> _selectDateTime(BuildContext context, TextEditingController control
     builder: (BuildContext context, Widget? child) {
       return Theme(
         data: ThemeData.light().copyWith(
-          primaryColor: Color(0xff613089), // Apply same primary color as in the calendar
-          hintColor: Color(0xffb41391), // Accent color for selection
+          primaryColor: Color(0xff613089), 
+          hintColor: Color(0xffb41391), 
           timePickerTheme: TimePickerThemeData(
-            dialHandColor: Color(0xff613089), // Customize the dial hand color
-            dialTextColor: Colors.black, // Text color inside the dial
-            backgroundColor: Colors.white, // Background color of the time picker
-            dayPeriodTextColor: Color(0xff613089), // Day period text color
+            dialHandColor: Color(0xff613089), 
+            dialTextColor: Colors.black, 
+            backgroundColor: Colors.white, 
+            dayPeriodTextColor: Color(0xff613089), 
           ),
         ),
         child: child!,
@@ -845,3 +901,40 @@ class _InsulinOptionButtonsState extends State<InsulinOptionButtons> {
   }
 }
 
+ void viewDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Message'),
+          content: Text(message), // Displaying the passed message
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Dialog with Custom Message'),
+      ),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            // Pass the custom message to the viewDialog function
+            viewDialog(context, "Reading added successfully!");
+          },
+          child: Text('Show Dialog'),
+        ),
+      ),
+    );
+  }

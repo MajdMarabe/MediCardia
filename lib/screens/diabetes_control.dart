@@ -4,7 +4,12 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_application_3/screens/diabets_quick_add.dart'; // Ensure this file exists
 import 'package:flutter_application_3/screens/glucose_log.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'constants.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_application_3/main.dart';
 class DiabetesControlPage extends StatefulWidget {
   @override
   _DiabetesControlPageState createState() => _DiabetesControlPageState();
@@ -12,39 +17,88 @@ class DiabetesControlPage extends StatefulWidget {
 
 class _DiabetesControlPageState extends State<DiabetesControlPage> {
   List<TimeOfDay> _reminderTimes = [];
+  late List<FlSpot> weekReadings;
+    final storage = FlutterSecureStorage();
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  @override
+  void initState() {
+    super.initState();
+    weekReadings = [];
+    fetchGlucoseReadings();
+  }
+
+  // Fetch glucose readings for the week from the API
+  Future<void> fetchGlucoseReadings() async {
+    final headers = {
+    'Content-Type': 'application/json',
+    'token': await storage.read(key: 'token') ?? '',
+  };
+    final response = await http.get(
+      Uri.parse('http://192.168.88.13:5001/api/bloodSugar/glucoseCard'),
+      headers:headers
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      List<dynamic> levels = data['week']['levels'];
+      List<dynamic> labels = data['week']['labels'];
+
+      setState(() {
+        weekReadings = List.generate(levels.length, (index) {
+          return FlSpot(index.toDouble(), levels[index].toDouble());
+        });
+      });
+    } else {
+      throw Exception('Failed to load glucose readings');
+    }
+  }
 
   Future<void> _showReminderDialog(BuildContext context, {TimeOfDay? existingTime}) async {
     final TimeOfDay? time = await showTimePicker(
-    context: context,
-    initialTime: TimeOfDay.now(),
-    builder: (BuildContext context, Widget? child) {
-      return Theme(
-        data: ThemeData.light().copyWith(
-          primaryColor: Color(0xff613089), // Apply primary color to the time picker
-          hintColor: Color(0xff9c27b0), // Accent color for time selection
-          timePickerTheme: TimePickerThemeData(
-            dialHandColor: Color(0xff613089), // Customize the dial hand
-            dialTextColor:Colors.black, // Text color inside the dial
-            backgroundColor: Colors.white, // Background color of the time picker
-             dayPeriodTextColor: Color(0xff613089),
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor: Color(0xff613089), // Apply primary color to the time picker
+            hintColor: Color(0xff9c27b0), // Accent color for time selection
+            timePickerTheme: TimePickerThemeData(
+              dialHandColor: Color(0xff613089), // Customize the dial hand
+              dialTextColor: Colors.black, // Text color inside the dial
+              backgroundColor: Colors.white, // Background color of the time picker
+              dayPeriodTextColor: Color(0xff613089),
+            ),
           ),
-        ),
-        child: child!,
-      );
-    },
-  );
-
-    if (time != null) {
-      setState(() {
-        if (existingTime == null) {
-          _reminderTimes.add(time);
-        } else {
-          int index = _reminderTimes.indexOf(existingTime);
-          if (index != -1) {
-            _reminderTimes[index] = time;
+          child: child!,
+        );
+      },
+    );
+if (time != null) {
+      // Retrieve the userId from secure storage
+      final userId = await storage.read(key: 'userid'); // Read the user ID from storage
+      if (userId != null) {
+        setState(() {
+          if (existingTime == null) {
+            // Add new reminder time
+            _reminderTimes.add(time);
+            // Schedule the reminder and add it to the database
+            scheduleReminder(time, userId);
+          } else {
+            // Update existing reminder time
+            int index = _reminderTimes.indexOf(existingTime);
+            if (index != -1) {
+              _reminderTimes[index] = time;
+              // Reschedule the reminder after modifying it
+              scheduleReminder(time, userId);
+            }
           }
-        }
-      });
+        });
+      } else {
+        // Handle case where userId is not found
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User ID not found!')),
+        );
+      }
     }
   }
 
@@ -52,6 +106,8 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
     setState(() {
       _reminderTimes.remove(time);
     });
+      flutterLocalNotificationsPlugin.cancel(time.hashCode);
+
   }
 
   @override
@@ -141,7 +197,7 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
                   children: [
                     Expanded(
                       child: _buildInfoCard(
-                       icon: FontAwesomeIcons.capsules,
+                        icon: FontAwesomeIcons.capsules,
                         title: 'Pills',
                         value: '2 taken',
                         backgroundColor: Colors.purple.shade50,
@@ -199,69 +255,60 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
                       Container(
                         height: 200,
                         child: LineChart(
-  LineChartData(
-    gridData: FlGridData(show: false),
-    titlesData: FlTitlesData(
-      leftTitles: AxisTitles(
-        sideTitles: SideTitles(
-          showTitles: true,
-          interval: 20,
-          reservedSize: 40,
-          getTitlesWidget: (value, meta) => Text(
-            '${value.toInt()}',
-            style: TextStyle(fontSize: 12),
-          ),
-        ),
-      ),
-      rightTitles: AxisTitles(
-        sideTitles: SideTitles(showTitles: false), // إخفاء العناوين على اليمين
-      ),
-      bottomTitles: AxisTitles(
-        sideTitles: SideTitles(
-          showTitles: true,
-          reservedSize: 30,
-          getTitlesWidget: (value, meta) => Text(
-            'Day ${value.toInt()}',
-            style: TextStyle(fontSize: 12),
-          ),
-        ),
-      ),
-    ),
-    borderData: FlBorderData(
-      show: true,
-      border: Border.all(color: Colors.grey.shade300),
-    ),
-    lineBarsData: [
-      LineChartBarData(
-        spots: [
-          FlSpot(0, 100),
-          FlSpot(1, 140),
-          FlSpot(2, 120),
-          FlSpot(3, 130),
-          FlSpot(4, 115),
-          FlSpot(5, 125),
-          FlSpot(6, 140),
-        ],
-        isCurved: true,
-        color: Color(0xff613089),
-        barWidth: 4,
-        isStrokeCapRound: true,
-        belowBarData: BarAreaData(
-          show: true,
-          gradient: LinearGradient(
-            colors: [
-              Color(0xff613089).withOpacity(0.3),
-              Color(0xff613089).withOpacity(0.1),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-      ),
-    ],
-  ),
-)
-
+                          LineChartData(
+                            gridData: FlGridData(show: false),
+                            titlesData: FlTitlesData(
+                              leftTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  interval: 20,
+                                  reservedSize: 40,
+                                  getTitlesWidget: (value, meta) => Text(
+                                    '${value.toInt()}',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                              ),
+                              rightTitles: AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                              bottomTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  reservedSize: 30,
+                                  getTitlesWidget: (value, meta) => Text(
+                                    'Day ${value.toInt()}',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            borderData: FlBorderData(
+                              show: true,
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: weekReadings,
+                                isCurved: true,
+                                color: Color(0xff613089),
+                                barWidth: 4,
+                                isStrokeCapRound: true,
+                                belowBarData: BarAreaData(
+                                  show: true,
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Color(0xff613089).withOpacity(0.3),
+                                      Color(0xff613089).withOpacity(0.1),
+                                    ],
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -280,7 +327,7 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
                       ),
                     ],
                   ),
-                  child: Column(
+                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -364,7 +411,7 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
       ),
     );
   }
-    
+
   Widget _buildInfoCard({
     required IconData icon,
     required String title,
@@ -378,35 +425,26 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 8,
-            spreadRadius: 4,
-          ),
+          BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 8, spreadRadius: 4),
         ],
       ),
       child: Column(
         children: [
-          Icon(
-            icon,
-            color: iconColor,
-            size: 36,
-          ),
-          SizedBox(height: 10),
+          Icon(icon, size: 30, color: iconColor),
+          SizedBox(height: 8),
           Text(
             title,
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: iconColor,
             ),
           ),
-          SizedBox(height: 5),
+          SizedBox(height: 4),
           Text(
             value,
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontSize: 16,
               color: iconColor,
             ),
           ),

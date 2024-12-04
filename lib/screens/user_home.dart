@@ -6,7 +6,7 @@ import 'package:flutter_application_3/screens/profile.dart';
 import 'package:flutter_application_3/screens/diabetes_control.dart';
 import 'drugshome.dart';
 import 'viewdoctors.dart';
-
+import 'notification_page.dart';
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
@@ -25,8 +25,8 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     Container(),
     const Center(child: Text('Search Page')),
-    const Center(child: Text('Notifications')),
-    ProfilePage(),
+    NotificationPage(),
+     ProfilePage(),
   ];
 
   void _onItemTapped(int index) {

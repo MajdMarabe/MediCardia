@@ -1,6 +1,11 @@
+import 'constants.dart';
+
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() {
   runApp(GlucoseApp());
@@ -16,7 +21,50 @@ class GlucoseApp extends StatelessWidget {
   }
 }
 
-class GlucoseLogScreen extends StatelessWidget {
+class GlucoseLogScreen extends StatefulWidget {
+  @override
+  _GlucoseLogScreenState createState() => _GlucoseLogScreenState();
+}
+
+class _GlucoseLogScreenState extends State<GlucoseLogScreen> {
+  final storage = FlutterSecureStorage();
+  Map<String, dynamic>? glucoseData;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchGlucoseData();
+  }
+
+  Future<void> fetchGlucoseData() async {
+    try {
+      final token = await storage.read(key: 'token');
+      if (token == null) {
+        throw Exception('Token not found');
+      }
+final headers = {
+    'Content-Type': 'application/json',
+    'token': token ?? '',
+  };
+   // final response = await http.post(url, , body: body);
+
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/bloodSugar/glucoseCard'),
+        headers: headers
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          glucoseData = json.decode(response.body);
+        });
+      } else {
+        throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      print('Error fetching glucose data: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -52,126 +100,44 @@ class GlucoseLogScreen extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.share, color: Colors.black),
               onPressed: () {
-                _showShareDialog(context);
+                // Share functionality
               },
             ),
           ],
         ),
-        body: TabBarView(
-          children: [
-            GlucoseCard(
-              avgGlucose: '131',
-              levels: [154, 140, 120, 131, 150],
-              labels: ['6 AM', '9 AM', '12 PM', '3 PM', '6 PM'],
-              period: 'Today',
-            ),
-            GlucoseCard(
-              avgGlucose: '108',
-              levels: [70, 90, 110, 140, 150],
-              labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-              period: 'Week',
-            ),
-            GlucoseCard(
-              avgGlucose: '111',
-              levels: [90, 110, 111, 115, 120],
-              labels: ['W1', 'W2', 'W3', 'W4', 'W5'],
-              period: 'Month',
-            ),
-          ],
-        ),
+        body: glucoseData == null
+            ? const Center(child: CircularProgressIndicator())
+            : TabBarView(
+                children: [
+                GlucoseCard(
+  avgGlucose: glucoseData!['today']['avgGlucose'],
+  levels: (glucoseData!['today']['levels'] as List<dynamic>)
+      .map((e) => (e as num).toDouble())
+      .toList(),
+  labels: List<String>.from(glucoseData!['today']['labels']),
+  period: 'Today',
+),
+
+                  GlucoseCard(
+                    avgGlucose: glucoseData!['week']['avgGlucose'],levels: (glucoseData!['today']['levels'] as List<dynamic>)
+    .map((e) => (e as num).toDouble())
+    .toList(),
+
+                    labels: List<String>.from(glucoseData!['week']['labels']),
+                    period: 'Week',
+                  ),
+                  GlucoseCard(
+                    avgGlucose: glucoseData!['month']['avgGlucose'],
+levels: (glucoseData!['month']['levels'] as List<dynamic>)
+    .map((e) => (e as num).toDouble())
+    .toList(),
+                    labels: List<String>.from(glucoseData!['month']['labels']),
+                    period: 'Month',
+                  ),
+                ],
+              ),
       ),
     );
-  }
-
-void _showShareDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        elevation: 16,
-        backgroundColor: Colors.white,
-        child: Container(
-          height: MediaQuery.of(context).size.height * 0.5,
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    children: [
-                      const Text(
-                        "Share Your Glucose Report",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xff613089),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                     
-                      const SizedBox(height: 20),
-                      Text(
-                        _generateReport(), // Display the report in a scrollable area
-                        textAlign: TextAlign.left,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.black54,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xff613089),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    minimumSize: const Size(double.infinity, 50),
-                  ),
-                  child: const Text(
-                    "Share Now",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  onPressed: () {
-                    final String report = _generateReport();
-                    Share.share(report); // Share the report
-                    Navigator.pop(context); // Close the dialog
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  );
-}
-
-
-  String _generateReport() {
-    String avgToday = '131';
-    String avgWeek = '108';
-    String avgMonth = '111';
-
-    return """
-🩸 **Glucose Levels Report** 📊
-
-**Today:** $avgToday mg/dl ${(int.parse(avgToday) > 130) ? '😟' : '😎'}
-**Week:** $avgWeek mg/dl ${(int.parse(avgWeek) > 130) ? '😟' : '👌'}
-**Month:** $avgMonth mg/dl ${(int.parse(avgMonth) > 130) ? '😟' : '👌'}
-
-Stay healthy and consult your doctor for further advice.
-""";
   }
 }
 
@@ -248,64 +214,63 @@ class GlucoseCard extends StatelessWidget {
           const SizedBox(height: 20),
           Expanded(
             child: BarChart(
-  BarChartData(
-    gridData: FlGridData(show: false),
-    titlesData: FlTitlesData(
-      leftTitles: AxisTitles(
-        sideTitles: SideTitles(
-          showTitles: true,
-          interval: 20, // عرض القيم بفاصل 20
-          getTitlesWidget: (double value, TitleMeta meta) {
-            return Text(
-              value.toInt().toString(),
-              style: const TextStyle(color: Colors.black54, fontSize: 12),
-            );
-          },
-        ),
-      ),
-      rightTitles: AxisTitles(
-        sideTitles: SideTitles(showTitles: false), // إخفاء العناوين على اليمين
-      ),
-      bottomTitles: AxisTitles(
-        sideTitles: SideTitles(
-          showTitles: true,
-          getTitlesWidget: (double value, TitleMeta meta) {
-            return Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Text(
-                labels[value.toInt() % labels.length],
-                style: const TextStyle(color: Colors.black54, fontSize: 12),
-              ),
-            );
-          },
-        ),
-      ),
-    ),
-    borderData: FlBorderData(show: false),
-    barGroups: levels
-        .asMap()
-        .entries
-        .map(
-          (entry) => BarChartGroupData(
-            x: entry.key,
-            barRods: [
-              BarChartRodData(
-                toY: entry.value,
-                width: 16,
-                color: const Color(0xff613089),
-                backDrawRodData: BackgroundBarChartRodData(
-                  show: true,
-                  toY: 200,
-                  color: const Color(0xff613089).withOpacity(0.1),
+              BarChartData(
+                gridData: FlGridData(show: false),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      interval: 20,
+                      getTitlesWidget: (double value, TitleMeta meta) {
+                        return Text(
+                          value.toInt().toString(),
+                          style: const TextStyle(color: Colors.black54, fontSize: 12),
+                        );
+                      },
+                    ),
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (double value, TitleMeta meta) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            labels[value.toInt() % labels.length],
+                            style: const TextStyle(color: Colors.black54, fontSize: 12),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
+                borderData: FlBorderData(show: false),
+                barGroups: levels
+                    .asMap()
+                    .entries
+                    .map(
+                      (entry) => BarChartGroupData(
+                        x: entry.key,
+                        barRods: [
+                          BarChartRodData(
+                            toY: entry.value,
+                            width: 16,
+                            color: const Color(0xff613089),
+                            backDrawRodData: BackgroundBarChartRodData(
+                              show: true,
+                              toY: 200,
+                              color: const Color(0xff613089).withOpacity(0.1),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                    .toList(),
               ),
-            ],
-          ),
-        )
-        .toList(),
-  ),
-)
-
+            ),
           ),
         ],
       ),

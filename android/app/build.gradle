@@ -38,7 +38,14 @@ android {
         }
     }
 }
+dependencies {
+    // Firebase Analytics (اختياري ولكن مهم إذا كنت تريد تتبع الأحداث)
+    implementation 'com.google.firebase:firebase-analytics:21.0.0'
 
+    // Firebase Cloud Messaging (FCM) لإرسال واستقبال الإشعارات
+    implementation 'com.google.firebase:firebase-messaging:23.0.0'  // أحدث إصدار متاح
+}
+apply plugin: 'com.google.gms.google-services'
 flutter {
     source = "../.."
 }
