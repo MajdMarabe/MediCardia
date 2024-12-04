@@ -24,7 +24,9 @@ app.use("/api/users",require("./routes/users"))
 app.use("/api/drugs",require("./routes/drugs"))
 app.use("/api/doctors",require("./routes/doctors"))
 app.use("/api/doctorsusers",require("./routes/doctorsUsers"))
+app.use("/api/bloodSugar",require("./routes/bloodSugar"))
 
+app.use("/api/notifications",require("./routes/notifications"))
 
 ///
 
