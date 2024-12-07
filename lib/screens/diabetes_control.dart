@@ -34,7 +34,7 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
     'token': await storage.read(key: 'token') ?? '',
   };
     final response = await http.get(
-      Uri.parse('http://192.168.88.13:5001/api/bloodSugar/glucoseCard'),
+      Uri.parse('${ApiConstants.baseUrl}/bloodSugar/glucoseCard'),
       headers:headers
     );
 
@@ -109,6 +109,7 @@ if (time != null) {
       flutterLocalNotificationsPlugin.cancel(time.hashCode);
 
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +155,7 @@ if (time != null) {
                       ),
                     ],
                   ),
-                  child: Column(
+                  /*child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       CircularPercentIndicator(
@@ -190,12 +191,12 @@ if (time != null) {
                         ),
                       ),
                     ],
-                  ),
+                  ),*/
                 ),
                 SizedBox(height: 20),
                 Row(
                   children: [
-                    Expanded(
+                   /*c Expanded(
                       child: _buildInfoCard(
                         icon: FontAwesomeIcons.capsules,
                         title: 'Pills',
@@ -203,7 +204,7 @@ if (time != null) {
                         backgroundColor: Colors.purple.shade50,
                         iconColor: Color(0xff613089),
                       ),
-                    ),
+                    ),*/
                     SizedBox(width: 16),
                     Expanded(
                       child: GestureDetector(

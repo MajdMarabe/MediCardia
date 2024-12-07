@@ -74,7 +74,6 @@ void showEditDialog(int index) {
   final FocusNode nameFocusNode = FocusNode();
   final FocusNode resultFocusNode = FocusNode();
 
-  // Set the test date in the controller if it exists
   _testDateController.text = item['testDate'] ?? '';
 
   showDialog(
@@ -208,25 +207,30 @@ void showEditDialog(int index) {
     );
   }
 
-  Future<void> deleteLabTest(int index) async {
+
+Future<void> deleteLabTest(int index) async {
+  final item = labTests[index];  
+  final itemId = item['_id'];  
   setState(() {
-    labTests.removeAt(index); 
+    labTests.removeAt(index);  
   });
 
   final userId = await storage.read(key: 'userid');
+  
   if (userId != null) {
-    final itemId = labTests[index]['_id'];
     final response = await http.delete(
-      Uri.parse('${ApiConstants.baseUrl}/users/$userId/labtests/$itemId'),
+      Uri.parse('${ApiConstants.baseUrl}/users/$userId/labtests'),
       headers: {'Content-Type': 'application/json'},
+      body: json.encode({'entryId': itemId}),  
     );
 
-    if (response.statusCode != 200) {
+    if (response.statusCode == 200) {
+      print('Lab test deleted successfully');
+    } else {
       print("Failed to delete lab test: ${response.statusCode}");
     }
   }
 }
-
 
   void showAddDialog() {
     final nameController = TextEditingController();
@@ -295,17 +299,20 @@ void showEditDialog(int index) {
               child: Text("Cancel", style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
-              onPressed: () {
-                final newItem = {
-                  'testName': nameController.text,
-                  'testDate': _testDateController.text,
-                  'testResult': resultController.text,
-                };
-                setState(() {
-                  labTests.add(newItem);
-                });
-                Navigator.pop(context);
-              },
+             onPressed: () {
+  final newItem = {
+    'testName': nameController.text,
+    'testDate': _testDateController.text,
+    'testResult': resultController.text,
+  };
+  
+  setState(() {
+    labTests.add(newItem); 
+  });
+
+
+  addLabTests([newItem]); 
+},
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xff613089),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -317,43 +324,121 @@ void showEditDialog(int index) {
       },
     );
   }
+Future<void> addLabTests(List<Map<String, dynamic>> newLabTests) async {
+  final userId = await storage.read(key: 'userid');
+  
+  if (userId != null) {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/users/labtests'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'userid': userId,
+          'labTests': newLabTests,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          labTests = data['labTests']; 
+        });
+        print('Lab tests added successfully');
+      } else {
+        print("Failed to add lab tests: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error adding lab tests: $e");
+    }
+  }
+}
 
 Widget buildLabTestCard(Map<String, dynamic> item, int index) {
-  return Card(
-    color: Colors.white,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-    margin: EdgeInsets.symmetric(vertical: 10),
-    elevation: 8,
-    shadowColor: Color(0xff613089).withOpacity(0.5),
-    child: ListTile(
-      title: Text(
-        "Test Name: ${item['testName']}",
-        style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xff613089)),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("Test Date: ${item['testDate']}", style: TextStyle(fontSize: 14)),
-          Text("Result: ${item['testResult']}", style: TextStyle(fontSize: 14)),
-        ],
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: Icon(Icons.edit, color: Color(0xff613089)),
-            onPressed: () => showEditDialog(index),
-          ),
-          IconButton(
-            icon: Icon(Icons.delete, color: Color(0xff613089)),
-            onPressed: () => deleteLabTest(index),
-          ),
-        ],
-      ),
+  return Container(
+    margin: const EdgeInsets.symmetric(vertical: 10),
+    padding: const EdgeInsets.all(15),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(15),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.3),
+          spreadRadius: 2,
+          blurRadius: 5,
+          offset: Offset(0, 3),
+        ),
+      ],
+      border: Border.all(color: Color(0xff613089).withOpacity(0.5)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header: Test Name
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              item['testName'] ?? "Unknown Test",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xff613089),
+              ),
+            ),
+            Row(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.edit, color: Colors.blue),
+                  onPressed: () => showEditDialog(index),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => deleteLabTest(index),
+                ),
+              ],
+            ),
+          ],
+        ),
+        SizedBox(height: 10),
+
+        // Test Date
+        Row(
+          children: [
+            Icon(Icons.calendar_today, size: 16, color: Color(0xff613089)),
+            SizedBox(width: 5),
+            Text(
+              "Test Date: ${item['testDate']}",
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 10),
+
+        // Test Result
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.assignment, size: 16, color: Color(0xff613089)),
+            SizedBox(width: 5),
+            Expanded(
+              child: Text(
+                item['testResult'] ?? "No result provided.",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+                softWrap: true,
+              ),
+            ),
+          ],
+        ),
+      ],
     ),
   );
 }
-
 
 
   @override
@@ -386,7 +471,7 @@ Widget buildLabTestCard(Map<String, dynamic> item, int index) {
           children: [
             Expanded(
               child: ListView.builder(
-                itemCount: labTests.length + 1, // +1 for the Add button
+                itemCount: labTests.length + 1,
                 itemBuilder: (context, index) {
                   if (index < labTests.length) {
                     return buildLabTestCard(labTests[index], index);

@@ -14,7 +14,6 @@ import 'package:flutter_application_3/screens/constants.dart';
 
 final storage = FlutterSecureStorage();
 
-// Firebase Messaging background handler
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('Background message received: ${message.notification?.title}');
   await _showLocalNotification(
@@ -23,7 +22,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   );
 }
 
-// Request notification permissions
 Future<void> requestNotificationPermissions() async {
   final messaging = FirebaseMessaging.instance;
   NotificationSettings settings = await messaging.requestPermission(
@@ -88,7 +86,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Schedule a reminder notification
 Future<void> scheduleReminder(TimeOfDay time, String userId) async {
   final now = DateTime.now();
   final scheduledDate = DateTime(now.year, now.month, now.day, time.hour, time.minute);
@@ -120,7 +117,6 @@ Future<void> scheduleReminder(TimeOfDay time, String userId) async {
   );
 }
 
-// Show a local notification
 Future<void> _showLocalNotification(String title, String body) async {
   const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
     'default_channel', 'Default Notifications',
@@ -139,7 +135,6 @@ Future<void> _showLocalNotification(String title, String body) async {
   );
 }
 
-// Add notification to the database
 Future<void> _addNotificationToDB(String userId, String title, String body) async {
   try {
     final token = await storage.read(key: 'token');

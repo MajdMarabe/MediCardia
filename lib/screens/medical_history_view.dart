@@ -51,26 +51,6 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage> {
     }
   }
 
-  Future<void> updateMedicalHistory(
-      int index, Map<String, dynamic> updatedItem) async {
-    final userId = await storage.read(key: 'userid');
-    if (userId != null) {
-      final response = await http.put(
-        Uri.parse(
-            '${ApiConstants.baseUrl}/users/$userId/medicalhistory/${updatedItem['_id']}'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(updatedItem),
-      );
-      if (response.statusCode == 200) {
-        setState(() {
-          medicalHistory[index] = updatedItem;
-        });
-      } else {
-        print("Failed to update: ${response.statusCode}");
-      }
-    }
-  }
-
  void showEditDialog(int index) {
   final item = medicalHistory[index];
   final conditionController = TextEditingController(text: item['conditionName']);
@@ -163,6 +143,34 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage> {
     },
   );
 }
+Future<void> updateMedicalHistory(int index, Map<String, dynamic> updatedItem) async {
+  final userId = await storage.read(key: 'userid');
+  if (userId != null) {
+    try {
+      final response = await http.put(
+        Uri.parse('${ApiConstants.baseUrl}/users/updateMedicalHistory'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'userid': userId,
+          'index': index,
+          'updatedItem': updatedItem,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          medicalHistory = data['medicalHistory']; // Update the local medicalHistory list
+        });
+        print('Medical history updated successfully');
+      } else {
+        print("Failed to update medical history: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error updating medical history: $e");
+    }
+  }
+}
 
 
   Future<void> _selectDate(BuildContext context) async {
@@ -226,24 +234,61 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage> {
       },
     );
   }
+Future<void> addMedicalHistory(List<Map<String, dynamic>> newMedicalHistory) async {
+  final userId = await storage.read(key: 'userid');
+  
+  if (userId != null) {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/users/addMedicalHistory'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'userid': userId,
+          'medicalHistory': newMedicalHistory,
+        }),
+      );
 
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          medicalHistory = data['medicalHistory']; // Update the medicalHistory list with the new data
+        });
+        print('Medical history added successfully');
+      } else {
+        print("Failed to add medical history: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error adding medical history: $e");
+    }
+  }
+}
 
-void deleteMedicalHistory(int index) async {
+Future<void> deleteMedicalHistory(int index) async {
+  final item = medicalHistory[index]; // Retrieve the medical history item
   setState(() {
-    medicalHistory.removeAt(index); 
+    medicalHistory.removeAt(index); // Update the UI by removing the item locally
   });
 
-  final userId = await storage.read(key: 'userid');
-  if (userId != null) {
-    final itemId = medicalHistory[index]['_id'];
-    final response = await http.delete(
-      Uri.parse('${ApiConstants.baseUrl}/users/$userId/medicalhistory/$itemId'),
-      headers: {'Content-Type': 'application/json'},
-    );
+  final userId = await storage.read(key: 'userid'); // Read user ID from storage
+  final itemId = {
+    'entryId': item['_id'], // Create a payload with the item ID
+  };
 
-    if (response.statusCode != 200) {
-    
-      print("Failed to delete: ${response.statusCode}");
+  if (userId != null) {
+    try {
+      final response = await http.delete(
+        Uri.parse('${ApiConstants.baseUrl}/users/$userId/medicalhistory'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(itemId), // Send the item ID as a JSON-encoded body
+      );
+
+      if (response.statusCode == 200) {
+        print('Medical history deleted successfully');
+      } else {
+        print("Failed to delete: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error deleting medical history: $e");
     }
   }
 }
@@ -321,17 +366,20 @@ void deleteMedicalHistory(int index) async {
               child: Text("Cancel", style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
-              onPressed: () {
-                final newItem = {
-                  'conditionName': conditionController.text,
-                  'diagnosisDate': _diagnosisDateController.text,
-                  'conditionDetails': detailsController.text,
-                };
-                setState(() {
-                  medicalHistory.add(newItem);
-                });
-                Navigator.pop(context);
-              },
+             onPressed: () {
+  final newEntry = {
+        'conditionName': conditionController.text,
+                'diagnosisDate': _diagnosisDateController.text,
+                'conditionDetails': detailsController.text,
+              
+  };
+
+  setState(() {
+    medicalHistory.add(newEntry); // Optimistic UI update
+  });
+
+  addMedicalHistory([newEntry]); // Send the new entry to the server
+},
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xff613089),
                 shape: RoundedRectangleBorder(
@@ -344,44 +392,95 @@ void deleteMedicalHistory(int index) async {
       },
     );
   }
+  
 
-  Widget buildMedicalHistoryCard(Map<String, dynamic> item, int index) {
-  return Card(
-    color: Colors.white,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-    margin: EdgeInsets.symmetric(vertical: 10),
-    elevation: 8,
-    shadowColor: Color(0xff613089).withOpacity(0.5),
-    child: ListTile(
-      title: Text(
-        "Condition: ${item['conditionName']}",
-        style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xff613089)),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("Diagnosis Date: ${item['diagnosisDate']}",
-              style: TextStyle(fontSize: 14)),
-          Text("Details: ${item['conditionDetails']}",
-              style: TextStyle(fontSize: 14)),
-        ],
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: Icon(Icons.edit, color: Color(0xff613089)),
-            onPressed: () => showEditDialog(index),
-          ),
-          IconButton(
-            icon: Icon(Icons.delete, color: Color(0xff613089)),
-            onPressed: () => deleteMedicalHistory(index),
-          ),
-        ],
-      ),
+Widget buildMedicalHistoryCard(Map<String, dynamic> item, int index) {
+  return Container(
+    margin: const EdgeInsets.symmetric(vertical: 10),
+    padding: const EdgeInsets.all(15),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(15),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.3),
+          spreadRadius: 2,
+          blurRadius: 5,
+          offset: Offset(0, 3),
+        ),
+      ],
+      border: Border.all(color: Color(0xff613089).withOpacity(0.5)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header: Condition Name
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              item['conditionName'] ?? "Unknown Condition",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xff613089),
+              ),
+            ),
+            Row(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.edit, color: Colors.blue),
+                  onPressed: () => showEditDialog(index),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => deleteMedicalHistory(index),
+                ),
+              ],
+            ),
+          ],
+        ),
+        SizedBox(height: 10),
+
+        // Diagnosis Date
+        Row(
+          children: [
+            Icon(Icons.calendar_today, size: 16, color: Color(0xff613089)),
+            SizedBox(width: 5),
+            Text(
+              "Diagnosis Date: ${item['diagnosisDate']}",
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 10),
+
+        // Details
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.notes, size: 16, color: Color(0xff613089)),
+            SizedBox(width: 5),
+            Expanded(
+              child: Text(
+                item['conditionDetails'] ?? "No additional details provided.",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+                softWrap: true,
+              ),
+            ),
+          ],
+        ),
+      ],
     ),
   );
 }
+
 
 
 @override

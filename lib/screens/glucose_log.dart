@@ -119,7 +119,7 @@ final headers = {
 ),
 
                   GlucoseCard(
-                    avgGlucose: glucoseData!['week']['avgGlucose'],levels: (glucoseData!['today']['levels'] as List<dynamic>)
+                    avgGlucose: glucoseData!['week']['avgGlucose'],levels: (glucoseData!['week']['levels'] as List<dynamic>)
     .map((e) => (e as num).toDouble())
     .toList(),
 
