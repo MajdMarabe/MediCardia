@@ -35,29 +35,31 @@ module.exports.addNotification =  asyncHandler(async (req, res) => {
 
     res.status(201).json(notification);
 });
-
 /**
  * @desc Delete a notification
  * @route /api/notifications/:id
  * @method DELETE
  * @access Private
  */
-module.exports.deleteNotification =  asyncHandler(async (req, res) => {
+module.exports.deleteNotification = asyncHandler(async (req, res) => {
     const notificationId = req.params.id;
 
+    // Use findById to retrieve the notification
     const notification = await Notification.findById(notificationId);
 
     if (!notification) {
-        res.status(404);
-        throw new Error("Notification not found.");
+        res.status(404).json({ message: "Notification not found." });
+        return;
     }
 
     // Ensure the user is authorized to delete the notification
     if (notification.userId.toString() !== req.user.id && !req.user.isAdmin) {
-        res.status(403);
-        throw new Error("Not authorized to delete this notification.");
+        res.status(403).json({ message: "Not authorized to delete this notification." });
+        return;
     }
 
-    await notification.remove();
+    // Use deleteOne or findByIdAndDelete to remove the notification
+    await Notification.findByIdAndDelete(notificationId); 
+
     res.status(200).json({ message: "Notification deleted successfully." });
 });

@@ -11,15 +11,16 @@ const DrugSchema = new mongoose.Schema({
         trim: true,
         minlength: 3,
         maxlength: 250,
-        unique: true
+       unique: true
     },
     Barcode: {
         type: String,
-        required: true,
+        required: false,
         minlength: 3,
         trim: true,
         maxlength: 250,
-        unique: true
+        unique: true,
+        default: null
     },
     details: [
         {
