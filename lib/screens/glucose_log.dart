@@ -70,18 +70,23 @@ final headers = {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F5FF),
+        backgroundColor: const Color(0xFFF2F5FF),
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
+          backgroundColor: const Color(0xFFF2F5FF),
           elevation: 0,
           centerTitle: true,
+          leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
           title: const Text(
             'Your Glucose',
             style: TextStyle(
-              color: Colors.black,
-              fontSize: 24,
               fontWeight: FontWeight.bold,
-              letterSpacing: 1.5,
+            color: Color(0xff613089),
+            letterSpacing: 1.5,
             ),
           ),
           bottom: const TabBar(
@@ -98,7 +103,7 @@ final headers = {
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.share, color: Colors.black),
+              icon: const Icon(Icons.share, color: Color(0xff613089)),
               onPressed: () {
                 // Share functionality
               },
@@ -119,7 +124,7 @@ final headers = {
 ),
 
                   GlucoseCard(
-                    avgGlucose: glucoseData!['week']['avgGlucose'],levels: (glucoseData!['week']['levels'] as List<dynamic>)
+                    avgGlucose: glucoseData!['week']['avgGlucose'],levels: (glucoseData!['today']['levels'] as List<dynamic>)
     .map((e) => (e as num).toDouble())
     .toList(),
 

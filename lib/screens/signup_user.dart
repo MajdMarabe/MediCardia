@@ -6,7 +6,7 @@ import 'constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_application_3/screens/verification_code.dart';
 
-final storage = FlutterSecureStorage();
+const storage = FlutterSecureStorage();
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -119,16 +119,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                        // App Logo and Name
-                      Column(
+                        
+                      const Column(
                         children: [
-                          Image.asset(
-                            'assets/images/appLogo.png', // Path to the logo
-                            height: 100,
-                            color: Color(0xff613089),
-                          ),
-                          const SizedBox(height: 10),
-                          const Text(
+                        
+                          Text(
                             'MediCardia', // App name
                             style: TextStyle(
                               fontSize: 40.0,

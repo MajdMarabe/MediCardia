@@ -89,12 +89,21 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Doctor Profile"),
-        backgroundColor: const Color(0xff613089),
-      ),
-      backgroundColor: Colors.white,  // Set background color to white
+   return Scaffold(
+  backgroundColor: const Color(0xFFF2F5FF),
+  appBar: AppBar(
+    elevation: 0,
+    centerTitle: true,
+    backgroundColor: const Color(0xFFF2F5FF),
+    title: const Text("Doctor Profile",
+    style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xff613089),
+            letterSpacing: 1.5,
+          ),),
+    automaticallyImplyLeading: false, 
+  ),
+
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),

@@ -1,10 +1,11 @@
-import 'dart:convert'; 
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/widgets/custom_scaffold.dart';
-import 'package:http/http.dart' as http; 
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'package:flutter_application_3/screens/verification_code.dart';
-
 
 class SignUpDoctorScreen extends StatefulWidget {
   const SignUpDoctorScreen({super.key});
@@ -24,19 +25,30 @@ class _SignUpDoctorScreenState extends State<SignUpDoctorScreen> {
   final _workplaceNameController = TextEditingController();
   final _workplaceAddressController = TextEditingController();
 
+  File? _image;
   bool agreePersonalData = true;
   bool _obscureText = true;
 
-  // Regular expression for email validation
   final RegExp _emailRegExp = RegExp(
     r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
   );
 
-  // Function to toggle password visibility
   void _togglePasswordVisibility() {
     setState(() {
       _obscureText = !_obscureText;
     });
+  }
+
+  // Image picker method
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.getImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+    }
   }
 
   Future<void> _submitSignUp() async {
@@ -50,26 +62,26 @@ class _SignUpDoctorScreenState extends State<SignUpDoctorScreen> {
     }
 
     final url = Uri.parse('${ApiConstants.baseUrl}/doctors/register');
-
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'fullName': _fullNameController.text,
-          'email': _emailController.text,
-          'password_hash': _passwordController.text,
-          'phone': _phoneController.text,
-          'specialization': _specializationController.text,
-          'licenseNumber': _licenseNumberController.text,
-          'workplaceName': _workplaceNameController.text,
-          'workplaceAddress': _workplaceAddressController.text,
-        }),
-      );
+      final request = http.MultipartRequest('POST', url)
+        ..fields['fullName'] = _fullNameController.text
+        ..fields['email'] = _emailController.text
+        ..fields['password_hash'] = _passwordController.text
+        ..fields['phone'] = _phoneController.text
+        ..fields['specialization'] = _specializationController.text
+        ..fields['licenseNumber'] = _licenseNumberController.text
+        ..fields['workplaceName'] = _workplaceNameController.text
+        ..fields['workplaceAddress'] = _workplaceAddressController.text;
+
+      if (_image != null) {
+        request.files.add(await http.MultipartFile.fromPath('image', _image!.path));
+      }
+
+      final response = await request.send();
 
       if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        final doctorId = responseData['_id'];
+        final responseData = await response.stream.bytesToString();
+        final doctorId = jsonDecode(responseData)['_id'];
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Sign up successful')),
@@ -77,11 +89,11 @@ class _SignUpDoctorScreenState extends State<SignUpDoctorScreen> {
 
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => VerificationCodeScreen(email: _emailController.text,flag: '2')),
+          MaterialPageRoute(builder: (context) => VerificationCodeScreen(email: _emailController.text, flag: '2')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to sign up: ${response.body}')),
+          SnackBar(content: Text('Failed to sign up: ${response.reasonPhrase}')),
         );
       }
     } catch (e) {
@@ -119,16 +131,11 @@ class _SignUpDoctorScreenState extends State<SignUpDoctorScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                       // App Logo and Name
-                      Column(
+                      // App Logo and Name
+                      const Column(
                         children: [
-                          Image.asset(
-                            'assets/images/appLogo.png', // Path to the logo
-                            height: 100,
-                            color: Color(0xff613089),
-                          ),
-                          const SizedBox(height: 10),
-                          const Text(
+                          
+                          Text(
                             'MediCardia', // App name
                             style: TextStyle(
                               fontSize: 40.0,
@@ -139,7 +146,55 @@ class _SignUpDoctorScreenState extends State<SignUpDoctorScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 40.0),
+                      const SizedBox(height: 20.0),
+
+GestureDetector(
+  onTap: _pickImage, // Function to select an image
+  child: Stack(
+    alignment: Alignment.center,
+    children: [
+      // Circle avatar to hold the image or placeholder
+      CircleAvatar(
+        radius: 60, // Size of the avatar
+        backgroundColor: Colors.grey[300], // Background color for the placeholder
+        child: _image == null
+            ? const SizedBox.shrink() // If no image, display nothing
+            : ClipOval(
+                child: Image.file(
+                  _image!,
+                  width: 120,
+                  height: 120,
+                  fit: BoxFit.cover, // Ensure the image fills the circle
+                ),
+              ),
+      ),
+      // If there is no image, show the icon and text inside the circle
+      if (_image == null) ...[
+        const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.add_a_photo, // Icon for adding a photo
+              size: 24, // Icon size
+              color: Color(0xff613089), // Icon color
+            ),
+            SizedBox(height: 5), // Space between icon and text
+            Text(
+              'Add Photo', // Placeholder text
+              style: TextStyle(
+                fontSize: 12, // Size of the text
+                fontWeight: FontWeight.bold,
+                color: Color(0xff613089), // Text color
+              ),
+            ),
+          ],
+        ),
+      ],
+    ],
+  ),
+),
+
+                      const SizedBox(height: 25.0),
 
                       _buildTextField(_fullNameController, 'Full Name', 'Enter Full Name', Icons.person),
                       const SizedBox(height: 25.0),

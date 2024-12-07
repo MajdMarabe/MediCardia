@@ -9,7 +9,7 @@ import 'package:flutter_application_3/screens/login_screen.dart';
 import 'package:flutter_application_3/screens/public_info.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-final storage = FlutterSecureStorage();
+const storage = FlutterSecureStorage();
 class VerificationCodeScreen extends StatefulWidget {
   final String email; // To send verification code to email
   final String flag;
@@ -49,12 +49,12 @@ final userid = await storage.read(key: 'userid') ?? 'default_user_id';
         if (widget.flag == '1') {
           return UpdatePasswordScreen(token: token);
         } else if (widget.flag == '2') {
-          return SignInScreen();
+          return const SignInScreen();
         } else if (widget.flag == '3') {
           return PublicInfo(userId: userid);
         } else {
           // Default return if no condition matches
-          return SignInScreen(); // You can replace this with any default screen widget
+          return const SignInScreen(); // You can replace this with any default screen widget
         }
       },
     ),
