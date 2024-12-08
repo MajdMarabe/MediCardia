@@ -7,9 +7,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-void main() {
-  runApp(GlucoseApp());
-}
 
 class GlucoseApp extends StatelessWidget {
   @override
@@ -65,6 +62,7 @@ final headers = {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -105,7 +103,7 @@ final headers = {
             IconButton(
               icon: const Icon(Icons.share, color: Color(0xff613089)),
               onPressed: () {
-                // Share functionality
+                _showShareDialog(context);
               },
             ),
           ],
@@ -144,7 +142,91 @@ levels: (glucoseData!['month']['levels'] as List<dynamic>)
       ),
     );
   }
+
+
+
+void _showShareDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 16,
+        backgroundColor: Colors.white,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min, 
+            children: [
+              const SizedBox(height: 10),
+              const Text(
+                "Share Your Glucose Report",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xff613089),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10), 
+              Text(
+                _generateReport(),
+                textAlign: TextAlign.left,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black54,
+                ),
+              ),
+              
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xff613089),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                child: const Text(
+                  "Share Now",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                onPressed: () {
+                  final String report = _generateReport();
+                  Share.share(report); 
+                  Navigator.pop(context); 
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
+
+
+
+
+  String _generateReport() {
+  final todayAvg = int.tryParse(glucoseData?['today']['avgGlucose'] ?? '0') ?? 0;
+  final weekAvg = int.tryParse(glucoseData?['week']['avgGlucose'] ?? '0') ?? 0;
+  final monthAvg = int.tryParse(glucoseData?['month']['avgGlucose'] ?? '0') ?? 0;
+
+    return """
+🩸 **Glucose Levels Report** 📊
+**Today:** $todayAvg mg/dl ${(todayAvg > 130) ? '😟' : '😎'}
+**Week:** $weekAvg mg/dl ${(weekAvg > 130) ? '😟' : '👌'}
+**Month:** $monthAvg mg/dl ${(monthAvg > 130) ? '😟' : '👌'}
+
+Stay healthy and consult your doctor for further advice.
+""";
+  }
+}
+
 
 class GlucoseCard extends StatelessWidget {
   final String avgGlucose;

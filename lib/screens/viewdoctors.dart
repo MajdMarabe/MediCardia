@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
@@ -31,10 +32,11 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
   }
 
   @override
-  void dispose() {
-    searchController.dispose();
-    super.dispose();
-  }
+void dispose() {
+  searchController.removeListener(_onSearchChanged);
+  super.dispose();
+}
+
 
   // Fetch all doctors from the API
   Future<void> fetchDoctors() async {
@@ -61,7 +63,9 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
               },
             };
           }).toList();
-          doctorNames = allDoctors.map((doctor) => doctor['name'] as String).toList(); // Populate autocomplete options
+          doctorNames = allDoctors
+              .map((doctor) => doctor['name'] as String)
+              .toList(); // Populate autocomplete options
           displayedDoctors = List.from(allDoctors);
           isLoading = false;
         });
@@ -90,8 +94,10 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
     setState(() {
       displayedDoctors = allDoctors.where((doctor) {
         final matchesSpecialty = selectedSpecialty == "All" ||
-            doctor['specialty'].toLowerCase() == selectedSpecialty.toLowerCase();
-        final matchesSearch = doctor['name'].toLowerCase().contains(searchQuery);
+            doctor['specialty'].toLowerCase() ==
+                selectedSpecialty.toLowerCase();
+        final matchesSearch =
+            doctor['name'].toLowerCase().contains(searchQuery);
         return matchesSpecialty && matchesSearch;
       }).toList();
     });
@@ -101,45 +107,18 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
     filterDoctors();
   }
 
-  Widget buildDropdown() {
-    final List<String> specialties = [
-      "All",
-      "Eye",
-      "Heart",
-      "Nose",
-      "General",
-      "Pediatrics",
-      "Cardiology",
-      "Dentistry",
-      "Orthopedics",
-    ];
+final Map<String, IconData> specialtiesWithIcons = {
+  "All": Icons.local_hospital, 
+  "Eye": Icons.visibility,
+  "Nose": Icons.emoji_emotions, 
+  "General": Icons.person, 
+  "Pediatrics": Icons.child_friendly, 
+  "Cardiology": FontAwesomeIcons.heartbeat, 
+  "Dentistry": FontAwesomeIcons.tooth, 
+  "Orthopedics": Icons.accessibility_new, 
+};
 
-    return DropdownButton<String>(
-      value: selectedSpecialty,
-      items: specialties.map((specialty) {
-        return DropdownMenuItem<String>(
-          value: specialty,
-          child: Text(
-            specialty,
-            style: const TextStyle(color: Color(0xFF613089)),
-          ),
-        );
-      }).toList(),
-      onChanged: (value) {
-        if (value != null) {
-          setState(() {
-            selectedSpecialty = value;
-            filterDoctors();
-          });
-        }
-      },
-      dropdownColor: Colors.white,
-      style: const TextStyle(
-        fontSize: 16,
-        color: Color(0xFF613089),
-      ),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +128,7 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
         backgroundColor: const Color(0xFFF2F5FF),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Color(0xFF613089)),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -170,43 +149,119 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
               ),
             ),
             const SizedBox(height: 16),
-            buildDropdown(),
-            const SizedBox(height: 10),
-            Autocomplete<String>(
-              optionsBuilder: (TextEditingValue textEditingValue) {
-                if (textEditingValue.text.isEmpty) {
-                  return const Iterable<String>.empty();
-                }
-                return doctorNames.where((name) =>
-                    name.toLowerCase().contains(textEditingValue.text.toLowerCase()));
-              },
-              onSelected: (String selection) {
-                searchController.text = selection;
-                filterDoctors();
-              },
-              fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
-                searchController = controller;
-                return TextField(
-                  controller: controller,
-                  focusNode: focusNode,
-                  onEditingComplete: onEditingComplete,
-                  decoration: const InputDecoration(
-                    hintText: 'Search by name...',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: const Color(0xFF6A4C9C), width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              "Doctors",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF613089),
+                ],
               ),
+              child: Row(
+                children: [
+                  const Icon(Icons.search, color: Color(0xFF6A4C9C), size: 28),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Autocomplete<String>(
+                      optionsBuilder: (TextEditingValue textEditingValue) {
+                        if (textEditingValue.text.isEmpty) {
+                          return const Iterable<String>.empty();
+                        }
+                        return doctorNames.where((name) => name
+                            .toLowerCase()
+                            .contains(textEditingValue.text.toLowerCase()));
+                      },
+                      onSelected: (String selection) {
+                        searchController.text = selection;
+                        filterDoctors();
+                      },
+                      fieldViewBuilder:
+                          (context, controller, focusNode, onEditingComplete) {
+                        searchController = controller;
+                        return TextField(
+                          controller: controller,
+                          focusNode: focusNode,
+                          onEditingComplete: onEditingComplete,
+                          decoration: const InputDecoration(
+                            hintText: 'Search for doctors by name...',
+                            border: InputBorder.none,
+                            hintStyle: TextStyle(color: Colors.grey),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Doctors",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF613089),
+                  ),
+                ),
+                const SizedBox(width: 150),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: DropdownButtonFormField<String>(
+                      value: selectedSpecialty,
+                      items: specialtiesWithIcons.entries.map((entry) {
+                        return DropdownMenuItem<String>(
+                          value: entry.key,
+                          child: Row(
+                            children: [
+                              Icon(entry.value,
+                                  color: const Color(0xFF613089), size: 20),
+                              const SizedBox(width: 3),
+                              Text(
+                                entry.key,
+                                style: const TextStyle(
+                                  color: Color(0xFF613089),
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            selectedSpecialty = value;
+                            filterDoctors();
+                          });
+                        }
+                      },
+                      dropdownColor: Colors.white,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF613089),
+                      ),
+                      icon: const Icon(
+                        Icons.arrow_drop_down,
+                        color: Color(0xFF613089),
+                        size: 20,
+                      ),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 10),
             Expanded(
@@ -239,10 +294,24 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => DoctorsPage()),
+          );
+        },
+        icon: const Icon(FontAwesomeIcons.userMd,color: Colors.white),
+        label: const Text(
+          "Your Doctors",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Color(0xFF613089),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
-
 
 class DoctorDetailPage extends StatefulWidget {
   final Map<String, dynamic> doctor;
@@ -279,11 +348,15 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
 
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("${widget.doctor['name']} has been set as your doctor.")),
+          SnackBar(
+              content: Text(
+                  "${widget.doctor['name']} has been set as your doctor.")),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("${widget.doctor['name']} is already your doctor.")),
+          SnackBar(
+              content:
+                  Text("${widget.doctor['name']} is already your doctor.")),
         );
       }
     } catch (e) {
@@ -300,7 +373,13 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
   @override
   Widget build(BuildContext context) {
     List<String> days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    List<String> availableTimes = ["9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM"];
+    List<String> availableTimes = [
+      "9:00 AM",
+      "10:00 AM",
+      "11:00 AM",
+      "12:00 PM",
+      "1:00 PM"
+    ];
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -336,12 +415,10 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                   
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(0),
                     child: Column(
-                      
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Doctor Image
@@ -349,12 +426,14 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(
                             widget.doctor['image'],
-                            width: double.infinity, // Image takes the full width
+                            width:
+                                double.infinity, // Image takes the full width
                             height: 180, // Set a fixed height for the image
                             fit: BoxFit.cover,
                           ),
                         ),
-                        const SizedBox(height: 12), // Space between image and text
+                        const SizedBox(
+                            height: 12), // Space between image and text
                         // Doctor Details (name and specialty with icons)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -363,14 +442,14 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                               Text(
-  'Dr ${widget.doctor['name']}',
-  style: const TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.bold,
-    color: Color(0xFF613089),
-  ),
-),
+                                Text(
+                                  'Dr ${widget.doctor['name']}',
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF613089),
+                                  ),
+                                ),
                                 const SizedBox(height: 4),
                                 Text(
                                   widget.doctor['specialty'],
@@ -385,7 +464,9 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                               children: [
                                 IconButton(
                                   icon: Icon(
-                                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                                    isFavorite
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
                                     color: const Color(0xFF613089),
                                     size: 30,
                                   ),
@@ -414,7 +495,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                   ),
                 ),
               ),
-                            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
               Align(
                 alignment: Alignment.centerLeft,
@@ -434,7 +515,6 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
               ),
               const SizedBox(height: 20),
 
-              // Location section
               Align(
                 alignment: Alignment.centerLeft,
                 child: const Text(
@@ -454,7 +534,8 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                   Expanded(
                     child: Text(
                       "${widget.doctor['workplace']['name']} - ${widget.doctor['workplace']['address']}",
-                      style: const TextStyle(fontSize: 16, color: Colors.black54),
+                      style:
+                          const TextStyle(fontSize: 16, color: Colors.black54),
                     ),
                   ),
                 ],
@@ -515,8 +596,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                         color: Color(0xFF613089),
                       ),
                     ),
-                                  const SizedBox(height: 8),
-
+                    const SizedBox(height: 8),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -551,7 +631,8 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                   onPressed: () => _setAsMyDoctor(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF613089),
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 32),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 32),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
