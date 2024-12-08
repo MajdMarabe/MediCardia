@@ -54,7 +54,7 @@ const UserSchema = new mongoose.Schema({
     },
     medicalCard: {
         publicData: {
-            idNumber: { type: String, trim: true, default: null ,unique: true}, 
+            idNumber: { type: String, trim: true, default: null }, 
             gender: { type: String, enum: ['Male', 'Female'], trim: true, default: null }, 
             age: { type: Number, default: null }, 
             bloodType: { type: String, trim: true, default: null },

@@ -1,5 +1,6 @@
 const express = require("express");
 //const dotenv = require("dotenv");
+const cors = require('cors'); //  CORS
 
 //const usersPath =require("./routes/users");///for every route
 const logger = require("./middlewares/logger");
@@ -12,6 +13,9 @@ require("dotenv").config();
 connectToDB();
 // init app
 const app = express();
+
+app.use(cors());
+
 //apply middlewares
 app.use(express.json({ limit: '10mb' }));//json
 app.use(logger);
