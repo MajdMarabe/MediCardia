@@ -434,6 +434,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
               ),
               const SizedBox(height: 20),
 
+              // Location section
               Align(
                 alignment: Alignment.centerLeft,
                 child: const Text(

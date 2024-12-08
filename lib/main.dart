@@ -11,6 +11,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_application_3/screens/constants.dart';
+import 'firebase_options.dart'; // تأكد من استيراد هذا الملف الذي يحتوي على الإعدادات
 
 final storage = FlutterSecureStorage();
 
@@ -37,9 +38,13 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  await requestNotificationPermissions();
 
+  // تأكد من تمرير خيارات Firebase بشكل صحيح
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform, // تم إضافة هذه السطر
+  );
+  
+  await requestNotificationPermissions();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   tz.initializeTimeZones();

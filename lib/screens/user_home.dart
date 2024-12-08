@@ -12,13 +12,35 @@ import 'package:table_calendar/table_calendar.dart';
 import 'drugshome.dart';
 import 'viewdoctors.dart';
 import 'notification_page.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'constants.dart';
+import 'dart:convert';
 
+final storage = FlutterSecureStorage();
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+    List<Map<String, dynamic>> allUsers = [];
+     String username = 'Unknown'; // اسم المستخدم
+  String gender = 'Unknown'; // الجنس
+  String bloodType = 'Unknown'; // فصيلة الدم
+  int age = 0; // العمر
+  String phoneNumber = 'N/A'; // رقم الهاتف
+  String lastDonationDate = 'N/A'; // آخر تاريخ للتبرع بالدم
+String? base64Image ='';
+  // القوائم الديناميكية
+  List<String> chronicDiseases = []; // قائمة الأمراض المزمنة
+  List<String> allergies = []; // قائمة الحساسية
+
+  // حالة التحميل
+  bool isLoading = true; // للتحقق مما إذا كان يتم تحميل البيانات
+
+bool _isExpanded = false;
+ 
   final items = const [
     Icon(
       Icons.home,
@@ -38,13 +60,64 @@ class _HomePageState extends State<HomePage> {
     NotificationPage(),
     ProfilePage(),
   ];
+  @override
+  void initState() {
+    super.initState();
+    fetchUserInfo();
+  }
+// Fetch all doctors from the API
+ Future<void> fetchUserInfo() async {
+  final String ? userid =  await storage.read(key: 'userid');
+  try {
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/users/$userid'), // Replace {userId} with dynamic ID
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+
+      setState(() {
+        username = data['username'] ?? 'Unknown';
+        gender = data['medicalCard']?['publicData']?['gender'] ?? 'Unknown';
+        bloodType = data['medicalCard']?['publicData']?['bloodType'] ?? 'Unknown';
+        age = data['medicalCard']?['publicData']?['age'] ?? 0;
+        phoneNumber = data['medicalCard']?['publicData']?['phoneNumber'] ?? 'N/A';
+        lastDonationDate =
+            data['medicalCard']?['publicData']?['lastBloodDonationDate'] ?? 'N/A';
+        chronicDiseases = List<String>.from(
+          data['medicalCard']?['publicData']?['chronicConditions'] ?? [],
+        );
+        allergies = List<String>.from(
+          data['medicalCard']?['publicData']?['allergies'] ?? [],
+        );
+       //  base64Image=data['medicalCard']?['publicData']?['image'] ?? 'Unknown';
+        isLoading = false; // Update the loading state
+      });
+    } else {
+      _showMessage('Failed to load user information');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  } catch (e) {
+    _showMessage('Error: $e');
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+}
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
-
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
   // Function to build circular service buttons
   Widget buildCircleButton({
     required IconData icon, // Accepting IconData for the icon parameter
@@ -113,16 +186,18 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+/*
+Image buildImageFromBase64(String? base64Image) {
+  if (base64Image == null) {
+    return Image.asset('assets/images/doctor1.jpg'); // صورة بديلة في حالة عدم وجود Base64
+  }
 
-bool _isExpanded = false;
-DateTime? _selectedDate;
-List<String> chronicDiseases = ['Diabetes'];  
-List<String> allergies = ['Penicillin'];  
+  // تحويل الـ Base64 إلى بايتات
+  final bytes = base64Decode(base64Image);
 
-
-String phoneNumber = '0598820544'; 
-String lastDonationDate = '2024-11-19';  
-String idNumber = '123456789';  
+  // عرض الصورة من البايتات
+  return Image.memory(bytes);
+}*/
 
 Widget buildUserInfo() {
   return StatefulBuilder(
@@ -148,17 +223,18 @@ Widget buildUserInfo() {
             Row(
               children: [
                 CircleAvatar(
-                  radius: 42,
-                  backgroundColor: Colors.white,
-                  backgroundImage: AssetImage('assets/images/doctor1.jpg'),
-                ),
+  radius: 42,
+  backgroundColor: Colors.white,
+  backgroundImage:AssetImage('assets/images/doctor1.jpg'),//buildImageFromBase64(base64Image).image,
+),
+
                 const SizedBox(width: 18),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Majd',
+                        username, // اسم المستخدم الديناميكي
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -180,11 +256,11 @@ Widget buildUserInfo() {
                               child: Icon(Icons.person,
                                   size: 20, color: Colors.white70),
                             ),
-                            const TextSpan(text: '  Age: 22 | Gender: Female'),
+                            TextSpan(text: '  Age: $age | Gender: $gender'),
                           ],
                         ),
                       ),
-                       const SizedBox(height: 6),
+                      const SizedBox(height: 6),
                       RichText(
                         text: TextSpan(
                           style: const TextStyle(
@@ -194,7 +270,7 @@ Widget buildUserInfo() {
                               child: Icon(Icons.bloodtype,
                                   size: 20, color: Colors.white70),
                             ),
-                            const TextSpan(text: '  Blood Type: B+'),
+                            TextSpan(text: '  Blood Type: $bloodType'),
                           ],
                         ),
                       ),
@@ -203,51 +279,48 @@ Widget buildUserInfo() {
                 ),
               ],
             ),
-             if (_isExpanded) ...[
-            const SizedBox(height: 16),
-             buildInfoRow(Icons.credit_card, 'ID Number: 123456789'),
-            buildEditableRow(Icons.phone, 'Phone: $phoneNumber', (newValue) {
-              setState(() {
-                phoneNumber = newValue;  
-              });
-            }),
-            buildEditableRow(
-              Icons.calendar_today, 
-              'Last Donation: $lastDonationDate', 
-              (newValue) {
+            if (_isExpanded) ...[
+              const SizedBox(height: 16),
+              buildInfoRow(Icons.credit_card, 'ID Number: 123456789'),
+              buildEditableRow(Icons.phone, 'Phone: $phoneNumber', (newValue) {
                 setState(() {
-                  lastDonationDate = newValue;  
+                  phoneNumber = newValue;
                 });
-              },
-              isDate: true, // Flag to indicate this is a date field
-            ),
-          
-            buildEditableListRow(
-                FontAwesomeIcons.heartbeat, 'Chronic diseases:', chronicDiseases,
+              }),
+              buildEditableRow(
+                Icons.calendar_today,
+                'Last Donation: $lastDonationDate',
                 (newValue) {
-              setState(() {
-                chronicDiseases.add(newValue);  
-              });
-            }, (index) {
-              setState(() {
-                chronicDiseases.removeAt(index);  
-              });
-            }),
-
-        
-            buildEditableListRow(Icons.warning, 'Allergies:', allergies,
-                (newValue) {
-              setState(() {
-                allergies.add(newValue);  
-              });
-            }, (index) {
-              setState(() {
-                allergies.removeAt(index);  
-              });
-            }),
-  ],
+                  setState(() {
+                    lastDonationDate = newValue;
+                  });
+                },
+                isDate: true, // Flag to indicate this is a date field
+              ),
+              buildEditableListRow(
+                  FontAwesomeIcons.heartbeat, 'Chronic diseases:', chronicDiseases,
+                  (newValue) {
+                setState(() {
+                  chronicDiseases.add(newValue);
+                });
+              }, (index) {
+                setState(() {
+                  chronicDiseases.removeAt(index);
+                });
+              }),
+              buildEditableListRow(Icons.warning, 'Allergies:', allergies,
+                  (newValue) {
+                setState(() {
+                  allergies.add(newValue);
+                });
+              }, (index) {
+                setState(() {
+                  allergies.removeAt(index);
+                });
+              }),
+            ],
             const SizedBox(height: 5),
-             Align(
+            Align(
               alignment: Alignment.centerRight,
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
@@ -257,13 +330,13 @@ Widget buildUserInfo() {
                       _isExpanded = !_isExpanded;
                     });
                   },
-                child: Text(
-                  _isExpanded ? 'Show Less' : 'Show More',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                     ),
+                  child: Text(
+                    _isExpanded ? 'Show Less' : 'Show More',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -274,6 +347,7 @@ Widget buildUserInfo() {
     },
   );
 }
+
 
 Widget buildEditableRow(IconData icon, String text, Function(String) onSave, {bool isDate = false}) {
   TextEditingController controller = TextEditingController(text: text);

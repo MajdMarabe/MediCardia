@@ -36,7 +36,7 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
       'token': await storage.read(key: 'token') ?? '',
     };
     final response = await http.get(
-        Uri.parse('http://192.168.88.13:5001/api/bloodSugar/glucoseCard'),
+        Uri.parse('${ApiConstants.baseUrl}/bloodSugar/glucoseCard'),
         headers: headers);
 
     if (response.statusCode == 200) {
