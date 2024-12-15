@@ -439,57 +439,6 @@ module.exports.updatePublicMedicalCardData = asyncHandler(async (req, res) => {
     res.status(200).json({ message: "Public medical card data updated successfully", user });
 });
 
-/*
-module.exports.updatePublicMedicalCardData = asyncHandler(async (req, res) => {
-    const { publicData } = req.body; // البيانات العامة المدخلة من المستخدم
-
-    // التحقق من صحة البيانات المدخلة
-    const { error } = validatePublicData(publicData);
-    if (error) {
-        return res.status(400).json({ message: error.details[0].message });
-    }
-
-    // معالجة الأدوية
-    const drugIds = [];
-    if (publicData.Drugs && Array.isArray(publicData.Drugs)) {
-        for (const drugName of publicData.Drugs) {
-            // التحقق من نوع الدواء
-            if (typeof drugName !== "string" || drugName.trim() === "") {
-                return res.status(400).json({ message: "Invalid drug name provided" });
-            }
-
-            // التحقق إذا كان الدواء موجودًا
-            let existingDrug = await Drug.findOne({ Drugname: drugName.trim() });
-
-            // إذا لم يكن الدواء موجودًا، قم بإنشائه
-            if (!existingDrug) {
-                existingDrug = await Drug.create({ Drugname: drugName.trim(), Barcode: `AUTO-${Date.now()}` });
-            }
-
-            // إضافة معرف الدواء إلى القائمة
-            drugIds.push(existingDrug._id);
-        }
-    }
-
-    // تحديث بيانات المستخدم
-    const user = await User.findById(req.params.id);
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
-    }
-
-    // تحديث الحقول العامة للمستخدم
-    user.medicalCard.publicData = {
-        ...user.medicalCard.publicData,
-        ...publicData,
-        Drugs: drugIds, // إضافة الأدوية المحدثة
-    };
-
-    // حفظ التعديلات
-    await user.save();
-
-    res.status(200).json({ message: "Public medical card data updated successfully", user });
-});
-*/
 /**
  * @desc Update Medical History
  * @route /:id/medicalhistory
