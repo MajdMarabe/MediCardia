@@ -1,7 +1,12 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io'; 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_application_3/screens/welcome_screen.dart';
+
+final storage = FlutterSecureStorage();
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -24,8 +29,20 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   // Function to handle log out
-  void _logOut() {
+  Future<void> _logOut() async {
     // Add your logout logic here (e.g., clearing user session, etc.)
+    try {
+    await storage.deleteAll(); // Clears all stored keys and values
+    print('Storage cleared successfully.');
+  await FirebaseMessaging.instance.deleteToken();
+
+    // Navigate the user back to the welcome or login screen
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+    );
+  } catch (e) {
+    print('Error clearing storage: $e');
+  }
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Logged out successfully!")),
     );

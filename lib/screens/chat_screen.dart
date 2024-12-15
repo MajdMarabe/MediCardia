@@ -1,0 +1,331 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'constants.dart';
+//import 'main.dart';
+import 'package:flutter_application_3/main.dart';
+import 'package:flutter_application_3/services/notification_service.dart';
+import 'package:flutter_application_3/main.dart';
+
+import 'dart:convert';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+final storage = FlutterSecureStorage();
+
+/*
+class ChatApp extends StatelessWidget {
+   final String receiverId;
+  const ChatApp({Key? key,required this.receiverId}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(primarySwatch: Colors.purple),
+      home: const ChatPage(),
+    );
+  }
+}*/
+
+class ChatPage extends StatefulWidget {
+final String receiverId;
+final String name;
+  const ChatPage({Key? key,required this.receiverId,required this.name}) : super(key: key);
+  @override
+  _ChatPageState createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+  final DatabaseReference _messagesRef =
+      FirebaseDatabase.instance.ref().child('messages');//;ref('messages')
+  final TextEditingController _controller = TextEditingController();
+  final List<Map<String, dynamic>> _messages = [];
+  String ? senderid='';
+   String recname='';
+   // =   storage.read(key: 'userid') as String;// معرف المستخدم الحالي (تحديث حسب السياق)
+  @override
+  void initState() {
+    super.initState();
+      _initializeSenderId();
+
+    //_listenForMessages();
+  }
+
+Future<void> _initializeSenderId() async {
+ recname=  widget.name;
+   senderid = await storage.read(key: 'userid');
+  if (senderid == null) {
+    print('User ID not found');
+    return;
+  }
+  print('Sender ID: $senderid');
+  _listenForMessages();
+}
+void _listenForMessages() {
+  // احصل على معرف المحادثة الفريد
+  final chatId = getChatId();
+
+  // استمع للإضافات الجديدة في المحادثة المحددة
+  _messagesRef.child(chatId).onChildAdded.listen((event) {
+    final messageData = event.snapshot.value as Map<dynamic, dynamic>;
+    setState(() {
+      _messages.add({
+        'text': messageData['text'],
+        'isMe': messageData['sender'] == senderid,
+        'timestamp': messageData['timestamp'] ?? DateTime.now().millisecondsSinceEpoch,
+      });
+    });
+  });
+}
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+String getChatId() {
+  final ids = [senderid, widget.receiverId];
+  ids.sort(); // لترتيب المعرفات بنفس الترتيب
+  return ids.join('_');
+}
+void _sendMessage() {
+  if (_controller.text.trim().isEmpty) return;
+
+  final chatId = getChatId();
+  _messagesRef.child(chatId).push().set({
+    'sender': senderid,
+    'receiver': widget.receiverId,
+    'text': _controller.text.trim(),
+    'timestamp': DateTime.now().millisecondsSinceEpoch,
+  }).then((_) async {
+    final String? nameR =await storage.read(key: 'username');
+       _sendNotification(widget.receiverId,"MediCardia" , '$nameR' + ":"+_controller.text.trim());
+
+    _controller.clear();
+    _showMessage("Message sent successfully!");
+  }).catchError((error) {
+    _showMessage("Failed to send message: $error");
+    print("Error: $error");
+  });
+}
+
+
+
+
+  @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      elevation: 0,
+      backgroundColor: const Color.fromARGB(255, 105, 10, 122),
+      leading: const BackButton(color: Colors.white),
+      title: Row(
+        children: [
+          const CircleAvatar(
+            backgroundImage: NetworkImage(
+              'https://via.placeholder.com/150', // صورة افتراضية للطبيب
+            ),
+          ),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                recname,
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+              Text(
+                'Online',
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ],
+          ),
+        ],
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.phone, color: Colors.white),
+          onPressed: () {},
+        ),
+      ],
+    ),
+    body: kIsWeb ? _buildWebChatUI() : _buildMobileChatUI(),
+  );
+}
+
+Widget _buildMobileChatUI() {
+  return Column(
+    children: [
+      Expanded(
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16.0),
+          itemCount: _messages.length,
+          itemBuilder: (context, index) {
+            return ChatBubble(
+              text: _messages[index]['text'],
+              isMe: _messages[index]['isMe'],
+              timestamp: _messages[index]['timestamp'],
+            );
+          },
+        ),
+      ),
+      _buildMessageInput(),
+    ],
+  );
+}
+
+Widget _buildWebChatUI() {
+  return Container(
+    color: Colors.grey.shade200, // خلفية ناعمة للصفحة
+    child: Center(
+      child: Container(
+        width: 600, // تحديد عرض أقصى للشات
+        height: MediaQuery.of(context).size.height * 0.8, // تحديد ارتفاع نسبي
+        margin: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              spreadRadius: 3,
+              blurRadius: 7,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          borderRadius: BorderRadius.circular(16.0), // زوايا مستديرة
+        ),
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(8.0),
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  return ChatBubble(
+                    text: _messages[index]['text'],
+                    isMe: _messages[index]['isMe'],
+                    timestamp: _messages[index]['timestamp'],
+                  );
+                },
+              ),
+            ),
+            const Divider(height: 1, color: Colors.grey),
+            _buildMessageInput(),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+Widget _buildMessageInput() {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
+    decoration: BoxDecoration(
+      color: Colors.grey.shade100,
+      borderRadius: BorderRadius.circular(12.0),
+    ),
+    child: Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: _controller,
+            decoration: InputDecoration(
+              hintText: 'Type a message...',
+              hintStyle: TextStyle(color: Colors.grey.shade500),
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.send, color: Color.fromARGB(255, 118, 6, 137)),
+          onPressed: _sendMessage,
+        ),
+      ],
+    ),
+  );
+}
+
+
+
+}
+
+class ChatBubble extends StatelessWidget {
+  final String text;
+  final bool isMe;
+  final int timestamp;
+
+  const ChatBubble({
+    Key? key,
+    required this.text,
+    required this.isMe,
+    required this.timestamp,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final messageTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    final timeString = "${messageTime.hour}:${messageTime.minute.toString().padLeft(2, '0')}";
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Column(
+        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 4.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+            decoration: BoxDecoration(
+              color: isMe ? const Color.fromARGB(255, 67, 4, 79) : Colors.purple.shade100,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(isMe ? 12.0 : 0),
+                topRight: Radius.circular(isMe ? 0 : 12.0),
+                bottomLeft: const Radius.circular(12.0),
+                bottomRight: const Radius.circular(12.0),
+              ),
+            ),
+            child: Text(
+              text,
+              style: TextStyle(color: isMe ? Colors.white : Colors.purple.shade800),
+            ),
+          ),
+          Text(
+            timeString,
+            style: TextStyle(color: Colors.grey, fontSize: 10),
+          ),
+        ],
+      ),
+    );
+  }
+}
+void _sendNotification(String receiverId, String title, String message) async {
+  final DatabaseReference usersRef = FirebaseDatabase.instance.ref('users/$receiverId');
+  final DataSnapshot snapshot = await usersRef.get();
+
+  if (snapshot.exists) {
+    final String? fcmToken = snapshot.child('fcmToken').value as String?;
+
+    if (fcmToken != null) {
+      try {
+        await sendNotifications(
+          fcmToken: fcmToken,
+          title: title,
+          body: message,
+          userId: receiverId,
+        );
+        print('Notification sent successfully');
+      } catch (error) {
+        print('Error sending notification: $error');
+      }
+    } else {
+      print('FCM token not found for the user.');
+    }
+  } else {
+    print('User not found in the database.');
+  }
+}
+

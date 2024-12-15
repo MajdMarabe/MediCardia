@@ -1,4 +1,7 @@
 import 'dart:convert'; // For JSON encoding
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/screens/doctor_home.dart';
 import 'package:flutter_application_3/screens/forget_passsword_screen.dart';
@@ -32,6 +35,8 @@ class _SignInScreenState extends State<SignInScreen> {
 
   // Function to handle the login process
   Future<void> login() async {
+
+
   if (_formSignInKey.currentState!.validate()) {
     // Show a loading indicator
     ScaffoldMessenger.of(context).showSnackBar(
@@ -58,13 +63,25 @@ class _SignInScreenState extends State<SignInScreen> {
         final userid = responseData['_id']; // Extract the user ID
         final token = responseData['token']; // Extract the token
         final role = responseData['role']; // Extract the role from the response
+        final name = responseData['username']; // Extract the role from the response
 
         // Store the data locally
         await storage.write(key: 'userid', value: userid);
-        await storage.write(key: 'token', value: token);
-        final userJson = jsonEncode(responseData); // Convert the full response to JSON string
-        await storage.write(key: 'user', value: userJson);
+                await storage.write(key: 'username', value: name);
 
+        await storage.write(key: 'token', value: token);
+        final userJson = jsonEncode(responseData); 
+        await storage.write(key: 'user', value: userJson);
+        //// Token for sending notifications 
+        ///
+        if (!kIsWeb) { 
+    String? Token = await FirebaseMessaging.instance.getToken();
+if (Token != null) {
+  FirebaseDatabase.instance.ref('users/$userid').update({
+    'fcmToken': Token,
+});
+}
+}
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Login Successful! User ID: $userid')),

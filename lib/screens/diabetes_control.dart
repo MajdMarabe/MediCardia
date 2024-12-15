@@ -9,7 +9,8 @@ import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_application_3/main.dart';
+import 'package:flutter_application_3/services/notification_service.dart';
+//import 'package:flutter_application_3/main.dart';
 
 class DiabetesControlPage extends StatefulWidget {
   @override

@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
 import 'user_doctors.dart';
 import 'user_home.dart';
+import 'chat_screen.dart';
 
 final storage = FlutterSecureStorage();
 
@@ -483,7 +484,12 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                                     size: 30,
                                   ),
                                   onPressed: () {
-                                    _startChat(context);
+                                    final String  id = widget.doctor['id'];
+                                    Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ChatPage( receiverId: id,name:widget.doctor['name'])),
+          );
+                                    //_startChat(context);
                                   },
                                 ),
                               ],

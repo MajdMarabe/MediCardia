@@ -10,6 +10,7 @@ import 'constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_application_3/main.dart';
+import 'package:flutter_application_3/services/notification_service.dart';
 
 class DiabetesControlPage extends StatefulWidget {
   @override
@@ -36,7 +37,7 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
       'token': await storage.read(key: 'token') ?? '',
     };
     final response = await http.get(
-        Uri.parse('http://192.168.88.13:5001/api/bloodSugar/glucoseCard'),
+        Uri.parse('${ApiConstants.baseUrl}/bloodSugar/glucoseCard'),
         headers: headers);
 
     if (response.statusCode == 200) {

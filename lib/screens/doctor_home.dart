@@ -220,23 +220,24 @@ class _HomePageContentState extends State<HomePageContent> {
       ],
     );
   }
+Widget _buildPatientList() {
+  return _buildSectionContainer(
+    title: "Patient List",
+    content: Column(
+      children: _patients.map((patient) {
+        final patientData = patient['patientId'];
+        return _buildPatientInfoTile(
+          patientData['username'] ?? 'Unknown',
+          "ID Number: ${patientData['medicalCard']?['publicData']?['idNumber'] }        Location: ${patientData['location'] ?? 'N/A'}",
+          Color(0xff613089),
+          Icons.account_circle,
+          patientData['_id'], // تمرير الـ ID إلى الـ Tile
+        );
+      }).toList(),
+    ),
+  );
+}
 
-  Widget _buildPatientList() {
-    return _buildSectionContainer(
-      title: "Patient List",
-      content: Column(
-        children: _patients.map((patient) {
-          final patientData = patient['patientId'];
-          return _buildPatientInfoTile(
-            patientData['username'] ?? 'Unknown',
-            "ID: ${patientData['_id']} | Location: ${patientData['location'] ?? 'N/A'}",
-            Color(0xff613089),
-            Icons.account_circle,
-          );
-        }).toList(),
-      ),
-    );
-  }
 
   Widget _buildSectionContainer({required String title, required Widget content}) {
     return Container(
@@ -270,25 +271,31 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
-  Widget _buildPatientInfoTile(String name, String details, Color iconColor, IconData actionIcon) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: iconColor.withOpacity(0.2),
-        child: Icon(actionIcon, color: iconColor),
-      ),
-      title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(details),
-     
-        // Action on tap (e.g., navigate to patient details)
-         onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => PatientViewPage()),
-                      );
-                    },
-    
-    );
-  }
+ Widget _buildPatientInfoTile(
+  String name,
+  String details,
+  Color iconColor,
+  IconData actionIcon,
+  String patientId, // إضافة معامل لاستقبال الـ ID
+) {
+  return ListTile(
+    leading: CircleAvatar(
+      backgroundColor: iconColor.withOpacity(0.2),
+      child: Icon(actionIcon, color: iconColor),
+    ),
+    title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+    subtitle: Text(details),
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PatientViewPage(patientId: patientId),
+        ),
+      );
+    },
+  );
+}
+
 }
 
 class NotificationsPage extends StatelessWidget {
