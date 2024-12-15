@@ -33,7 +33,7 @@ class _DrugInteractionCheckerPageState
       return;
     }
 
-    const String apiUrl = '${ApiConstants.baseUrl}/drugs/suggestions';
+     String apiUrl = '${ApiConstants.baseUrl}/drugs/suggestions';
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -78,7 +78,7 @@ class _DrugInteractionCheckerPageState
   }
 
   Future<void> _checkForInteractions() async {
-    const String apiUrl = '${ApiConstants.baseUrl}/drugs/checkDrugInteractions';
+     String apiUrl = '${ApiConstants.baseUrl}/drugs/checkDrugInteractions';
 
     try {
       final response = await http.post(

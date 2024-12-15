@@ -42,7 +42,7 @@ class _DrugInfoPageState extends State<DrugInfoPage> {
 
   // Function to fetch drug details from the API
   Future<DrugDetails?> fetchDrugDetails(String barcode) async {
-    const String apiUrl = '${ApiConstants.baseUrl}/drugs/barcodeUse'; 
+     String apiUrl = '${ApiConstants.baseUrl}/drugs/barcodeUse'; 
 
     try {
       final response = await http.get(Uri.parse('$apiUrl?barcode=$barcode'));

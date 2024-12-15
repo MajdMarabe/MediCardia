@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/screens/doctor_home.dart';
@@ -57,7 +59,14 @@ class _SignInScreenState extends State<SignInScreen> {
           await storage.write(key: 'token', value: token);
           final userJson = jsonEncode(responseData);
           await storage.write(key: 'user', value: userJson);
-
+        if (!kIsWeb) { 
+    String? Token = await FirebaseMessaging.instance.getToken();
+if (Token != null) {
+  FirebaseDatabase.instance.ref('users/$userid').update({
+    'fcmToken': Token,
+});
+}
+}
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Login Successful! User ID: $userid')),
           );
@@ -67,8 +76,14 @@ class _SignInScreenState extends State<SignInScreen> {
             MaterialPageRoute(
               builder: (context) {
                 if (role == 'patient') {
+                          final name = responseData['username']; // Extract the role from the response
+           storage.write(key: 'username', value: name);
+
                   return HomePage();
                 } else if (role == 'doctor') {
+                          final name = responseData['fullName']; // Extract the role from the response
+           storage.write(key: 'username', value: name);
+
                   return DoctorHomePage();
                 } else {
                   return HomePage();
