@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
@@ -15,7 +16,7 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
   final TextEditingController _searchController = TextEditingController();
   Map<String, dynamic>? _drugData;
   String? _errorMessage;
-  List<String> _suggestions = []; // قائمة الاقتراحات
+  List<String> _suggestions = [];
   bool _isFetchingSuggestions = false;
 
   Future<void> fetchSuggestions(String query) async {
@@ -121,214 +122,244 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
     );
   }
 
+
+  //////////////////////////////////////////////////
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF2F5FF),
-      appBar: AppBar(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF2F5FF),
+         appBar: kIsWeb
+        ? AppBar(
+            backgroundColor: const Color(0xFFF2F5FF),
+            elevation: 0,
+          
+            automaticallyImplyLeading: false,
+          )
+        : AppBar(
         backgroundColor: const Color(0xFFF2F5FF),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Color(0xFF6A4C9C)),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF6A4C9C)),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 40.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Medicine Hub",
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF6A4C9C),
-                ),
-              ),
-              SizedBox(height: 24),
-              Container(
-                height: 5,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF9575CD), Color(0xFF6A4C9C)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                ),
-              ),
-              SizedBox(height: 32),
 
-              // Search Bar with Auto Complete
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: Color(0xFF6A4C9C), width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 5,
-                      offset: Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.search, color: Color(0xFF6A4C9C), size: 28),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: "Search for drugs.",
-                              hintStyle: TextStyle(color: Colors.grey),
-                            ),
-                            onChanged: (value) {
-                              fetchSuggestions(value);
-                            },
-                            onSubmitted: (value) {
-                              if (value.isNotEmpty) {
-                                searchDrug(value);
-                              }
-                            },
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 40.0),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: constraints.maxWidth > 600 ? 1000 : double.infinity),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Medicine Hub",
+                        style: TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF6A4C9C),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        height: 5,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF9575CD), Color(0xFF6A4C9C)],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
                           ),
                         ),
-                      ],
-                    ),
-                    if (_suggestions.isNotEmpty)
-                      ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: _suggestions.length,
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            title: Text(_suggestions[index]),
-                            onTap: () {
-                              _searchController.text = _suggestions[index];
-                              _suggestions.clear();
-                              searchDrug(_searchController.text);
-                            },
-                          );
-                        },
                       ),
-                  ],
+                      const SizedBox(height: 32),
+                      _buildSearchBar(),
+                      const SizedBox(height: 32),
+                      _buildOptions(),
+                      const SizedBox(height: 20),
+                      if (_drugData != null) _buildDrugDetails(),
+                      if (_errorMessage != null) _buildErrorMessage(),
+                    ],
+                  ),
                 ),
               ),
-              SizedBox(height: 32),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  OptionButton(
-                    icon: Icons.medical_services,
-                    label: "Your Drugs",
-                    backgroundColor: Color(0xFFD1A7E7),
-                    iconColor: Color(0xFF6A4C9C),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => MedicineListPage()),
-                      );
-                    },
+  Widget _buildSearchBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: const Color(0xFF6A4C9C), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.search, color: Color(0xFF6A4C9C), size: 28),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: "Search for drugs.",
+                    hintStyle: TextStyle(color: Colors.grey),
                   ),
-                  OptionButton(
-                    icon: Icons.integration_instructions,
-                    label: "Interaction Checker",
-                    backgroundColor: Color(0xFFB38DD3),
-                    iconColor: Color(0xFF6A4C9C),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => DrugInteractionCheckerPage()),
-                      );
-                    },
-                  ),
-                  OptionButtonWithImage(
-                    imagePath: 'assets/images/barcode.png',
-                    label: "Find by Barcode",
-                    backgroundColor: Color(0xFF9575CD),
-                    iconColor: Color(0xFF6A4C9C),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => DrugInfoPage()),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              SizedBox(height: 15),
-              if (_drugData != null) ...[
-                SizedBox(height: 32),
-                GestureDetector(
-                  onTap: () {
-                    _showDrugDetailsDialog(_drugData!);
+                  onChanged: (value) {
+                    fetchSuggestions(value);
                   },
-                  child: Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Color(0xFF6A4C9C), width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 5,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          
-                          children: [
-      
-                            if (_drugData!['image'] != null)
-                              Image.network(
-                                _drugData!['image'],
-                                height: 50,
-                                width: 50,
-                                fit: BoxFit.cover,
-                              ),
-                            //SizedBox(width: 16),
-                            Text(
-                              "Name: ${_drugData!['Drugname']}",
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF6A4C9C)),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 8),
-                        Text("Use: ${_drugData!['details'][0]['Use']}"),
-                        SizedBox(height: 8),
-                        Text("Dose: ${_drugData!['details'][0]['Dose']}"),
-                      ],
-                    ),
-                  ),
-                ),   
-              ],
-              if (_errorMessage != null)
-                Center(
-                  child: Text(
-                    _errorMessage!,
-                    style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold),
-
-                  ),
+                  onSubmitted: (value) {
+                    if (value.isNotEmpty) {
+                      searchDrug(value);
+                    }
+                  },
                 ),
+              ),
             ],
           ),
+          if (_suggestions.isNotEmpty)
+            ListView.builder(
+              shrinkWrap: true,
+              itemCount: _suggestions.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(_suggestions[index]),
+                  onTap: () {
+                    _searchController.text = _suggestions[index];
+                    _suggestions.clear();
+                    searchDrug(_searchController.text);
+                  },
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOptions() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        OptionButton(
+          icon: Icons.medical_services,
+          label: "Your Drugs",
+          backgroundColor: const Color(0xFFD1A7E7),
+          iconColor: const Color(0xFF6A4C9C),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => MedicineListPage()),
+            );
+          },
+        ),
+        OptionButton(
+          icon: Icons.integration_instructions,
+          label: "Interaction Checker",
+          backgroundColor: const Color(0xFFB38DD3),
+          iconColor: const Color(0xFF6A4C9C),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => DrugInteractionCheckerPage()),
+            );
+          },
+        ),
+         if (!kIsWeb)
+        OptionButtonWithImage(
+          imagePath: 'assets/images/barcode.png',
+          label: "Info By Barcode",
+          backgroundColor: const Color(0xFF9575CD),
+          iconColor: const Color(0xFF6A4C9C),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const DrugInfoPage()),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDrugDetails() {
+    return GestureDetector(
+      onTap: () {
+        _showDrugDetailsDialog(_drugData!);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFF6A4C9C), width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                if (_drugData!['image'] != null)
+                  Image.network(
+                    _drugData!['image'],
+                    height: 50,
+                    width: 50,
+                    fit: BoxFit.cover,
+                  ),
+                const SizedBox(width: 16),
+                Text(
+                  "Name: ${_drugData!['Drugname']}",
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF6A4C9C)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text("Use: ${_drugData!['details'][0]['Use']}"),
+            const SizedBox(height: 8),
+            Text("Dose: ${_drugData!['details'][0]['Dose']}"),
+          ],
         ),
       ),
     );
   }
+
+  Widget _buildErrorMessage() {
+    return Center(
+      child: Text(
+        _errorMessage!,
+        style: const TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
 }
+
+
+
+///////////////////////////////
 
 class OptionButton extends StatelessWidget {
   final IconData icon;
@@ -337,15 +368,24 @@ class OptionButton extends StatelessWidget {
   final Color iconColor;
   final VoidCallback onTap;
 
-  OptionButton({required this.icon, required this.label, required this.backgroundColor, required this.iconColor, required this.onTap});
+  const OptionButton({
+    required this.icon,
+    required this.label,
+    required this.backgroundColor,
+    required this.iconColor,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // Define size based on platform
+    const double buttonSize = kIsWeb ? 150 : 100;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 100,
-        height: 100,
+        width: buttonSize,
+        height: buttonSize,
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(12),
@@ -353,12 +393,12 @@ class OptionButton extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 40, color: iconColor),
-            SizedBox(height: 8),
+            Icon(icon, size: buttonSize * 0.4, color: iconColor), 
+            const SizedBox(height: 8),
             Text(
               label,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white, fontSize: 14),
+              style: const TextStyle(color: Colors.white, fontSize: buttonSize * 0.14),
             ),
           ],
         ),
@@ -391,11 +431,11 @@ class OptionButtonWithImage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(imagePath, width: 40, height: 40, color: iconColor),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               label,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white, fontSize: 14),
+              style: const TextStyle(color: Colors.white, fontSize: 14),
             ),
           ],
         ),

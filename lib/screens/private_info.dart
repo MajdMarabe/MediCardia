@@ -1,16 +1,16 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_application_3/screens/login_screen.dart';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/foundation.dart';
 
-final storage = FlutterSecureStorage();
+const storage = FlutterSecureStorage();
 
 class PrivateInfo extends StatefulWidget {
-   final String userId; // Accepting userId from the constructor
+   final String userId; 
 
   const PrivateInfo({super.key, required this.userId});
   @override
@@ -69,7 +69,7 @@ Future<void> _addNewMedicalCondition() async {
 
   print('Request Payload: ${json.encode(requestPayload)}');
 
-  String userId = widget.userId; // Get user ID
+  String userId = widget.userId; 
   try {
     String apiUrl = '${ApiConstants.baseUrl}/users/$userId/medicalhistory';
     final response = await http.put(
@@ -102,9 +102,8 @@ Future<void> _addNewMedicalCondition() async {
 
 
 
-   Future<void> _addNewLabTests() async {
-
-
+Future<void> _addNewLabTests() async {
+  // Create a list of lab tests objects
 List<Map<String, dynamic>> labTests = [
     {
       "testName": _testNameController.text.isNotEmpty
@@ -120,20 +119,20 @@ List<Map<String, dynamic>> labTests = [
   ];
   
 
-  // Clear the controllers after creating the request
+
    _testNameController.clear();
     _testResultController.clear();
        _testDate = null;
     _diagnosisDateController.clear();
     _diagnosisDateController.text = '';
-  // Prepare the payload in the correct format
+
   Map<String, dynamic> requestPayload = {
     "labTests": labTests,
   };
 
   print('Request Payload: ${json.encode(requestPayload)}');
 
-  String userId = widget.userId; // Get user ID
+  String userId = widget.userId; 
   try {
     String apiUrl = '${ApiConstants.baseUrl}/users/$userId/labtests';
     final response = await http.put(
@@ -159,16 +158,13 @@ List<Map<String, dynamic>> labTests = [
       SnackBar(content: Text('Error: $e')),
     );
   }
+ }
 
 
 
-
-
-  }
-    Future<void> _addNewMedicalNotes() async {
-        
-  
-   List<Map<String, dynamic>> medicalNotes = [
+Future<void> _addNewMedicalNotes() async {
+  // Create a list of medical notes objects  
+  List<Map<String, dynamic>> medicalNotes = [
     {
       "note": _medicalNotesController.text.isNotEmpty
           ? _medicalNotesController.text
@@ -212,13 +208,13 @@ List<Map<String, dynamic>> labTests = [
       SnackBar(content: Text('Error: $e')),
     );
   }
+}
 
 
 
-  }
 
- Future<void> _addNewTreatmentPlans() async {
-        
+Future<void> _addNewTreatmentPlans() async {
+   // Create a list of treatment plans objects     
 List<Map<String, dynamic>> treatmentPlans = [
     {
       "prescribedMedications": _prescribedMedicationsController.text.isNotEmpty
@@ -237,20 +233,19 @@ List<Map<String, dynamic>> treatmentPlans = [
   ];
   
 
-  // Clear the controllers after creating the request
         _treatmentGoalsController.clear();
         _treatmentDurationController.clear();
         _prescribedMedicationsController.clear();
         _alternativeTherapiesController.clear();
 
-  // Prepare the payload in the correct format
+ 
   Map<String, dynamic> requestPayload = {
     "treatmentPlans": treatmentPlans,
   };
 
   print('Request Payload: ${json.encode(requestPayload)}');
 
-  String userId = widget.userId; // Get user ID
+  String userId = widget.userId; 
   try {
     String apiUrl = '${ApiConstants.baseUrl}/users/$userId/treatmentPlans';
     final response = await http.put(
@@ -276,14 +271,12 @@ List<Map<String, dynamic>> treatmentPlans = [
       SnackBar(content: Text('Error: $e')),
     );
   }
+ }
 
 
+//////////////////////////////////////
 
-
-    
-  
-  }
-  Future<void> _selectDate(BuildContext context) async {
+Future<void> _selectDate(BuildContext context) async {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -399,10 +392,48 @@ List<Map<String, dynamic>> treatmentPlans = [
   }
 
 
-  @override
+///////////////////////////////////
+
+
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+     
+      body: kIsWeb ? _buildWebLayout() :  _buildPrivateInfoForm() ,
+    );
+  }
+
+ Widget _buildWebLayout() {
+    return Stack(
+    children: [
+      Container(
+        decoration: const BoxDecoration(
+        color: Colors.white,
+        ),
+      ),
+    Center(
+      child: Container(
+        width: 600,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          // boxShadow: const [
+          //   BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5)),
+          // ],
+        ),
+        child: _buildPrivateInfoForm(),
+      ),
+    ),
+    ],
+  );
+}
+
+  Widget _buildPrivateInfoForm() {
+    return Scaffold(
+       appBar: kIsWeb
+        ? null 
+        :AppBar(
         title: const Text(
           'Private Medical Information',
           style: TextStyle(
@@ -410,12 +441,7 @@ List<Map<String, dynamic>> treatmentPlans = [
             fontSize: 20,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+        
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -431,6 +457,7 @@ List<Map<String, dynamic>> treatmentPlans = [
             bottom: Radius.circular(30),
           ),
         ),
+        automaticallyImplyLeading: false,
       ),
       body: Container(
         color: Colors.white,
@@ -452,7 +479,7 @@ List<Map<String, dynamic>> treatmentPlans = [
                         color: Colors.grey.withOpacity(0.5),
                         spreadRadius: 3,
                         blurRadius: 5,
-                        offset: Offset(0, 3), // changes position of shadow
+                        offset: const Offset(0, 3), // changes position of shadow
                       ),
                     ],
                   ),
@@ -460,11 +487,11 @@ List<Map<String, dynamic>> treatmentPlans = [
    mainAxisAlignment: MainAxisAlignment.center, // Aligns the content vertically in the center
    children: [
     Icon(
-      Icons.favorite, // Favorite icon
-      color: Color(0xffb41391), // Set icon color
-      size: 30, // You can adjust the size if needed
+      Icons.favorite, 
+      color: Color(0xffb41391), 
+      size: 30, 
     ),
-    SizedBox(height: 8), // Space between the icon and the text
+    SizedBox(height: 8), 
     Text(
       'Your MediCard Private Information',
       style: TextStyle(
@@ -476,13 +503,13 @@ List<Map<String, dynamic>> treatmentPlans = [
     ),
     SizedBox(height: 10),
     Text(
-      'Please provide your private medical information securely.',
+      'Enter your private medical information securely.',
       textAlign: TextAlign.center,
       style: TextStyle(color: Colors.black54),
     ),
     SizedBox(height: 10),
     Text(
-      'No one can access this data without your permission.',
+      'Your data is fully protected and cannot be accessed without your permission.',
       textAlign: TextAlign.center,
       style: TextStyle(color: Colors.black54, fontStyle: FontStyle.italic),
     ),
@@ -491,7 +518,7 @@ List<Map<String, dynamic>> treatmentPlans = [
 
 
                 ),
-                const SizedBox(height: 20), // Space between the new container and the form
+                const SizedBox(height: 20), 
                 
                 _buildSectionTitle('Medical History'),
                 _buildTextFormField(
@@ -539,7 +566,7 @@ List<Map<String, dynamic>> treatmentPlans = [
                 const SizedBox(height: 20),
 
                 _buildSectionTitle('Lab Tests'),
-                // Test Name
+                
                 _buildTextFormField(
                   controller: _testNameController,
                   label: 'Test Name',
@@ -549,7 +576,7 @@ List<Map<String, dynamic>> treatmentPlans = [
                 ),
                 const SizedBox(height: 20),
 
-                // Test Result
+              
                 _buildTextFormField(
                   controller: _testResultController,
                   label: 'Test Result',
@@ -559,7 +586,7 @@ List<Map<String, dynamic>> treatmentPlans = [
                 ),
                 const SizedBox(height: 20),
 
-                // Test Date
+          
                 GestureDetector(
                   onTap: () => _selectTestDate(context),
                   child: AbsorbPointer(
@@ -686,9 +713,9 @@ ElevatedButton(
   ),
 ),*/
 
-                const SizedBox(height: 20), // Space below the Submit button
+                const SizedBox(height: 20), 
 
-                // Skip Button
+           
                 ElevatedButton(
   onPressed: () {
      storage.delete(key: 'userid');
@@ -747,8 +774,13 @@ ElevatedButton(
       maxLines: maxLines,
       decoration: InputDecoration(
         labelText: label,
-        hintText: hint,
         labelStyle: const TextStyle(color: Color(0xff613089)),
+        hintText: hint,
+         hintStyle: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                      ),
         prefixIcon: Icon(icon, color: const Color(0xff613089)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),

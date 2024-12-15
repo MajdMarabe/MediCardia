@@ -18,7 +18,7 @@ class WelcomeScreen extends StatelessWidget {
             // App Logo
             CircleAvatar(
               radius: 80.0,
-              backgroundColor: const Color(0xffF0E5FF), // Subtle background for logo
+              backgroundColor: const Color(0xffF0E5FF), 
               child: Image.asset(
                 'assets/images/appLogo.png',
                 height: 120.0,
@@ -58,20 +58,20 @@ class WelcomeScreen extends StatelessWidget {
     WelcomeButton(
       buttonText: 'Log In',
       onTap: SignInScreen(),
-      color: Color(0xff613089), // Purple background
-      textColor: Colors.white, // White text
-      width: 200.0, // Fixed width for consistency
+      color: Color(0xff613089), 
+      textColor: Colors.white, 
+      width: 200.0, 
     ),
-    SizedBox(height: 12.0), // Spacing between buttons
+    SizedBox(height: 12.0), 
     // Sign Up Button
     WelcomeButton(
       buttonText: 'Sign Up',
       onTap:  AccountTypeSelectionScreen(),
-      color: Colors.white, // White background
-      textColor: Color(0xff613089), // Purple text
-      borderColor: Color(0xff613089), // Purple border
-      borderWidth: 1.5, // Thin border
-      width: 200.0, // Fixed width for consistency
+      color: Colors.white, 
+      textColor: Color(0xff613089), 
+      borderColor: Color(0xff613089),
+      borderWidth: 1.5, 
+      width: 200.0, 
     ),
   ],
 ),

@@ -38,11 +38,11 @@ class DrugInfoPage extends StatefulWidget {
 }
 
 class _DrugInfoPageState extends State<DrugInfoPage> {
-  bool isScanButtonVisible = true;  // Controls the visibility of the scan button
+  bool isScanButtonVisible = true;  
 
   // Function to fetch drug details from the API
   Future<DrugDetails?> fetchDrugDetails(String barcode) async {
-    const String apiUrl = '${ApiConstants.baseUrl}/drugs/barcodeUse'; // Replace with your API endpoint
+    const String apiUrl = '${ApiConstants.baseUrl}/drugs/barcodeUse'; 
 
     try {
       final response = await http.get(Uri.parse('$apiUrl?barcode=$barcode'));
@@ -52,7 +52,7 @@ class _DrugInfoPageState extends State<DrugInfoPage> {
 
         if (data['drug'] != null && data['drug']['details'] != null && data['drug']['details'].isNotEmpty) {
           final String drugName = data['drug']['Drugname'] ?? "Unknown Drug";
-          // Extract the first detail from the "details" array
+         
           return DrugDetails.fromJson(data['drug']['details'][0], drugName);
         } else {
           throw Exception("No details found for this drug.");
@@ -127,10 +127,10 @@ class _DrugInfoPageState extends State<DrugInfoPage> {
                     onTap: () async {
                       // When the barcode image is clicked, trigger the scanner
                       String barcodeScanResult = await FlutterBarcodeScanner.scanBarcode(
-                        "#ff6666", // Color for the scan line
-                        "Cancel", // Cancel button text
-                        true, // Show flash icon
-                        ScanMode.BARCODE, // Scan mode (can also be QR_CODE)
+                        "#ff6666", 
+                        "Cancel", 
+                        true, 
+                        ScanMode.BARCODE, 
                       );
 
                       if (barcodeScanResult != "-1") {
@@ -156,7 +156,7 @@ class _DrugInfoPageState extends State<DrugInfoPage> {
                       });
                     },
                     child: Image.asset(
-                      'assets/images/barcode.png', // The path to your image
+                      'assets/images/barcode.png', 
                       width: 150,
                       height: 150,
                       color: Colors.purple.shade300,
@@ -180,16 +180,15 @@ class _DrugInfoPageState extends State<DrugInfoPage> {
               ),
             ),
 
-            const SizedBox(height: 20),
-
-          
-           
+            const SizedBox(height: 20), 
           ],
         ),
       ),
     );
   }
 }
+
+
 
 class DrugDetailsDialog extends StatelessWidget {
   final DrugDetails drugDetails;
@@ -212,43 +211,41 @@ class DrugDetailsDialog extends StatelessWidget {
           children: [
           
 const SizedBox(height: 10),
-            // Drug Name
+          
             _buildDetailRow('Drug Name', drugDetails.drugName),
             const SizedBox(height: 10),
 
-            // Use section
             _buildDetailRow('Use', drugDetails.use,isMultiline: true),
             const SizedBox(height: 20),
 
-            // Dose section
+         
             _buildDetailRow('Dose', drugDetails.dose, isMultiline: true),
             const SizedBox(height: 10),
 
-            // Time section
+           
             _buildDetailRow('Time', drugDetails.time, isMultiline: true),
             const SizedBox(height: 10),
 
-            // Notes section
             _buildDetailRow('Notes', drugDetails.notes, isMultiline: true),
             const SizedBox(height: 20),
 
-            // Close button
+      
             Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: const Text(
-                  "Close",
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xff613089),
                   padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
+                ),
+                child: const Text(
+                  "Close",
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
             ),

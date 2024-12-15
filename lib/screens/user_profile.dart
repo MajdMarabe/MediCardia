@@ -77,6 +77,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
 Widget build(BuildContext context) {
   return Scaffold(
+    backgroundColor: const Color(0xFFF2F5FF),
     body: SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -175,11 +176,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF2F5FF),
       appBar: AppBar(
         title: const Text('Edit Profile'), 
-        backgroundColor: const Color(0xff613089),
+        backgroundColor: const Color(0xFFF2F5FF),
       ),
-      backgroundColor: Colors.white, // Set background color to white
+     
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(

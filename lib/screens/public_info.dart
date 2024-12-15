@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/screens/private_info.dart';
@@ -13,7 +14,7 @@ import 'constants.dart';
 
 
 class PublicInfo extends StatefulWidget {
-  final String userId; // Accepting userId from the constructor
+  final String userId; 
 
   const PublicInfo({super.key, required this.userId});
 
@@ -39,7 +40,7 @@ class _PublicInfoState extends State<PublicInfo> {
   String? _selectedBloodType;
   String? _selectedGender;
   List<String> _selectedChronicDiseases = [];
-  String _userName = 'Loading...'; // Initialize username
+  String _userName = 'Loading...'; 
   DateTime? _selectedDate;
   List<String> bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
   List<String> genders = ['Male', 'Female'];
@@ -57,28 +58,17 @@ class _PublicInfoState extends State<PublicInfo> {
 
   DateTime? _lastDonationDate;
   
-  XFile? _imageFile; // Variable to hold the selected image
-/////
+  XFile? _imageFile; 
+
 
   @override
   void initState() {
     super.initState();
-    _fetchUserName(); // Fetch the user's name when the widget is initialized
+    _fetchUserName(); 
     
   }
 
-String? encodeImageToBase64(XFile? imageFile) {
-  if (imageFile == null) return null;
-
-  // Convert XFile to File
-  File file = File(imageFile.path);
-
-  // Read image bytes from the file
-  final bytes = file.readAsBytesSync();
-
-  // Return the Base64-encoded string of the image bytes
-  return base64Encode(bytes);
-}
+  
 
 
   Future<void> _fetchUserName() async {
@@ -92,37 +82,62 @@ String? encodeImageToBase64(XFile? imageFile) {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          _userName = data['username'] ?? 'No Name'; // Set username
+          _userName = data['username'] ?? 'No Name'; 
         });
       } else {
         print('Failed to load name, status code: ${response.statusCode}');
-        print('Response body: ${response.body}'); // Log response for debugging
+        print('Response body: ${response.body}'); 
         setState(() {
-          _userName = 'Unknown User'; // Fallback if the user is not found
+          _userName = 'Unknown User'; 
         });
       }
     } catch (e) {
-      print('Error fetching name: $e'); // Log the error for debugging
+      print('Error fetching name: $e'); 
       setState(() {
-        _userName = 'Error fetching name'; // Fallback on error
+        _userName = 'Error fetching name'; 
       });
     }
   }
-Future<void> _selectImage() async {
-    final ImagePicker picker = ImagePicker();
-    // Show dialog to choose between camera and gallery
-    final XFile? pickedFile = await picker.pickImage(
-      source: ImageSource.gallery, // or ImageSource.camera
-      imageQuality: 100, // Optional: set image quality (0-100)
-    );
 
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = pickedFile; 
-        // Update the image file
-      });
+ 
+
+
+
+Future<String?> encodeImageToBase64(XFile? imageFile) async {
+  if (imageFile == null) return null;
+
+  try {
+    // Use XFile's bytes property to get the file's data as Uint8List
+    final Uint8List bytes = await imageFile.readAsBytes();
+
+    // Return the Base64-encoded string
+    return base64Encode(bytes);
+  } catch (e) {
+    print('Error encoding image to Base64: $e');
+    return null;
+  }
+}
+
+
+Future<void> _selectImage() async {
+  final ImagePicker picker = ImagePicker();
+  final XFile? pickedFile = await picker.pickImage(
+    source: ImageSource.gallery,
+    imageQuality: 100,
+  );
+
+  if (pickedFile != null) {
+    setState(() {
+      _imageFile = pickedFile; 
+    });
+
+    if (kIsWeb) {
+     
+      print("Running on web platform");
     }
   }
+}
+
 
 
 Future<void> _selectLastDonationDate(BuildContext context) async {
@@ -146,9 +161,9 @@ Future<void> _selectLastDonationDate(BuildContext context) async {
                   },
                   onDaySelected: (selectedDay, focusedDay) {
                     setState(() {
-                      _lastDonationDate = selectedDay; // Update the selected date
+                      _lastDonationDate = selectedDay; 
                     });
-                    Navigator.of(context).pop(); // Close the dialog
+                    Navigator.of(context).pop(); 
                   },
                   calendarStyle: const CalendarStyle(
                     selectedDecoration: BoxDecoration(
@@ -182,11 +197,11 @@ Future<void> _selectLastDonationDate(BuildContext context) async {
         actions: [
           TextButton(
             onPressed: () {
-              // Allow the user to clear the date selection
+             
               setState(() {
-                _lastDonationDate = null; // Set to null when dialog is canceled
+                _lastDonationDate = null; 
               });
-              Navigator.of(context).pop(); // Close the dialog
+              Navigator.of(context).pop();
             },
             child: const Text('Cancel', style: TextStyle(color: Color(0xff613089))),
           ),
@@ -201,7 +216,7 @@ Future<void> _selectDate(BuildContext context, bool isStartDate) async {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Select Date', style: TextStyle(color: Color(0xff613089))),
+          title: const Text('Select Date', style: TextStyle(color: Color(0xff613089))),
           content: SizedBox(
             width: 300,
             height: 400,
@@ -223,7 +238,7 @@ Future<void> _selectDate(BuildContext context, bool isStartDate) async {
                       });
                       Navigator.of(context).pop();
                     },
-                    calendarStyle: CalendarStyle(
+                    calendarStyle: const CalendarStyle(
                       selectedDecoration: BoxDecoration(
                         color: Color(0xffb41391),
                         shape: BoxShape.circle,
@@ -233,7 +248,7 @@ Future<void> _selectDate(BuildContext context, bool isStartDate) async {
                         shape: BoxShape.circle,
                       ),
                     ),
-                    headerStyle: HeaderStyle(
+                    headerStyle: const HeaderStyle(
                       formatButtonVisible: false,
                       titleTextStyle: TextStyle(color: Color(0xff613089), fontSize: 20),
                     ),
@@ -248,27 +263,60 @@ Future<void> _selectDate(BuildContext context, bool isStartDate) async {
   }
 
 
-//////
+/////////////////
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
+ @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+     
+      body: kIsWeb ? _buildWebLayout() :  _buildPublicInfoForm() ,
+    );
+  }
+
+  Widget _buildWebLayout() {
+    return Stack(
+    children: [
+      Container(
+        decoration: const BoxDecoration(
+        color: Colors.white,
+        ),
+      ),
+    Center(
+      child: Container(
+        width: 700,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          // boxShadow: const [
+          //   BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5)),
+          // ],
+        ),
+        child: _buildPublicInfoForm(),
+      ),
+    ),
+    ],
+  );
+}
+
+ 
+
+  
+ Widget _buildPublicInfoForm() {
+     return Scaffold(
    
-    appBar: AppBar(
+    appBar: kIsWeb
+        ? null 
+        : AppBar(
       title: const Text(
-        'Medical Information',
+        'Public Information',
         style: TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 20,
           letterSpacing: 1.5
         ),
       ),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () {
-          Navigator.pop(context);
-        },
-      ),
+     
       flexibleSpace: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -284,6 +332,7 @@ Widget build(BuildContext context) {
           bottom: Radius.circular(30),
         ),
       ),
+      automaticallyImplyLeading: false,
     ),
     body: Container(
       color: Colors.white,
@@ -307,6 +356,7 @@ Widget build(BuildContext context) {
                       controller: _idNumberController,
                       label: 'ID Number',
                       hint: 'Enter ID Number',
+                      
                       icon: Icons.person,
                       validator: (value) {
                         if (value == null || value.isEmpty || value.length != 9) {
@@ -329,17 +379,23 @@ Widget build(BuildContext context) {
                       },
                     ),
                     const SizedBox(height: 20),
-                    _buildDropdownField(
-                      label: 'Gender',
-                      hint: 'Select Gender',
-                      items: genders,
-                      selectedValue: _selectedGender,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedGender = value;
-                        });
-                      },
-                    ),
+                     _buildDropdownField(
+        label: 'Gender',
+        hint: 'Select Gender',
+        items: ['Male', 'Female'],
+        selectedValue: _selectedGender,
+        onChanged: (String? newValue) {
+          setState(() {
+            _selectedGender = newValue;
+          });
+        },
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please select a gender'; 
+          }
+          return null;
+        },
+      ),
                     const SizedBox(height: 20),
                     _buildTextFormField(
                       controller: _phoneController,
@@ -358,7 +414,7 @@ Widget build(BuildContext context) {
 
                     _buildSectionTitle('Medical Info'),
                     const SizedBox(height: 10),
-                  // Blood Type with Validation
+                 
                   FormField<String>(
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -377,7 +433,7 @@ Widget build(BuildContext context) {
           color: Color(0xffb41391),
           width: 2.0,
         ),
-        borderRadius: BorderRadius.circular(15), // Add border radius here
+        borderRadius: BorderRadius.circular(15), 
       ),
       filled: true,
       fillColor: Colors.white,
@@ -405,7 +461,7 @@ Widget build(BuildContext context) {
                             onChanged: (value) {
                               setState(() {
                                 _selectedBloodType = value;
-                                state.didChange(value);  // Update the FormField state
+                                state.didChange(value);  
                               });
                             },
                           ),
@@ -432,7 +488,7 @@ Widget build(BuildContext context) {
                     ),
                     const SizedBox(height: 20),
 
-                    // Drugs Section with Barcode
+                 
                     const Text(
                       'Add Drugs',
                       style: TextStyle(
@@ -482,11 +538,13 @@ Widget build(BuildContext context) {
       ),
     ),
   );
-}
+  }
+
+
 Widget _buildDrugForm() {
   return Column(
     children: [
-      // Drug Name Row
+    
       Row(
         children: [
           Expanded(
@@ -497,64 +555,83 @@ Widget _buildDrugForm() {
               icon: Icons.medical_services,
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.camera_alt, color: Color(0xff613089)), 
-            onPressed: () async {
-              String barcodeScanResult = await FlutterBarcodeScanner.scanBarcode(
-                "#ff6666", 
-                "Cancel", 
-                true, 
-                ScanMode.BARCODE, 
-              );
+          // Only show barcode scanner button on mobile
+          if (!kIsWeb) 
+            IconButton(
+              icon: const Icon(Icons.camera_alt, color: Color(0xff613089)), 
+              onPressed: () async {
+                String barcodeScanResult = await FlutterBarcodeScanner.scanBarcode(
+                  "#ff6666", 
+                  "Cancel", 
+                  true, 
+                  ScanMode.BARCODE, 
+                );
 
-              if (barcodeScanResult != '-1') {
-                print("Scanned Barcode: $barcodeScanResult");
-                await getDrugByBarcode(barcodeScanResult);
-              }
-            },
-          ),
+                if (barcodeScanResult != '-1') {
+                  if (kDebugMode) {
+                    print("Scanned Barcode: $barcodeScanResult");
+                  }
+                  await getDrugByBarcode(barcodeScanResult);
+                }
+              },
+            ),
         ],
       ),
-      
-      // Add space between fields
-      SizedBox(height: 16.0),
+     
+      const SizedBox(height: 16.0),
 
-      // Drug Type Dropdown
-      DropdownButtonFormField<String>(
-        value: _selectedDrugType,
-        items: ['Permanent', 'Temporary']
-            .map((type) => DropdownMenuItem(value: type, child: Text(type)))
-            .toList(),
-        onChanged: (value) {
-          setState(() {
-            _selectedDrugType = value!;
-            _isTemporary = _selectedDrugType == 'Temporary';
-          });
-        },
-        decoration: InputDecoration(
-          labelText: 'Drug Type',
-          labelStyle: const TextStyle(color: Color(0xff613089)),
-          prefixIcon: Icon(Icons.category, color: Color(0xff613089)),
-          contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
-          filled: true,
-          fillColor: Color(0xFFF3F3F3), 
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
-            borderSide: BorderSide(color: Color(0xff613089), width: 1.5),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
-            borderSide: BorderSide(color: Color(0xff613089), width: 2.0),
-          ),
-        ),
+     // Drug Type Dropdown
+DropdownButtonFormField<String>(
+  value: _selectedDrugType,
+  items: ['Permanent', 'Temporary']
+      .map((type) => DropdownMenuItem(value: type, child: Row(
+        children: [
+        
+          const SizedBox(width: 10),
+          Text(type),
+        ],
+      )))
+      .toList(),
+  onChanged: (value) {
+    setState(() {
+      _selectedDrugType = value!;
+      _isTemporary = _selectedDrugType == 'Temporary';
+    });
+  },
+  decoration: InputDecoration(
+    prefixIcon: 
+      const Icon(
+        Icons.category, 
+        color: Color(0xff613089),
       ),
+    
+    labelText: 'Drug Type',
+    labelStyle: const TextStyle(color: Color(0xff613089)),
+    hintText: 'Select Drug Type', 
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15), 
+      borderSide: const BorderSide(color: Colors.grey),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15),
+      borderSide: const BorderSide(color: Color(0xffb41391)),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15),
+      borderSide: const BorderSide(color: Colors.grey),
+    ),
+    filled: true,
+    fillColor: Colors.white,
+  ),
+),
+
       
       const SizedBox(height: 16.0),
 
         if (_isTemporary)
         Row(
           children: [
-         // TextFormField for Start Date
+         
 Expanded(
   child: TextFormField(
     controller: _startDateController,
@@ -576,13 +653,13 @@ Expanded(
       ),
     ),
     onTap: () async {
-      // Call _selectDate and pass true for Start Date
+      
       await _selectDate(context, true); // Pass the isStartDate flag
     },
   ),
 ),
 const SizedBox(width: 10.0),
-// TextFormField for End Date
+
 Expanded(
   child: TextFormField(
     controller: _endDateController,
@@ -604,8 +681,8 @@ Expanded(
       ),
     ),
     onTap: () async {
-      // Call _selectDate and pass false for End Date
-      await _selectDate(context, false); // Pass the isStartDate flag
+      
+      await _selectDate(context, false); 
     },
   ),
 ),
@@ -633,14 +710,14 @@ Expanded(
 
       ElevatedButton(
         onPressed: _addDrug,
-        child: const Text('Add Drug'),
         style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white, backgroundColor: const Color(0xff613089), // Text color
+          foregroundColor: Colors.white, backgroundColor: const Color(0xff613089), 
           padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
           ),
         ),
+        child: const Text('Add Drug'),
       ),
     ],
   );
@@ -760,23 +837,32 @@ if (_drugNameController.text.isEmpty) {
 Widget _buildProfileHeader() {
   return Column(
     children: [
-      GestureDetector(
-        onTap: _selectImage, // Function to select an image
+         GestureDetector(
+        onTap: _selectImage, 
         child: Stack(
           alignment: Alignment.center,
           children: [
             CircleAvatar(
-              radius: 50, // Size of the avatar
-              backgroundColor: Colors.grey[300], // Background color for the placeholder
+              radius: 50, 
+              backgroundColor: Colors.grey[300], 
               child: _imageFile != null 
-                  ? ClipOval(
-                      child: Image.file(
-                        File(_imageFile!.path),
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover, // Ensure the image covers the circle
-                      ),
-                    )
+                  ? kIsWeb
+                      ? ClipOval(
+                        child: Image.network(
+                          _imageFile!.path, // Web uses Image.network
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        )
+                      )
+                      : ClipOval(
+                          child: Image.file(
+                            File(_imageFile!.path), // For mobile 
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                          ),
+                        )
                   : const SizedBox.shrink(), // Placeholder for image
             ),
             // Only show the icon and text if there is no image
@@ -785,17 +871,17 @@ Widget _buildProfileHeader() {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.add_a_photo, // Icon for adding a photo
-                    size: 24, // Icon size
-                    color: Color(0xff613089), // Icon color
+                    Icons.add_a_photo, 
+                    size: 24, 
+                    color: Color(0xff613089), 
                   ),
-                  SizedBox(height: 5), // Space between icon and text
+                  SizedBox(height: 5), 
                   Text(
-                    'Add Photo', // Placeholder text
+                    'Add Photo', 
                     style: TextStyle(
-                      fontSize: 12, // Size of the text
+                      fontSize: 12, 
                       fontWeight: FontWeight.bold,
-                      color: Color(0xff613089), // Text color
+                      color: Color(0xff613089), 
                     ),
                   ),
                 ],
@@ -809,8 +895,8 @@ Widget _buildProfileHeader() {
         _userName, // Display fetched username
         style: const TextStyle(
           fontWeight: FontWeight.bold, 
-          fontSize: 22, // Username font size
-          color: Color(0xff613089), // Matching text color with the theme
+          fontSize: 22, 
+          color: Color(0xff613089), 
         ),
       ),
       const SizedBox(height: 10),
@@ -823,7 +909,7 @@ Widget _buildProfileHeader() {
             
             Icons.favorite,
           ),
-          // Add more info cards if needed
+          
         ],
       ),
     ],
@@ -836,7 +922,7 @@ Widget _buildProfileHeader() {
 
   Widget _buildInfoCard(String title, String value, IconData icon) {
   return Container(
-    // width: 100,
+    // width: 400,
     padding: const EdgeInsets.all(10),
     decoration: BoxDecoration(
       color: Colors.white,
@@ -859,7 +945,7 @@ Widget _buildProfileHeader() {
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Color(0xff613089), // Custom color for this text
+            color: Color(0xff613089), 
           ),
         ),
         const SizedBox(height: 3),
@@ -892,6 +978,7 @@ Widget _buildProfileHeader() {
     );
   }
 
+
 // Helper method to build text form fields
 Widget _buildTextFormField({
   required TextEditingController controller,
@@ -901,19 +988,19 @@ Widget _buildTextFormField({
   int maxLines = 1,
   String? Function(String?)? validator,
   Widget? suffixIcon, // Change type to Widget
-  TextInputType? keyboardType, // Add keyboardType parameter
+  TextInputType? keyboardType, 
 }) {
   return TextFormField(
     controller: controller,
     maxLines: maxLines,
-    keyboardType: keyboardType, // Set keyboardType here
+    keyboardType: keyboardType,
     decoration: InputDecoration(
       labelText: label,
       hintText: hint,
       hintStyle: TextStyle(
-      color: Colors.grey.shade400, // لون النص الافتراضي
-      fontSize: 14, // حجم النص
-      fontStyle: FontStyle.italic, // نمط النص
+      color: Colors.grey.shade400, 
+      fontSize: 14, 
+      fontStyle: FontStyle.italic, 
     ),
       labelStyle: const TextStyle(color: Color(0xff613089)),
       prefixIcon: Icon(icon, color: const Color(0xff613089)),
@@ -939,23 +1026,24 @@ Widget _buildTextFormField({
 
 
 
-  // Helper method to build dropdown fields
+// Helper method to build dropdown fields with validation
 Widget _buildDropdownField({
   required String label,
   required String hint,
   required List<String> items,
   required String? selectedValue,
   required void Function(String?) onChanged,
+  required String? Function(String?) validator, // Add a validator
 }) {
   return DropdownButtonFormField<String>(
     decoration: InputDecoration(
-     prefixIcon: const Padding(
-    padding: EdgeInsets.only(left: 10.0,top: 8.0), // Add padding before the icon
-    child: FaIcon(
-      FontAwesomeIcons.venusMars,
-      color: Color(0xff613089),
-    ),
-  ), // Icon before the label
+      prefixIcon: const Padding(
+        padding: EdgeInsets.only(left: 10.0, top: 8.0), // Add padding before the icon
+        child: FaIcon(
+          FontAwesomeIcons.venusMars,
+          color: Color(0xff613089),
+        ),
+      ), // Icon before the label
       labelText: label,
       hintText: hint,
       labelStyle: const TextStyle(color: Color(0xff613089)),
@@ -976,6 +1064,7 @@ Widget _buildDropdownField({
     ),
     value: selectedValue,
     onChanged: onChanged,
+    validator: validator, // Apply validator here
     items: items.map((String value) {
       IconData icon = value == 'Male' ? Icons.male : Icons.female; // Determine the icon based on gender
 
@@ -983,7 +1072,7 @@ Widget _buildDropdownField({
         value: value,
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xff613089)), // Gender icon
+            Icon(icon, color: const Color(0xff613089)), 
             const SizedBox(width: 10),
             Text(value),
           ],
@@ -998,17 +1087,18 @@ Widget _buildDropdownField({
   // Helper method to build chronic diseases chips
 Widget _buildChronicDiseasesChips() {
   return Wrap(
-    spacing: 10.0,
+    spacing: 10.0, 
+    runSpacing: 10.0, 
     children: chronicDiseases.map((disease) {
       final isSelected = _selectedChronicDiseases.contains(disease['name']);
       return FilterChip(
         label: Text(
           disease['name'],
           style: TextStyle(
-            color: isSelected ? Colors.white : Color(0xff613089), // Text color changes based on selection
+            color: isSelected ? Colors.white : const Color(0xff613089), 
           ),
         ),
-        avatar: Icon(disease['icon'], color: isSelected ? Colors.white : Color(0xff613089)),
+        avatar: Icon(disease['icon'], color: isSelected ? Colors.white : const Color(0xff613089)),
         selected: isSelected,
         onSelected: (selected) {
           setState(() {
@@ -1020,7 +1110,7 @@ Widget _buildChronicDiseasesChips() {
           });
         },
         selectedColor: const Color(0xffb41391),
-        backgroundColor: Colors.white, // Background color for unselected state
+        backgroundColor: Colors.white, 
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
@@ -1030,32 +1120,33 @@ Widget _buildChronicDiseasesChips() {
 }
 
 
+
 Widget _buildDatePickerField() {
   return TextFormField(
     controller: TextEditingController(
       text: _lastDonationDate != null ? DateFormat('yyyy-MM-dd').format(_lastDonationDate!.toLocal()) : null,
     ),
 
-    readOnly: true, // Prevent keyboard from appearing
+    readOnly: true, 
     onTap: () {
-      _selectLastDonationDate(context); // Call the date selection method
+      _selectLastDonationDate(context); 
     },
     decoration: InputDecoration(
       labelText: 'Last Donation Date',
       hintText: 'Select Last Donation Date',
        labelStyle: const TextStyle(color: Color(0xff613089)),
-      prefixIcon: const Icon(Icons.calendar_today, color: Color(0xff613089)), // Icon before hint text
+      prefixIcon: const Icon(Icons.calendar_today, color: Color(0xff613089)), 
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10.0),
         borderSide: const BorderSide(color: Color(0xffb41391), width: 2.0),
       ),
-      focusedBorder: OutlineInputBorder( // Border when focused
+      focusedBorder: OutlineInputBorder( 
         borderRadius: BorderRadius.circular(10.0),
-        borderSide: const BorderSide(color: Color(0xffb41391), width: 2.0), // Change this to the color you want
+        borderSide: const BorderSide(color: Color(0xffb41391), width: 2.0), 
       ),
-      enabledBorder: OutlineInputBorder( // Border when enabled
-        borderRadius: BorderRadius.circular(10.0),
-        borderSide: const BorderSide(color: Color(0xffb41391), width: 2.0),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: const BorderSide(color: Colors.grey),
       ),
     ),
   );
@@ -1066,7 +1157,8 @@ Widget _buildDatePickerField() {
   Future<void> _submitForm() async {
   String? base64Image;
   if (_imageFile != null) {
-    base64Image = encodeImageToBase64(_imageFile);
+    base64Image = await encodeImageToBase64(_imageFile); 
+    print('Encoded Image: $base64Image'); // Debugging the base64 string
   }
 
   List<String> allergiesArray = _sensitivityController.text.isNotEmpty

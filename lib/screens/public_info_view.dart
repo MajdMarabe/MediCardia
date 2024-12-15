@@ -75,6 +75,8 @@ String? encodeImageToBase64(XFile? imageFile) {
   // Return the Base64-encoded string of the image bytes
   return base64Encode(bytes);
 }
+
+
  Future<void> getDrugByBarcode(String barcode) async {
   final String apiUrl = '${ApiConstants.baseUrl}/drugs/barcode?barcode=$barcode'; // Query parameter in URL
 

@@ -1,5 +1,5 @@
+import 'package:flutter/foundation.dart';
 import 'constants.dart';
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
@@ -17,6 +17,8 @@ class GlucoseApp extends StatelessWidget {
     );
   }
 }
+
+
 
 class GlucoseLogScreen extends StatefulWidget {
   @override
@@ -63,51 +65,90 @@ final headers = {
   }
 
 
+
+///////////////////////
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         backgroundColor: const Color(0xFFF2F5FF),
-        appBar: AppBar(
-          backgroundColor: const Color(0xFFF2F5FF),
-          elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
+        appBar: kIsWeb
+    ? AppBar(
+        backgroundColor: const Color(0xFFF2F5FF),
+        elevation: 0,
+        automaticallyImplyLeading: false, 
+        centerTitle: true,
+        title: const Text(
+          'Your Glucose',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xff613089),
+            letterSpacing: 1.5,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share, color: Color(0xff613089)),
+            onPressed: () {
+              _showShareDialog(context);
+            },
+          ),
+        ],
+        bottom: const TabBar(
+          indicatorColor: Color(0xff613089),
+          labelColor: Color(0xff613089),
+          unselectedLabelColor: Colors.black54,
+          labelStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          indicatorWeight: 3,
+          tabs: [
+            Tab(text: 'Today'),
+            Tab(text: 'Week'),
+            Tab(text: 'Month'),
+          ],
+        ),
+      )
+    : AppBar(
+        backgroundColor: const Color(0xFFF2F5FF),
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-          title: const Text(
-            'Your Glucose',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
+        title: const Text(
+          'Your Glucose',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
             color: Color(0xff613089),
             letterSpacing: 1.5,
-            ),
           ),
-          bottom: const TabBar(
-            indicatorColor: Color(0xff613089),
-            labelColor: Color(0xff613089),
-            unselectedLabelColor: Colors.black54,
-            labelStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            indicatorWeight: 3,
-            tabs: [
-              Tab(text: 'Today'),
-              Tab(text: 'Week'),
-              Tab(text: 'Month'),
-            ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share, color: Color(0xff613089)),
+            onPressed: () {
+              _showShareDialog(context);
+            },
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.share, color: Color(0xff613089)),
-              onPressed: () {
-                _showShareDialog(context);
-              },
-            ),
+        ],
+        bottom: const TabBar(
+          indicatorColor: Color(0xff613089),
+          labelColor: Color(0xff613089),
+          unselectedLabelColor: Colors.black54,
+          labelStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          indicatorWeight: 3,
+          tabs: [
+            Tab(text: 'Today'),
+            Tab(text: 'Week'),
+            Tab(text: 'Month'),
           ],
         ),
+      ),
+
         body: glucoseData == null
             ? const Center(child: CircularProgressIndicator())
             : TabBarView(
@@ -149,14 +190,19 @@ void _showShareDialog(BuildContext context) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
+      // Use MediaQuery to determine the screen width
+      double width = MediaQuery.of(context).size.width;
+      double dialogWidth = width > 600 ? 400 : width * 0.8; 
+
       return Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         elevation: 16,
         backgroundColor: Colors.white,
         child: Container(
+          width: dialogWidth, 
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
           child: Column(
-            mainAxisSize: MainAxisSize.min, 
+            mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 10),
               const Text(
@@ -168,7 +214,7 @@ void _showShareDialog(BuildContext context) {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 10), 
+              const SizedBox(height: 10),
               Text(
                 _generateReport(),
                 textAlign: TextAlign.left,
@@ -177,7 +223,6 @@ void _showShareDialog(BuildContext context) {
                   color: Colors.black54,
                 ),
               ),
-              
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xff613089),
@@ -208,9 +253,6 @@ void _showShareDialog(BuildContext context) {
   );
 }
 
-
-
-
   String _generateReport() {
   final todayAvg = int.tryParse(glucoseData?['today']['avgGlucose'] ?? '0') ?? 0;
   final weekAvg = int.tryParse(glucoseData?['week']['avgGlucose'] ?? '0') ?? 0;
@@ -218,7 +260,7 @@ void _showShareDialog(BuildContext context) {
 
     return """
 🩸 **Glucose Levels Report** 📊
-**Today:** $todayAvg mg/dl ${(todayAvg > 130) ? '😟' : '😎'}
+**Today:** $todayAvg mg/dl ${(todayAvg > 130) ? '😟' : '👌'}
 **Week:** $weekAvg mg/dl ${(weekAvg > 130) ? '😟' : '👌'}
 **Month:** $monthAvg mg/dl ${(monthAvg > 130) ? '😟' : '👌'}
 
@@ -226,6 +268,7 @@ Stay healthy and consult your doctor for further advice.
 """;
   }
 }
+
 
 
 class GlucoseCard extends StatelessWidget {
@@ -240,6 +283,11 @@ class GlucoseCard extends StatelessWidget {
     required this.labels,
     required this.period,
   });
+
+
+
+///////////////////////////
+
 
   @override
   Widget build(BuildContext context) {
@@ -291,7 +339,7 @@ class GlucoseCard extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Text(
               '$period Glucose Levels',
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.black54,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -302,7 +350,7 @@ class GlucoseCard extends StatelessWidget {
           Expanded(
             child: BarChart(
               BarChartData(
-                gridData: FlGridData(show: false),
+                gridData: const FlGridData(show: false),
                 titlesData: FlTitlesData(
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
@@ -316,7 +364,7 @@ class GlucoseCard extends StatelessWidget {
                       },
                     ),
                   ),
-                  rightTitles: AxisTitles(
+                  rightTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),
                   ),
                   bottomTitles: AxisTitles(

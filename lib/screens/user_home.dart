@@ -9,9 +9,17 @@ import 'package:flutter_application_3/screens/lab_tests_view.dart';
 import 'package:flutter_application_3/screens/medical_notes_view.dart';
 import 'package:flutter_application_3/screens/treatment_plans_view.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:flutter/foundation.dart';
 import 'drugshome.dart';
 import 'viewdoctors.dart';
 import 'notification_page.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'constants.dart';
+import 'dart:convert';
+
+
+const storage = FlutterSecureStorage();
 
 class HomePage extends StatefulWidget {
   @override
@@ -19,6 +27,23 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
+    List<Map<String, dynamic>> allUsers = [];
+     String username = 'Unknown'; 
+  String gender = 'Unknown'; 
+  String bloodType = 'Unknown'; 
+  int age = 0; 
+  String phoneNumber = 'N/A'; 
+  String lastDonationDate = 'N/A'; 
+String? base64Image ='';
+  
+  List<String> chronicDiseases = []; 
+  List<String> allergies = []; 
+ 
+  bool isLoading = true; 
+bool _isExpanded = false;
+
+
   final items = const [
     Icon(
       Icons.home,
@@ -35,7 +60,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     Container(),
     const Center(child: Text('Search Page')),
-    NotificationPage(),
+    const NotificationPage(),
     ProfilePage(),
   ];
 
@@ -45,9 +70,70 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  
+// Fetch all doctors from the API
+ Future<void> fetchUserInfo() async {
+  final String ? userid =  await storage.read(key: 'userid');
+  try {
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/users/$userid'),
+    );
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      setState(() {
+        username = data['username'] ?? 'Unknown';
+        gender = data['medicalCard']?['publicData']?['gender'] ?? 'Unknown';
+        bloodType = data['medicalCard']?['publicData']?['bloodType'] ?? 'Unknown';
+        age = data['medicalCard']?['publicData']?['age'] ?? 0;
+        phoneNumber = data['medicalCard']?['publicData']?['phoneNumber'] ?? 'N/A';
+        lastDonationDate =
+            data['medicalCard']?['publicData']?['lastBloodDonationDate'] ?? 'N/A';
+        chronicDiseases = List<String>.from(
+          data['medicalCard']?['publicData']?['chronicConditions'] ?? [],
+        );
+        allergies = List<String>.from(
+          data['medicalCard']?['publicData']?['allergies'] ?? [],
+        );
+        base64Image=data['medicalCard']?['publicData']?['image'] ?? 'Unknown';
+        isLoading = false; 
+      });
+    } else {
+      _showMessage('Failed to load user information');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  } catch (e) {
+    _showMessage('Error: $e');
+    setState(() {
+      isLoading = false;
+    });
+  }
+}
+
+
+ void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+
+ @override
+  void initState() {
+    super.initState();
+    fetchUserInfo();
+  }
+
+
+
+  //////////////////////////////////
+
+
+
   // Function to build circular service buttons
   Widget buildCircleButton({
-    required IconData icon, // Accepting IconData for the icon parameter
+    required IconData icon, 
     required String label,
     required Function() onTap,
   }) {
@@ -73,7 +159,7 @@ class _HomePageState extends State<HomePage> {
             ),
             child: Icon(icon,
                 size: 40,
-                color: const Color(0xff613089)), // Using IconData here
+                color: const Color(0xff613089)), 
           ),
           const SizedBox(height: 8),
           Text(
@@ -88,6 +174,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
 
   Widget buildInfoRow(IconData icon, String text) {
     return Padding(
@@ -114,15 +201,40 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-bool _isExpanded = false;
-DateTime? _selectedDate;
-List<String> chronicDiseases = ['Diabetes'];  
-List<String> allergies = ['Penicillin'];  
 
 
-String phoneNumber = '0598820544'; 
-String lastDonationDate = '2024-11-19';  
-String idNumber = '123456789';  
+
+Image buildImageFromBase64(String? base64Image) {
+  try {
+    if (base64Image == null || base64Image.isEmpty) {
+      return Image.asset('assets/images/default_person.jpg'); 
+    }
+
+    final bytes = base64Decode(base64Image);
+    print("Decoded bytes length: ${bytes.length}");
+
+    return Image.memory(bytes);
+  } catch (e) {
+  
+    print("Error decoding image: $e");
+    return Image.asset('assets/images/default_person.jpg');
+  }
+}
+
+
+String formatDate(String isoDate) {
+  try {
+    DateTime parsedDate = DateTime.parse(isoDate);
+    return "${parsedDate.year}-${parsedDate.month.toString().padLeft(2, '0')}-${parsedDate.day.toString().padLeft(2, '0')}";
+  } catch (e) {
+    print("Error parsing date: $e");
+    return isoDate;
+  }
+}
+
+
+/////////////////////////////////////////
+
 
 Widget buildUserInfo() {
   return StatefulBuilder(
@@ -147,26 +259,23 @@ Widget buildUserInfo() {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  radius: 42,
-                  backgroundColor: Colors.white,
-                  backgroundImage: AssetImage('assets/images/doctor1.jpg'),
-                ),
+                _buildUserAvatar(),
                 const SizedBox(width: 18),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Majd',
+                        username,
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           shadows: [
                             Shadow(
-                                color: Colors.black.withOpacity(0.4),
-                                blurRadius: 4)
+                              color: Colors.black.withOpacity(0.4),
+                              blurRadius: 4,
+                            ),
                           ],
                         ),
                       ),
@@ -176,25 +285,26 @@ Widget buildUserInfo() {
                           style: const TextStyle(
                               color: Colors.white70, fontSize: 16),
                           children: [
-                            WidgetSpan(
+                            const WidgetSpan(
                               child: Icon(Icons.person,
                                   size: 20, color: Colors.white70),
                             ),
-                            const TextSpan(text: '  Age: 22 | Gender: Female'),
+                            TextSpan(
+                                text: '  Age: $age | Gender: $gender'),
                           ],
                         ),
                       ),
-                       const SizedBox(height: 6),
+                      const SizedBox(height: 6),
                       RichText(
                         text: TextSpan(
                           style: const TextStyle(
                               color: Colors.white70, fontSize: 16),
                           children: [
-                            WidgetSpan(
+                            const WidgetSpan(
                               child: Icon(Icons.bloodtype,
                                   size: 20, color: Colors.white70),
                             ),
-                            const TextSpan(text: '  Blood Type: B+'),
+                            TextSpan(text: '  Blood Type: $bloodType'),
                           ],
                         ),
                       ),
@@ -203,51 +313,47 @@ Widget buildUserInfo() {
                 ),
               ],
             ),
-             if (_isExpanded) ...[
-            const SizedBox(height: 16),
-             buildInfoRow(Icons.credit_card, 'ID Number: 123456789'),
-            buildEditableRow(Icons.phone, 'Phone: $phoneNumber', (newValue) {
-              setState(() {
-                phoneNumber = newValue;  
-              });
-            }),
-            buildEditableRow(
-              Icons.calendar_today, 
-              'Last Donation: $lastDonationDate', 
-              (newValue) {
+            if (_isExpanded) ...[
+              const SizedBox(height: 16),
+              buildInfoRow(Icons.credit_card, 'ID Number: 123456789'),
+              buildEditableRow(Icons.phone, 'Phone: $phoneNumber', (newValue) {
                 setState(() {
-                  lastDonationDate = newValue;  
+                  phoneNumber = newValue;
                 });
-              },
-              isDate: true, // Flag to indicate this is a date field
-            ),
-          
-            buildEditableListRow(
-                FontAwesomeIcons.heartbeat, 'Chronic diseases:', chronicDiseases,
+              }),
+              buildEditableRow(
+                Icons.calendar_today,
+                'Last Donation: ${formatDate(lastDonationDate)}',
                 (newValue) {
-              setState(() {
-                chronicDiseases.add(newValue);  
-              });
-            }, (index) {
-              setState(() {
-                chronicDiseases.removeAt(index);  
-              });
-            }),
-
-        
-            buildEditableListRow(Icons.warning, 'Allergies:', allergies,
-                (newValue) {
-              setState(() {
-                allergies.add(newValue);  
-              });
-            }, (index) {
-              setState(() {
-                allergies.removeAt(index);  
-              });
-            }),
-  ],
+                  setState(() {
+                    lastDonationDate = newValue;
+                  });
+                },
+                isDate: true,
+              ),
+              buildEditableListRow(FontAwesomeIcons.heartbeat,
+                  'Chronic diseases:', chronicDiseases, (newValue) {
+                setState(() {
+                  chronicDiseases.add(newValue);
+                });
+              }, (index) {
+                setState(() {
+                  chronicDiseases.removeAt(index);
+                });
+              }),
+              buildEditableListRow(Icons.warning, 'Allergies:', allergies,
+                  (newValue) {
+                setState(() {
+                  allergies.add(newValue);
+                });
+              }, (index) {
+                setState(() {
+                  allergies.removeAt(index);
+                });
+              }),
+            ],
             const SizedBox(height: 5),
-             Align(
+            Align(
               alignment: Alignment.centerRight,
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
@@ -257,13 +363,13 @@ Widget buildUserInfo() {
                       _isExpanded = !_isExpanded;
                     });
                   },
-                child: Text(
-                  _isExpanded ? 'Show Less' : 'Show More',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                     ),
+                  child: Text(
+                    _isExpanded ? 'Show Less' : 'Show More',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -275,239 +381,348 @@ Widget buildUserInfo() {
   );
 }
 
-Widget buildEditableRow(IconData icon, String text, Function(String) onSave, {bool isDate = false}) {
-  TextEditingController controller = TextEditingController(text: text);
-
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 5),
-    child: Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, size: 24, color: Colors.white),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(fontSize: 14, color: Colors.white70),
-          ),
-        ),
-        IconButton(
-          icon: Icon(Icons.edit, color: Colors.white),
-          onPressed: () {
-            if (isDate) {
-              _selectDate(context, controller, onSave);
-            } else {
-              _showEditDialog(context, controller.text, onSave);
-            }
-          },
-        ),
-      ],
-    ),
-  );
-}
-
-Widget buildEditableListRow(IconData icon, String title, List<String> list, Function(String) onAdd, Function(int) onRemove) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 16, color: Colors.white70),
-        ),
-        ...list.map((item) {
-          int index = list.indexOf(item);
-          return Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, size: 24, color: Colors.white),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  item,
-                  style: const TextStyle(fontSize: 14, color: Colors.white70),
-                ),
-              ),
-              IconButton(
-                icon: Icon(Icons.delete, color: Colors.white),
-                onPressed: () {
-                  onRemove(index);
-                },
-              ),
-            ],
-          );
-        }).toList(),
-        IconButton(
-          icon: Icon(Icons.add, color: Colors.white),
-          onPressed: () {
-            _showAddDialog(context, onAdd);
-          },
-        ),
-      ],
-    ),
-  );
-}
-
-void _showAddDialog(BuildContext context, Function(String) onAdd) {
-  TextEditingController controller = TextEditingController();
-
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text("Add Information", style: TextStyle(color: Color(0xff613089))),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: 'Enter new value',
-            labelStyle: const TextStyle(color: Color(0xff613089)),
-            prefixIcon: Icon(Icons.edit, color: Color(0xff613089)),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xff613089)),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text("Cancel", style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              onAdd(controller.text);
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xff613089),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-            ),
-            child: Text("Add"),
-          ),
-        ],
-      );
-    },
-  );
-}
 
 
 
-void _showEditDialog(BuildContext context, String initialValue, Function(String) onSave) {
-  TextEditingController controller = TextEditingController(text: '');
-
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text("Edit Information", style: TextStyle(color: Color(0xff613089))),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: 'Enter new value',
-            labelStyle: const TextStyle(color: Color(0xff613089)),
-            prefixIcon: Icon(Icons.edit, color: Color(0xff613089)),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xff613089)),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text("Cancel", style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              onSave(controller.text);  // Save the edited value
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xff613089),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-            ),
-            child: Text("Save"),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-Future<void> _selectDate(BuildContext context, TextEditingController controller, Function(String) onSave) async {
-  DateTime initialDate = DateTime.now();
-  DateTime? selectedDate = await showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Select Last Donation Date', style: TextStyle(color: Color(0xff613089))),
-        content: SizedBox(
-          width: 300,
-          height: 400,
-          child: Column(
-            children: [
-              Expanded(
-                child: TableCalendar(
-                  firstDay: DateTime.utc(2020, 1, 1),
-                  lastDay: DateTime.utc(2030, 12, 31),
-                  focusedDay: initialDate,
-                  onDaySelected: (selectedDay, focusedDay) {
-                    controller.text = "${selectedDay.toLocal()}".split(' ')[0];  // Format the date
-                    onSave(controller.text);  // Save the selected date
-                    Navigator.of(context).pop();
-                  },
-                  calendarStyle: const CalendarStyle(
-                    selectedDecoration: BoxDecoration(
-                      color: Color(0xffb41391),
-                      shape: BoxShape.circle,
-                    ),
-                    todayDecoration: BoxDecoration(
-                      color: Color(0xff613089),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  headerStyle: const HeaderStyle(
-                    formatButtonVisible: false,
-                    titleTextStyle: TextStyle(color: Color(0xff613089), fontSize: 20),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  );
-
-  if (selectedDate != null) {
-    controller.text = "${selectedDate.toLocal()}".split(' ')[0];
-    onSave(controller.text);  // Save the selected date
+Widget _buildUserAvatar() {
+  ImageProvider backgroundImage;
+  try {
+    backgroundImage = buildImageFromBase64(base64Image).image;
+  } catch (e) {
+    backgroundImage = const AssetImage('assets/images/default_person.jpg');
   }
+  return CircleAvatar(
+    radius: 42,
+    backgroundColor: Colors.white,
+    backgroundImage: backgroundImage,
+  );
 }
 
 
+  
+
+
+  Widget buildEditableRow(IconData icon, String text, Function(String) onSave,
+      {bool isDate = false}) {
+    TextEditingController controller = TextEditingController(text: text);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 24, color: Colors.white),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 14, color: Colors.white70),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.white),
+            onPressed: () {
+              if (isDate) {
+                _selectDate(context, controller, onSave);
+              } else {
+                _showEditDialog(context, controller.text, onSave);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
 
 
+  Widget buildEditableListRow(IconData icon, String title, List<String> list,
+      Function(String) onAdd, Function(int) onRemove) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 16, color: Colors.white70),
+          ),
+          ...list.map((item) {
+            int index = list.indexOf(item);
+            return Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, size: 24, color: Colors.white),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    item,
+                    style: const TextStyle(fontSize: 14, color: Colors.white70),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.white),
+                  onPressed: () {
+                    onRemove(index);
+                  },
+                ),
+              ],
+            );
+          }),
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.white),
+            onPressed: () {
+              _showAddDialog(context, onAdd);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
+  void _showAddDialog(BuildContext context, Function(String) onAdd) {
+    TextEditingController controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        double dialogWidth = MediaQuery.of(context).size.width > 600
+          ? 600
+          : MediaQuery.of(context).size.width * 0.9;
+
+      double dialogHeight = MediaQuery.of(context).size.height > 900
+          ? 200
+          : MediaQuery.of(context).size.height * 0.3;
+
+        return Dialog(
+  backgroundColor: Colors.transparent,
+  child: Center(
+    child: Container(
+      width: dialogWidth,
+      height: dialogHeight,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Add Information",
+            style: TextStyle(
+              color: Color(0xff613089),
+              fontSize: 20,
+            ),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              labelText: 'Enter new value',
+              labelStyle: TextStyle(color: Color(0xff613089)),
+              prefixIcon: Icon(Icons.edit, color: Color(0xff613089)),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xff613089)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  "Cancel",
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  onAdd(controller.text);
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xff613089),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+                child: const Text("Add"),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  ),
+);
+      },
+    );
+  }
+
+
+
+
+  void _showEditDialog(
+      BuildContext context, String initialValue, Function(String) onSave) {
+    TextEditingController controller = TextEditingController(text: '');
+
+    showDialog(
+      context: context,
+      builder: (context) {
+                double dialogWidth = MediaQuery.of(context).size.width > 600
+          ? 600
+          : MediaQuery.of(context).size.width * 0.9;
+
+      double dialogHeight = MediaQuery.of(context).size.height > 900
+          ? 200
+          : MediaQuery.of(context).size.height * 0.3;
+
+       return Dialog(
+  backgroundColor: Colors.transparent,
+  child: Center(
+    child: Container(
+      width: dialogWidth,
+      height: dialogHeight,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Edit Information",
+            style: TextStyle(
+              color: Color(0xff613089),
+              fontSize: 20,
+            ),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              labelText: 'Enter new value',
+              labelStyle: TextStyle(color: Color(0xff613089)),
+              prefixIcon: Icon(Icons.edit, color: Color(0xff613089)),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xff613089)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  "Cancel",
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  onSave(controller.text); 
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xff613089),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+                child: const Text("Save"),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  ),
+);
+      },
+    );
+  }
+
+
+
+/////////////////////////
+
+
+  Future<void> _selectDate(BuildContext context,
+      TextEditingController controller, Function(String) onSave) async {
+    DateTime initialDate = DateTime.now();
+    DateTime? selectedDate = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Select Last Donation Date',
+              style: TextStyle(color: Color(0xff613089))),
+          content: SizedBox(
+            width: 300,
+            height: 400,
+            child: Column(
+              children: [
+                Expanded(
+                  child: TableCalendar(
+                    firstDay: DateTime.utc(2020, 1, 1),
+                    lastDay: DateTime.utc(2030, 12, 31),
+                    focusedDay: initialDate,
+                    onDaySelected: (selectedDay, focusedDay) {
+                      controller.text = "${selectedDay.toLocal()}"
+                          .split(' ')[0]; // Format the date
+                      onSave(controller.text); 
+                      Navigator.of(context).pop();
+                    },
+                    calendarStyle: const CalendarStyle(
+                      selectedDecoration: BoxDecoration(
+                        color: Color(0xffb41391),
+                        shape: BoxShape.circle,
+                      ),
+                      todayDecoration: BoxDecoration(
+                        color: Color(0xff613089),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    headerStyle: const HeaderStyle(
+                      formatButtonVisible: false,
+                      titleTextStyle:
+                          TextStyle(color: Color(0xff613089), fontSize: 20),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (selectedDate != null) {
+      controller.text = "${selectedDate.toLocal()}".split(' ')[0];
+      onSave(controller.text); 
+    }
+  }
 
   // Function to build search section
   Widget buildSearchSection() {
@@ -543,6 +758,7 @@ Future<void> _selectDate(BuildContext context, TextEditingController controller,
       ),
     );
   }
+
 
   // Function to build doctor cards
   Widget buildDoctorCard(String name, String distance, String imagePath) {
@@ -614,6 +830,7 @@ Future<void> _selectDate(BuildContext context, TextEditingController controller,
     );
   }
 
+
   // "Popular Doctor" Section
   Widget buildPopularDoctorSection() {
     return Column(
@@ -669,186 +886,261 @@ Future<void> _selectDate(BuildContext context, TextEditingController controller,
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF2F5FF),
-      body: Stack(
-        
-        children: [
-          _pages[_selectedIndex],
-          if (_selectedIndex == 0)
-            SingleChildScrollView(
-              child: Column(
-                children: [
-                  // Animated Welcome Text
-                  Padding(
-                    padding: const EdgeInsets.only(top: 80),
-                    child: Center(
-                      child: AnimatedTextKit(
-                        animatedTexts: [
-                          TyperAnimatedText(
-                            'Welcome to MediCardia',
-                            textStyle: const TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xff613089),
-                              fontFamily: 'ScriptMTBold',
-                            ),
-                            speed: const Duration(milliseconds: 100),
-                          ),
-                        ],
-                        totalRepeatCount: 1,
-                        pause: const Duration(milliseconds: 500),
-                      ),
-                    ),
+
+
+/////////////////////////////////
+
+
+@override
+Widget build(BuildContext context) {
+  
+  const isWeb = kIsWeb; 
+
+  return Scaffold(
+    backgroundColor: const Color(0xFFF2F5FF),
+    appBar: isWeb
+        ? AppBar(
+            backgroundColor: const Color(0xFFF2F5FF),
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            title: Row(
+              children: [
+                   Image.asset(
+      'assets/images/appLogo.png',
+      height: 35,
+      width: 35,
+      color: const Color(0xff613089),
+    ),
+    // const SizedBox(width: 4),
+                const Text(
+                  'MediCardia',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'BAUHS93',
+                    color: Color(0xff613089),
                   ),
-                  const SizedBox(height: 20),
-
-                  // User Info Card
-                  buildUserInfo(),
-                  const SizedBox(height: 20),
-
-                  // Search Section
-                  buildSearchSection(),
-                  const SizedBox(height: 20),
-
-                  // "How Can We Help You?" Text
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'How can we help you?',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xff613089),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Circular Buttons for Services
-                  SizedBox(
-                    height: 130,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      children: [
-                        buildCircleButton(
-                          icon: FontAwesomeIcons
-                              .capsules, // Directly passing the FontAwesomeIcons
-                          label: 'Drugs',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      OnlineMedicineHomePage()),
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 20),
-                        buildCircleButton(
-                          icon: Icons.bloodtype, // Icon for Diabetes Control
-                          label: 'Diabetes',
-                          onTap: () {
-                            // Navigate to the Diabetes Control page
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    DiabetesControlPage(), // Replace with your Diabetes Control page
-                              ),
-                            );
-                          },
-                        ),
-                       
-                        const SizedBox(width: 20),
-                        buildCircleButton(
-                          icon: Icons.fact_check,
-                          label: 'Medical History',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => MedicalHistoryPage()),
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 20),
-                        buildCircleButton(
-                          icon: Icons.science,
-                          label: 'Lab Tests',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => LabTestsPage()),
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 20),
-                        buildCircleButton(
-                          icon: Icons.note_alt,
-                          label: 'Medical Notes',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => MedicalNotesPage()),
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 20),
-                        buildCircleButton(
-                          icon: Icons.medication,
-                          label: 'Treatment Plans',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => TreatmentPlansPage()),
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 20),
-                        buildCircleButton(
-                          icon: FontAwesomeIcons.userMd,
-                          label: 'Find Doctor',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => FindDoctorPage()),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Popular Doctor Section
-                  buildPopularDoctorSection(),
-                ],
+                ),
+              ],
+            ),
+            centerTitle: true,
+            
+            toolbarHeight: 60,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(20),
               ),
             ),
-        ],
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.home, color: Color(0xff613089), size: 20),
+                tooltip: 'Home',
+                onPressed: () => _onItemTapped(0),
+              ),
+              IconButton(
+                icon: const Icon(FontAwesomeIcons.search, color: Color(0xff613089), size: 20),
+                tooltip: 'Search',
+                onPressed: () => _onItemTapped(1),
+              ),
+              IconButton(
+                icon: const Icon(Icons.notifications, color: Color(0xff613089), size: 20),
+                tooltip: 'Notifications',
+                onPressed: () => _onItemTapped(2),
+              ),
+              IconButton(
+                icon: const Icon(FontAwesomeIcons.userCircle, color: Color(0xff613089), size: 20),
+                tooltip: 'Profile',
+                onPressed: () => _onItemTapped(3),
+              ),
+              const SizedBox(width: 15),
+            ],
+          )
+        : null,
+    body: Center(
+      child: Container(
+      
+       width: MediaQuery.of(context).size.width > 600 
+          ? MediaQuery.of(context).size.width * 0.75 
+          : MediaQuery.of(context).size.width,
+        child: Stack(
+          children: [
+            _pages[_selectedIndex],
+            if (_selectedIndex == 0)
+              SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // Animated Welcome Text
+                    Padding(
+                      padding: const EdgeInsets.only(top: 40),
+                      child: Center(
+                        child: AnimatedTextKit(
+                          animatedTexts: [
+                            TyperAnimatedText(
+                              'Welcome to MediCardia',
+                              textStyle: const TextStyle(
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xff613089),
+                                fontFamily: 'ScriptMTBold',
+                              ),
+                              speed: const Duration(milliseconds: 100),
+                            ),
+                          ],
+                          totalRepeatCount: 1,
+                          pause: const Duration(milliseconds: 500),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    buildUserInfo(),
+                    const SizedBox(height: 20),
+
+               
+                    buildSearchSection(),
+                    const SizedBox(height: 20),
+
+                 
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'How can we help you?',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xff613089),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Circular Buttons for Services
+                    SizedBox(
+                      height: 130,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        children: [
+                          buildCircleButton(
+                            icon: FontAwesomeIcons.capsules,
+                            label: 'Drugs',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => OnlineMedicineHomePage(),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 20),
+                          buildCircleButton(
+                            icon: Icons.bloodtype,
+                            label: 'Diabetes',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => DiabetesControlPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 20),
+                          buildCircleButton(
+                            icon: Icons.fact_check,
+                            label: 'Medical History',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MedicalHistoryPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 20),
+                          buildCircleButton(
+                            icon: Icons.science,
+                            label: 'Lab Tests',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => LabTestsPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 20),
+                          buildCircleButton(
+                            icon: Icons.note_alt,
+                            label: 'Medical Notes',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MedicalNotesPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 20),
+                          buildCircleButton(
+                            icon: Icons.medication,
+                            label: 'Treatment Plans',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => TreatmentPlansPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 20),
+                          buildCircleButton(
+                            icon: FontAwesomeIcons.userMd,
+                            label: 'Find Doctor',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const FindDoctorPage(),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Popular Doctor Section
+                    buildPopularDoctorSection(),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
-      bottomNavigationBar: CurvedNavigationBar(
-        items: items,
-        index: _selectedIndex,
-        onTap: _onItemTapped,
-        height: 70,
-        backgroundColor: Colors.white,
-        color: const Color(0xff613089),
-        buttonBackgroundColor: const Color(0xff613089),
-        animationDuration: const Duration(milliseconds: 300),
-      ),
-    );
-  }
+    ),
+    bottomNavigationBar: isWeb
+        ? null
+        : CurvedNavigationBar(
+            items: items,
+            index: _selectedIndex,
+            onTap: _onItemTapped,
+            height: 70,
+            backgroundColor: Colors.white,
+            color: const Color(0xff613089),
+            buttonBackgroundColor: const Color(0xff613089),
+            animationDuration: const Duration(milliseconds: 300),
+          ),
+  );
+}
 }

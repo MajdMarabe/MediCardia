@@ -1,7 +1,8 @@
-import 'dart:convert'; 
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/widgets/custom_scaffold.dart';
-import 'package:http/http.dart' as http; 
+import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_application_3/screens/verification_code.dart';
@@ -20,9 +21,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _locationController = TextEditingController(); // Location Controller
+  final _locationController = TextEditingController();
   bool agreePersonalData = true;
-  bool _obscureText = true; // New variable to control password visibility
+  bool _obscureText = true;
 
   // Regular expression for email validation
   final RegExp _emailRegExp = RegExp(
@@ -32,7 +33,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   // Function to toggle password visibility
   void _togglePasswordVisibility() {
     setState(() {
-      _obscureText = !_obscureText; // Toggle the obscureText state
+      _obscureText = !_obscureText;
     });
   }
 
@@ -40,7 +41,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (!_formSignupKey.currentState!.validate() || !agreePersonalData) {
       if (!agreePersonalData) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please agree to the processing of personal data')),
+          const SnackBar(
+              content: Text('Please agree to the processing of personal data')),
         );
       }
       return;
@@ -61,38 +63,412 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
 
       if (response.statusCode == 200) {
-        // Parse the response body to get the user ID
         final responseData = jsonDecode(response.body);
-        
-        final userId = responseData['_id']; // Extract user ID from the response
+        final userId = responseData['_id'];
         await storage.write(key: 'userid', value: userId);
 
-        // Success
         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text('Sign up successful: $responseData')),
+          SnackBar(content: Text('Sign up successful: $responseData')),
         );
 
-        // Navigate to PublicInfo screen and pass userId
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) =>  VerificationCodeScreen(email: _emailController.text,flag: '3')), // PublicInfo(userId: userId) Pass userId to the PublicInfo screen
+          MaterialPageRoute(
+              builder: (context) => VerificationCodeScreen(
+                  email: _emailController.text, flag: '3')),
         );
       } else {
-        // Server error or validation issue
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to sign up: ${response.body}')),
         );
       }
     } catch (e) {
-      // Network or server error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
     }
   }
 
+
+
+///////////////////////////////
+
+
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      body: kIsWeb
+          ? Stack(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/c.jpeg'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                // AppBar for web
+           Align(
+  alignment: Alignment.topCenter,
+  child: Container(
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Image.asset(
+              'assets/images/appLogo.png',
+              height: 35,
+              width: 35,
+              color: const Color(0xff613089),
+            ),
+            // const SizedBox(width: 10),
+            const Text(
+              'MediCardia',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'BAUHS93',
+                color: Color(0xff613089),
+              ),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            TextButton(
+              onPressed: () {},
+              child: const Text(
+                'Home',
+                style: TextStyle(
+                  color: Color(0xff613089),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {},
+              child: const Text(
+                'About',
+                style: TextStyle(
+                  color: Color(0xff613089),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {},
+              child: const Text(
+                'Contact',
+                style: TextStyle(
+                  color: Color(0xff613089),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Focus(
+              onFocusChange: (hasFocus) {
+             
+                print("Sign Up button has focus: $hasFocus");
+              },
+              child: FocusScope(
+                child: TextButton(
+                  onPressed: () {},
+                  style: TextButton.styleFrom(
+                    side: const BorderSide(
+                      color: Color(0xff613089), 
+                      width: 2.0, 
+                    ),
+                    padding: const EdgeInsets.all(16), 
+                  ),
+                  child: const Text(
+                    'Sign Up',
+                    style: TextStyle(
+                      color: Color(0xff613089),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  ),
+),
+               
+                Center(
+                  child: Container(
+                    width: 500,
+                    height: 1000,
+                    padding: const EdgeInsets.all(30),
+                    child: _buildWebLayout(),
+                  ),
+                ),
+              ],
+            )
+          : _buildSignUpFormMobile(), 
+    );
+  }
+
+
+
+  Widget _buildWebLayout() {
+    return SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          child: _buildSignUpFormWeb(
+            width: 500,
+            height: 550,
+            padding: const EdgeInsets.all(20.0),
+          ),
+        ),
+      ),
+    );
+  }
+
+
+
+
+  
+  Widget _buildSignUpFormWeb(
+      {required double width,
+      required double height,
+      required EdgeInsets padding}) {
+    return Container(
+      width: width,
+      height: height,
+      padding: padding,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(25.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 20.0,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Form(
+        key: _formSignupKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Column(
+              children: [
+                SizedBox(height: 10.0),
+                Text(
+                  'MediCardia',
+                  style: TextStyle(
+                    fontSize: 40.0,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'BAUHS93',
+                    color: Color(0xff613089),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 40.0),
+
+         
+            TextFormField(
+              controller: _fullNameController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter Full name';
+                }
+                return null;
+              },
+              decoration: InputDecoration(
+                labelText: 'Full Name',
+                labelStyle: const TextStyle(color: Color(0xff613089)),
+                hintText: 'Enter Full Name',
+                hintStyle: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: 14,
+                  fontStyle: FontStyle.italic,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                prefixIcon: const Icon(Icons.person, color: Color(0xff613089)),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(
+                    color: Color(0xffb41391),
+                    width: 2.0,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 25.0),
+
+     
+            TextFormField(
+              controller: _emailController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter Email';
+                } else if (!_emailRegExp.hasMatch(value)) {
+                  return 'Please enter a valid Email';
+                }
+                return null;
+              },
+              decoration: InputDecoration(
+                labelText: 'Email',
+                labelStyle: const TextStyle(color: Color(0xff613089)),
+                hintText: 'Enter Email',
+                hintStyle: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: 14,
+                  fontStyle: FontStyle.italic,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                prefixIcon: const Icon(Icons.email, color: Color(0xff613089)),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(
+                    color: Color(0xffb41391),
+                    width: 2.0,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 25.0),
+
+        
+            TextFormField(
+              controller: _locationController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a location';
+                }
+                return null;
+              },
+              decoration: InputDecoration(
+                labelText: 'Location',
+                labelStyle: const TextStyle(color: Color(0xff613089)),
+                hintText: 'Enter Location',
+                hintStyle: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: 14,
+                  fontStyle: FontStyle.italic,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                prefixIcon:
+                    const Icon(Icons.location_on, color: Color(0xff613089)),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(
+                    color: Color(0xffb41391),
+                    width: 2.0,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 25.0),
+
+            TextFormField(
+              controller: _passwordController,
+              obscureText: _obscureText,
+              obscuringCharacter: '•',
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter password';
+                } else if (value.length < 6) {
+                  return 'Password must be at least 6 characters long';
+                }
+                return null;
+              },
+              decoration: InputDecoration(
+                labelText: 'Password',
+                labelStyle: const TextStyle(color: Color(0xff613089)),
+                hintText: 'Enter Password',
+                hintStyle: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: 14,
+                  fontStyle: FontStyle.italic,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                prefixIcon: const Icon(Icons.lock, color: Color(0xff613089)),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureText ? Icons.visibility : Icons.visibility_off,
+                    color: const Color(0xff613089),
+                  ),
+                  onPressed: _togglePasswordVisibility,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(
+                    color: Color(0xffb41391),
+                    width: 2.0,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 25.0),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Checkbox(
+                  value: agreePersonalData,
+                  onChanged: (value) {
+                    setState(() {
+                      agreePersonalData = value ?? false;
+                    });
+                  },
+                  activeColor: const Color(0xff613089),
+                ),
+                const Text('I agree to the processing of personal data'),
+              ],
+            ),
+
+            const SizedBox(height: 25.0),
+
+        
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xff613089),
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: _submitSignUp,
+                child: const Text(
+                  'Create Account',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.0,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+
+
+   Widget _buildSignUpFormMobile() {
     return CustomScaffold(
       child: Column(
         children: [
@@ -119,16 +495,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                        
                       const Column(
                         children: [
-                        
                           Text(
-                            'MediCardia', // App name
+                            'MediCardia', 
                             style: TextStyle(
                               fontSize: 40.0,
                               fontWeight: FontWeight.bold,
-                              fontFamily: 'BAUHS93', // Set font family
+                              fontFamily: 'BAUHS93', 
                               color: Color(0xff613089),
                             ),
                           ),
@@ -136,7 +510,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       const SizedBox(height: 40.0),
 
-                      // Full Name
+                    
                       TextFormField(
                         controller: _fullNameController,
                         validator: (value) {
@@ -149,11 +523,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           labelText: 'Full Name',
                           labelStyle: const TextStyle(color: Color(0xff613089)),
                           hintText: 'Enter Full Name',
-                          hintStyle: const TextStyle(color: Color(0xff613089)),
+                           hintStyle: TextStyle(
+      color: Colors.grey.shade400, 
+      fontSize: 14, 
+      fontStyle: FontStyle.italic, 
+    ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          prefixIcon: const Icon(Icons.person, color: Color(0xff613089)),
+                          prefixIcon: const Icon(Icons.person,
+                              color: Color(0xff613089)),
                           focusedBorder: OutlineInputBorder(
                             borderSide: const BorderSide(
                               color: Color(0xffb41391),
@@ -165,7 +544,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       const SizedBox(height: 25.0),
 
-                      // Email
+                    
                       TextFormField(
                         controller: _emailController,
                         validator: (value) {
@@ -180,11 +559,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           labelText: 'Email',
                           labelStyle: const TextStyle(color: Color(0xff613089)),
                           hintText: 'Enter Email',
-                          hintStyle: const TextStyle(color: Color(0xff613089)),
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade400, 
+                            fontSize: 14, 
+                            fontStyle: FontStyle.italic, 
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          prefixIcon: const Icon(Icons.email, color: Color(0xff613089)),
+                          prefixIcon:
+                              const Icon(Icons.email, color: Color(0xff613089)),
                           focusedBorder: OutlineInputBorder(
                             borderSide: const BorderSide(
                               color: Color(0xffb41391),
@@ -196,7 +580,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       const SizedBox(height: 25.0),
 
-                      // Location
+                 
                       TextFormField(
                         controller: _locationController,
                         validator: (value) {
@@ -209,11 +593,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           labelText: 'Location',
                           labelStyle: const TextStyle(color: Color(0xff613089)),
                           hintText: 'Enter Location',
-                          hintStyle: const TextStyle(color: Color(0xff613089)),
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade400, 
+                            fontSize: 14, 
+                            fontStyle: FontStyle.italic, 
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          prefixIcon: const Icon(Icons.location_on, color: Color(0xff613089)),
+                          prefixIcon: const Icon(Icons.location_on,
+                              color: Color(0xff613089)),
                           focusedBorder: OutlineInputBorder(
                             borderSide: const BorderSide(
                               color: Color(0xffb41391),
@@ -225,10 +614,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       const SizedBox(height: 25.0),
 
-                      // Password
+                 
                       TextFormField(
                         controller: _passwordController,
-                        obscureText: _obscureText, // Use the state variable
+                        obscureText: _obscureText, 
                         obscuringCharacter: '•',
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -242,17 +631,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           labelText: 'Password',
                           labelStyle: const TextStyle(color: Color(0xff613089)),
                           hintText: 'Enter Password',
-                          hintStyle: const TextStyle(color: Color(0xff613089)),
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade400, 
+                            fontSize: 14, 
+                            fontStyle: FontStyle.italic, 
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          prefixIcon: const Icon(Icons.lock, color: Color(0xff613089)),
+                          prefixIcon:
+                              const Icon(Icons.lock, color: Color(0xff613089)),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscureText ? Icons.visibility : Icons.visibility_off,
+                              _obscureText
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
                               color: const Color(0xff613089),
                             ),
-                            onPressed: _togglePasswordVisibility, // Toggle password visibility
+                            onPressed:
+                                _togglePasswordVisibility, 
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderSide: const BorderSide(
@@ -265,46 +662,50 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       const SizedBox(height: 25.0),
 
-                    // Agreement Checkbox
-Row(
-  mainAxisAlignment: MainAxisAlignment.start,
-  children: [
-    Checkbox(
-      value: agreePersonalData,
-      onChanged: (value) {
-        setState(() {
-          agreePersonalData = value ?? false;
-        });
-      },
-      activeColor: const Color(0xff613089), // This changes the tick color
-    ),
-    const Text('I agree to the processing of personal data'),
-  ],
-),
+                     
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Checkbox(
+                            value: agreePersonalData,
+                            onChanged: (value) {
+                              setState(() {
+                                agreePersonalData = value ?? false;
+                              });
+                            },
+                            activeColor: const Color(
+                                0xff613089),
+                          ),
+                          const Text(
+                              'I agree to the processing of personal data'),
+                        ],
+                      ),
 
                       const SizedBox(height: 25.0),
 
-                      // Signup Button
+                     
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xff613089),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
+                           style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xff613089),
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              
                           ),
-                          onPressed: _submitSignUp, // Trigger the signup function
-                        child: const Text(
-      'Create Account',
-      style: TextStyle(
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-      ),
-      textAlign: TextAlign.center,
-    
-    ),
-
+                          onPressed:
+                              _submitSignUp, 
+                          child: const Text(
+                            'Create Account',
+                            style: TextStyle(
+                            
+                              color: Colors.white,
+                              fontSize: 16.0
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ),
                     ],

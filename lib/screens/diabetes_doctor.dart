@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter_application_3/screens/diabets_quick_add.dart'; // Ensure this file exists
+import 'package:flutter_application_3/screens/diabets_quick_add.dart'; 
 import 'package:flutter_application_3/screens/glucose_log.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter_application_3/services/notification_service.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_application_3/main.dart';
-import 'package:flutter_application_3/services/notification_service.dart';
+import 'package:flutter/foundation.dart';
+
+
+
 
 class DiabetesControlPage extends StatefulWidget {
   @override
@@ -18,11 +19,12 @@ class DiabetesControlPage extends StatefulWidget {
 }
 
 class _DiabetesControlPageState extends State<DiabetesControlPage> {
-  List<TimeOfDay> _reminderTimes = [];
+  final List<TimeOfDay> _reminderTimes = [];
   late List<FlSpot> weekReadings;
-  final storage = FlutterSecureStorage();
+  final storage = const FlutterSecureStorage();
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+      
   @override
   void initState() {
     super.initState();
@@ -30,30 +32,33 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
     fetchGlucoseReadings();
   }
 
+
   // Fetch glucose readings for the week from the API
-  Future<void> fetchGlucoseReadings() async {
-    final headers = {
-      'Content-Type': 'application/json',
-      'token': await storage.read(key: 'token') ?? '',
-    };
-    final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/bloodSugar/glucoseCard'),
-        headers: headers);
+ Future<void> fetchGlucoseReadings() async {
+  final headers = {
+    'Content-Type': 'application/json',
+    'token': await storage.read(key: 'token') ?? '',
+  };
+  final response = await http.get(
+    Uri.parse('${ApiConstants.baseUrl}/bloodSugar/glucoseCard'),
+    headers: headers,
+  );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      List<dynamic> levels = data['week']['levels'];
-      List<dynamic> labels = data['week']['labels'];
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    List<dynamic> levels = data['week']['levels'];
+    List<dynamic> labels = data['week']['labels'];
 
-      setState(() {
-        weekReadings = List.generate(levels.length, (index) {
-          return FlSpot(index.toDouble(), levels[index].toDouble());
-        });
+    setState(() {
+      weekReadings = List.generate(levels.length, (index) {
+        return FlSpot(index.toDouble(), levels[index].toDouble());
       });
-    } else {
-      throw Exception('Failed to load glucose readings');
-    }
+    });
+  } else {
+    throw Exception('Failed to load glucose readings');
   }
+}
+
 
   Future<void> _showReminderDialog(BuildContext context,
       {TimeOfDay? existingTime}) async {
@@ -64,13 +69,13 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
         return Theme(
           data: ThemeData.light().copyWith(
             primaryColor:
-                Color(0xff613089), // Apply primary color to the time picker
-            hintColor: Color(0xff9c27b0), // Accent color for time selection
-            timePickerTheme: TimePickerThemeData(
-              dialHandColor: Color(0xff613089), // Customize the dial hand
-              dialTextColor: Colors.black, // Text color inside the dial
+                const Color(0xff613089), 
+            hintColor: const Color(0xff9c27b0), 
+            timePickerTheme: const TimePickerThemeData(
+              dialHandColor: Color(0xff613089),
+              dialTextColor: Colors.black, 
               backgroundColor:
-                  Colors.white, // Background color of the time picker
+                  Colors.white, 
               dayPeriodTextColor: Color(0xff613089),
             ),
           ),
@@ -79,28 +84,28 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
       },
     );
     if (time != null) {
-      // Retrieve the userId from secure storage
+     
       final userId =
-          await storage.read(key: 'userid'); // Read the user ID from storage
+          await storage.read(key: 'userid'); 
       if (userId != null) {
         setState(() {
           if (existingTime == null) {
-            // Add new reminder time
+            
             _reminderTimes.add(time);
-            // Schedule the reminder and add it to the database
+          
             scheduleReminder(time, userId);
           } else {
-            // Update existing reminder time
+          
             int index = _reminderTimes.indexOf(existingTime);
             if (index != -1) {
               _reminderTimes[index] = time;
-              // Reschedule the reminder after modifying it
+            
               scheduleReminder(time, userId);
             }
           }
         });
       } else {
-        // Handle case where userId is not found
+       
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('User ID not found!')),
         );
@@ -115,11 +120,32 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
     flutterLocalNotificationsPlugin.cancel(time.hashCode);
   }
 
+
+
+  //////////////////////////////////////
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF2F5FF),
-      appBar: AppBar(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF2F5FF),
+          appBar: kIsWeb
+              ? AppBar(
+                  backgroundColor: const Color(0xFFF2F5FF),
+                  elevation: 0,
+                  automaticallyImplyLeading: false,
+                  centerTitle: true,
+                  title: const Text(
+          'Diabetes Control',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xff613089),
+            letterSpacing: 1.5,
+          ),
+        ),
+                )
+              : AppBar(
         backgroundColor: const Color(0xFFF2F5FF),
         elevation: 0,
         centerTitle: true,
@@ -138,241 +164,255 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
           ),
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 15),
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => GlucoseLogScreen(),
-                            ),
-                          );
-                        },
-                        child: _buildInfoCard(
-                          icon: Icons.bloodtype,
-                          title: 'Glucose',
-                          gradientColors: [
-                            Color(0xff613089),
-                            Color(0xff9c27b0)
-                          ],
-                          iconColor: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-                Container(
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        blurRadius: 8,
-                        spreadRadius: 4,
-                      ),
-                    ],
+          body: SingleChildScrollView(
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 40.0),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth:
+                        constraints.maxWidth > 600 ? 800 : double.infinity,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Glucose, week avg',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xff613089),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Container(
-                        height: 200,
-                        child: LineChart(
-                          LineChartData(
-                            gridData: FlGridData(show: false),
-                            titlesData: FlTitlesData(
-                              leftTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  interval: 20,
-                                  reservedSize: 40,
-                                  getTitlesWidget: (value, meta) => Text(
-                                    '${value.toInt()}',
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                ),
-                              ),
-                              rightTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 30,
-                                  getTitlesWidget: (value, meta) => Text(
-                                    'Day ${value.toInt()}',
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            borderData: FlBorderData(
-                              show: true,
-                              border: Border.all(color: Colors.grey.shade300),
-                            ),
-                            lineBarsData: [
-                              LineChartBarData(
-                                spots: weekReadings,
-                                isCurved: true,
-                                color: Color(0xff613089),
-                                barWidth: 4,
-                                isStrokeCapRound: true,
-                                belowBarData: BarAreaData(
-                                  show: true,
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Color(0xff613089).withOpacity(0.3),
-                                      Color(0xff613089).withOpacity(0.1),
-                                    ],
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                   
+                      _buildInfoSection(),
+                      const SizedBox(height: 32),
+                      _buildGraphSection(),
+                      const SizedBox(height: 32),
+                      _buildReminderSection(context),
                     ],
                   ),
                 ),
-                SizedBox(height: 20),
-                Container(
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        blurRadius: 8,
-                        spreadRadius: 4,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Set reminder(s) to measure your glucose level',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xff613089),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      _reminderTimes.isEmpty
-                          ? Text(
-                              'No reminders set.',
-                              style: TextStyle(
-                                  fontSize: 16, color: Colors.grey.shade600),
-                            )
-                          : Column(
-                              children: _reminderTimes.map((time) {
-                                return ListTile(
-                                  leading: Icon(Icons.notifications_active,
-                                      color: Color(0xff613089)),
-                                  title: Text(
-                                    'Reminder at: ${time.format(context)}',
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(Icons.edit,
-                                            color: Color(0xff613089)),
-                                        onPressed: () {
-                                          _showReminderDialog(context,
-                                              existingTime: time);
-                                        },
-                                      ),
-                                      IconButton(
-                                        icon: Icon(Icons.delete,
-                                            color: Color(0xff613089)),
-                                        onPressed: () {
-                                          _removeReminder(time);
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                  onLongPress: () {
-                                    _removeReminder(time);
-                                  },
-                                );
-                              }).toList(),
-                            ),
-                      SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () {
-                          _showReminderDialog(context);
-                        },
-                        child: Text('Add Reminder'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xff613089),
-                          padding: EdgeInsets.symmetric(
-                              vertical: 14, horizontal: 30),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
+            ),
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => DiabetesQuickAddPage()),
+              );
+            },
+            backgroundColor: const Color(0xFF613089),
+            child: const Icon(Icons.add),
+          ),
+        );
+      },
+    );
+  }
+
+
+ 
+//////////////////////////////
+
+
+  Widget _buildInfoSection() {
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => GlucoseLogScreen()),
+              );
+            },
+            child: _buildInfoCard(
+              icon: Icons.bloodtype,
+              title: 'Glucose',
+              gradientColors: [const Color(0xff613089), const Color(0xff9c27b0)],
+              iconColor: Colors.white,
             ),
           ),
         ),
+      ],
+    );
+  }
+
+
+
+  Widget _buildGraphSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 8,
+            spreadRadius: 4,
+          ),
+        ],
       ),
-      // Floating Action Button for "Quick Add"
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to DiabetesQuickAddPage when FAB is pressed
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => DiabetesQuickAddPage()),
-          );
-        },
-        child: Icon(Icons.add),
-        backgroundColor: Color(0xff613089),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Glucose, week avg',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Color(0xff613089),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 200,
+            child: LineChart(
+              LineChartData(
+                gridData: const FlGridData(show: false),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      interval: 20,
+                      reservedSize: 40,
+                      getTitlesWidget: (value, meta) => Text(
+                        '${value.toInt()}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 30,
+                      getTitlesWidget: (value, meta) => Text(
+                        'Day ${value.toInt()}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                ),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: weekReadings,
+                    isCurved: true,
+                    color: const Color(0xff613089),
+                    barWidth: 4,
+                    isStrokeCapRound: true,
+                    belowBarData: BarAreaData(
+                      show: true,
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xff613089).withOpacity(0.3),
+                          const Color(0xff613089).withOpacity(0.1),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildInfoCard({
+
+
+Widget _buildReminderSection(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      
+      width: _reminderTimes.isEmpty ? MediaQuery.of(context).size.width * 0.9 : null,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 8,
+            spreadRadius: 4,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Set reminder(s) to measure your glucose level',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xff613089),
+            ),
+          ),
+          const SizedBox(height: 20),
+          _reminderTimes.isEmpty
+              ? Text(
+                  'No reminders set.',
+                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                )
+              : Column(
+                  children: _reminderTimes.map((time) {
+                    return ListTile(
+                      leading: const Icon(Icons.notifications_active,
+                          color: Color(0xff613089)),
+                      title: Text(
+                        'Reminder at: ${time.format(context)}',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Color(0xff613089)),
+                            onPressed: () {
+                              _showReminderDialog(context, existingTime: time);
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Color(0xff613089)),
+                            onPressed: () {
+                              _removeReminder(time);
+                            },
+                          ),
+                        ],
+                      ),
+                      onLongPress: () {
+                        _removeReminder(time);
+                      },
+                    );
+                  }).toList(),
+                ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              _showReminderDialog(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff613089),
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 30),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+            child: const Text('Add Reminder'),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  
+
+ Widget _buildInfoCard({
     required IconData icon,
     required String title,
     required List<Color> gradientColors,
     required Color iconColor,
   }) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: gradientColors,
@@ -380,7 +420,7 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20), 
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black26,
             blurRadius: 6,
@@ -391,7 +431,7 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
       child: Column(
         children: [
           Icon(icon, size: 30, color: iconColor),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             title,
             style: TextStyle(
@@ -400,7 +440,7 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
               color: iconColor,
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
         ],
       ),
     );

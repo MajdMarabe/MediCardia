@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
@@ -21,7 +22,22 @@ class _DiabetesQuickAddPageState extends State<DiabetesQuickAddPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F5FF),
-      appBar: AppBar(
+      appBar: kIsWeb
+              ? AppBar(
+                  backgroundColor: const Color(0xFFF2F5FF),
+                  elevation: 0,
+                  automaticallyImplyLeading: false,
+                  centerTitle: true,
+                  title: const Text(
+          'Quick Add',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xff613089),
+            letterSpacing: 1.5,
+          ),
+        ),
+                )
+              : AppBar(
         backgroundColor: const Color(0xFFF2F5FF),
         elevation: 0,
         centerTitle: true,
@@ -34,14 +50,10 @@ class _DiabetesQuickAddPageState extends State<DiabetesQuickAddPage> {
         title: const Text(
           'Quick Add',
           style: TextStyle(
-            fontSize: 26,
             fontWeight: FontWeight.bold,
             color: Color(0xff613089),
             letterSpacing: 1.5,
           ),
-        ),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
         ),
       ),
       body: Center( 
@@ -54,6 +66,11 @@ class _DiabetesQuickAddPageState extends State<DiabetesQuickAddPage> {
       ),
     );
   }
+
+
+
+ /////////////////////////////
+
 
   Widget _buildQuickAddOption({
     required IconData icon,
@@ -117,7 +134,7 @@ class _DiabetesQuickAddPageState extends State<DiabetesQuickAddPage> {
       backgroundColor: Colors.white,
       builder: (context) => Padding(
         padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
+        child: SingleChildScrollView( 
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,11 +226,9 @@ class _DiabetesQuickAddPageState extends State<DiabetesQuickAddPage> {
                       ),
                       onChanged: (value) {
                         setState(() {
-                        
                           _glucoseErrorText = '';
                         });
 
-                       
                         final glucoseLevel = int.tryParse(value);
                         if (glucoseLevel == null || glucoseLevel < 50 || glucoseLevel > 450) {
                           setState(() {
@@ -243,7 +258,7 @@ class _DiabetesQuickAddPageState extends State<DiabetesQuickAddPage> {
                   final glucoseLevel = int.tryParse(_glucoseLevelController.text);
                   if (glucoseLevel == null || glucoseLevel < 50 || glucoseLevel > 450) {
                     setState(() {
-                      _glucoseErrorText = "Please enter a value between 50 and 450"; // عرض رسالة الخطأ
+                      _glucoseErrorText = "Please enter a value between 50 and 450"; 
                     });
                     return;
                   }
@@ -259,6 +274,12 @@ class _DiabetesQuickAddPageState extends State<DiabetesQuickAddPage> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("Reading added successfully!")),
                     );
+                     // Retain the date and glucose level after successful save
+                    setState(() {
+                      _dateTimeClucoseController.text = '';  
+                      _glucoseLevelController.text = '';     
+                    });
+
                     Navigator.of(context).pop(); 
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -288,6 +309,10 @@ class _DiabetesQuickAddPageState extends State<DiabetesQuickAddPage> {
     );
   }
 
+
+///////////////////////////////////////
+
+  
   Future<http.Response> _addGlucoseReading(int glucoseLevel, String measurementType, String? token) async {
     final url = Uri.parse('${ApiConstants.baseUrl}/bloodSugar/add');
   
@@ -306,6 +331,7 @@ class _DiabetesQuickAddPageState extends State<DiabetesQuickAddPage> {
   
     return response;
   }
+
 
   Future<void> _selectDateTime(BuildContext context, TextEditingController controller) async {
     DateTime selectedDate = await showDatePicker(
@@ -353,30 +379,17 @@ class _DiabetesQuickAddPageState extends State<DiabetesQuickAddPage> {
       selectedTime.minute,
     );
 
-    controller.text =
-        "${selectedDateTime.toLocal().toString().split(' ')[0]}, ${selectedTime.format(context)}";
-  }
-
-  void viewDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Message'),
-          content: Text(message), 
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
+    if (mounted) {
+      controller.text =
+          "${selectedDateTime.toLocal().toString().split(' ')[0]}, ${selectedTime.format(context)}";
+    }
   }
 }
+
+
+
+/////////////////////////////////
+
 
 class MealOptionButtons extends StatefulWidget {
   final Color primaryColor;

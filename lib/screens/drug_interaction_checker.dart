@@ -1,9 +1,9 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
-
 
 class DrugInteractionCheckerPage extends StatefulWidget {
   @override
@@ -13,14 +13,16 @@ class DrugInteractionCheckerPage extends StatefulWidget {
 
 class _DrugInteractionCheckerPageState
     extends State<DrugInteractionCheckerPage> {
-  TextEditingController _drugController = TextEditingController();
+  final TextEditingController _drugController = TextEditingController();
   List<String> drugs = [];
   String interactionMessage = '';
   String interactionDetails = '';
   List<String> interactionDrugs = [];
-  List<String> drugSuggestions = []; // List to store drug suggestions
-  bool isSuggestionsVisible = false; // To control the visibility of suggestions
+  List<String> drugSuggestions = []; 
+  bool isSuggestionsVisible = false; 
 
+
+  
   // Function to get drug suggestions based on user input
   Future<void> _getDrugSuggestions(String query) async {
     if (query.isEmpty) {
@@ -31,7 +33,7 @@ class _DrugInteractionCheckerPageState
       return;
     }
 
-    final String apiUrl = '${ApiConstants.baseUrl}/drugs/suggestions';
+    const String apiUrl = '${ApiConstants.baseUrl}/drugs/suggestions';
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -42,7 +44,8 @@ class _DrugInteractionCheckerPageState
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          drugSuggestions = data.map<String>((item) => item['name'] as String).toList();
+          drugSuggestions =
+              data.map<String>((item) => item['name'] as String).toList();
           isSuggestionsVisible = drugSuggestions.isNotEmpty;
         });
       } else {
@@ -63,9 +66,9 @@ class _DrugInteractionCheckerPageState
     if (drugName.isNotEmpty) {
       setState(() {
         drugs.add(drugName);
-        _drugController.clear(); // Clear the input field
-        drugSuggestions.clear(); // Clear the suggestions
-        isSuggestionsVisible = false; // Hide suggestions
+        _drugController.clear(); 
+        drugSuggestions.clear(); 
+        isSuggestionsVisible = false; 
       });
 
       if (drugs.length >= 2) {
@@ -75,7 +78,7 @@ class _DrugInteractionCheckerPageState
   }
 
   Future<void> _checkForInteractions() async {
-    final String apiUrl = '${ApiConstants.baseUrl}/drugs/checkDrugInteractions';
+    const String apiUrl = '${ApiConstants.baseUrl}/drugs/checkDrugInteractions';
 
     try {
       final response = await http.post(
@@ -138,7 +141,9 @@ class _DrugInteractionCheckerPageState
             response.body.replaceAll(RegExp(r'^MDICshowResults\(|\);?$'), '');
         final Map<String, dynamic> data = json.decode(cleanedResponse);
         final List<dynamic> references = data['types'][0]['references'];
-        return references.map<String>((item) => item['text'].toString()).toList();
+        return references
+            .map<String>((item) => item['text'].toString())
+            .toList();
       } else {
         return [];
       }
@@ -146,7 +151,6 @@ class _DrugInteractionCheckerPageState
       return [];
     }
   }
-
 
   void _clearAllDrugs() {
     setState(() {
@@ -157,277 +161,319 @@ class _DrugInteractionCheckerPageState
     });
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F5FF),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF2F5FF),
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: const Text(
-          'Drugs Interaction Checker',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xff613089),
-            letterSpacing: 1.5,
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TypeAheadFormField<String>(
-              textFieldConfiguration: TextFieldConfiguration(
-                controller: _drugController,
-                decoration: InputDecoration(
-                  labelText: 'Enter a drug, OTC or herbal supplement',
-                  labelStyle: const TextStyle(color: Color(0xff613089)),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Color(0xffb41391), width: 2.0),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.grey, width: 1.0),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+      appBar: kIsWeb
+          ? AppBar(
+              backgroundColor: const Color(0xFFF2F5FF),
+              elevation: 0,
+              centerTitle: true,
+              title: const Text(
+                'Drugs Interaction Checker',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xff613089),
+                  letterSpacing: 1.5,
                 ),
               ),
-              suggestionsCallback: _fetchDrugSuggestions,
-              itemBuilder: (context, suggestion) {
-                return ListTile(
-                  title: Text(suggestion),
-                );
-              },
-              onSuggestionSelected: (suggestion) {
-                _drugController.text = suggestion;
-              },
-            ),
-            const SizedBox(height: 10),
-
-            ElevatedButton(
-              onPressed: () => _addDrug(_drugController.text.trim()),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add, color: Colors.white),
-                  SizedBox(width: 8),
-                  Text(
-                    'Add Drug',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ],
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xff613089),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+              automaticallyImplyLeading: false,
+            )
+          : AppBar(
+              backgroundColor: const Color(0xFFF2F5FF),
+              elevation: 0,
+              centerTitle: true,
+              title: const Text(
+                'Drugs Interaction Checker',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xff613089),
+                  letterSpacing: 1.5,
                 ),
-                elevation: 5,
-                shadowColor: const Color(0xff613089),
               ),
-            ),
-            const SizedBox(height: 20),
-
-            if (isSuggestionsVisible) ...[
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: drugSuggestions.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(drugSuggestions[index]),
-                    onTap: () {
-                      _addDrug(drugSuggestions[index]);
-                    },
-                  );
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+                onPressed: () {
+                  Navigator.pop(context);
                 },
               ),
-            ],
+            ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final double maxWidth =
+              constraints.maxWidth > 600 ? 700 : constraints.maxWidth;
 
-            if (interactionMessage.isNotEmpty) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                decoration: BoxDecoration(
-                  color: interactionMessage.contains('Some interactions found')
-                      ? const Color.fromARGB(255, 153, 105, 177)
-                      : Colors.blueGrey.shade200,
-                  borderRadius: BorderRadius.circular(8),
-                ),
+          // Conditionally wrap the content with Center widget based on the platform
+          Widget bodyContent = ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Center(
-                      child: Text(
-                        interactionMessage,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                    // Input Field for Drugs
+                    TypeAheadFormField<String>(
+                      debounceDuration: const Duration(milliseconds: 300),
+                      textFieldConfiguration: TextFieldConfiguration(
+                        controller: _drugController,
+                        decoration: InputDecoration(
+                          labelText: 'Enter a drug, OTC or herbal supplement',
+                          labelStyle: const TextStyle(color: Color(0xff613089)),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                const BorderSide(color: Color(0xffb41391), width: 2.0),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                       ),
+                      suggestionsCallback: _fetchDrugSuggestions,
+                      itemBuilder: (context, suggestion) {
+                        return ListTile(
+                          title: Text(suggestion),
+                        );
+                      },
+                      onSuggestionSelected: (suggestion) {
+                        _drugController.text = suggestion;
+                      },
+                      suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                    if (interactionMessage.contains('Some interactions found')) ...[
-                      const SizedBox(height: 10),
-                      const Center(
-                        child: Text(
-                          'See details below',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontStyle: FontStyle.italic,
-                            color: Colors.white,
+                    const SizedBox(height: 10),
+
+                  
+                    ElevatedButton(
+                      onPressed: () => _addDrug(_drugController.text.trim()),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xff613089),
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(vertical: 15, horizontal: constraints.maxWidth * 0.1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 5,
+                        shadowColor: const Color(0xff613089),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text(
+                            'Add Drug',
+                            style: TextStyle(color: Colors.white, fontSize: 16),
                           ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Display Drug Suggestions
+                    if (isSuggestionsVisible) ...[
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: drugSuggestions.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            title: Text(drugSuggestions[index]),
+                            onTap: () {
+                              _addDrug(drugSuggestions[index]);
+                            },
+                          );
+                        },
+                      ),
+                    ],
+
+                    // Display Interaction Message
+                    if (interactionMessage.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                        decoration: BoxDecoration(
+                          color: interactionMessage.contains('Some interactions found')
+                              ? const Color.fromARGB(255, 153, 105, 177)
+                              : Colors.blueGrey.shade200,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Center(
+                              child: Text(
+                                interactionMessage,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            if (interactionMessage.contains('Some interactions found')) ...[
+                              const SizedBox(height: 10),
+                              const Center(
+                                child: Text(
+                                  'See details below',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontStyle: FontStyle.italic,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 10),
+
+                    // If no drugs are added
+                    if (drugs.isEmpty) ...[
+                      const Text(
+                        '• Add a full drug regimen and view interactions.',
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black54),
+                      ),
+                      const SizedBox(height: 30),
+                    ],
+
+                    // Display Drugs List
+                    if (drugs.isNotEmpty) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Patient Regimen',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xff613089),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: _clearAllDrugs,
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.clear_all,
+                                  color: Color(0xff613089),
+                                  size: 20,
+                                ),
+                                SizedBox(width: 5),
+                                Text(
+                                  'Clear All',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Color(0xff613089),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: drugs.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            title: Text(
+                              drugs[index],
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: Color(0xff613089),
+                              ),
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.remove_circle_outline, color: Color(0xff613089)),
+                              onPressed: () {
+                                setState(() {
+                                  drugs.removeAt(index);
+                                  if (drugs.isEmpty) {
+                                    _clearAllDrugs();
+                                  }
+                                });
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+
+                    // Display Interaction Details
+                    if (interactionMessage.contains('Some interactions found')) ...[
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.all(15),
+                        decoration: BoxDecoration(
+                          color: Colors.blueGrey.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Drugs Involved in Interaction:',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xff613089),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: 8,
+                              children: interactionDrugs.map((drug) {
+                                return Chip(
+                                  label: Text(
+                                    drug,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                  backgroundColor: const Color(0xff613089),
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 15),
+                            const Text(
+                              'Interaction Details:',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xff613089),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              interactionDetails,
+                              style: const TextStyle(fontSize: 14, color: Colors.black),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ],
                 ),
               ),
-            ],
-            const SizedBox(height: 10),
+            ),
+          );
 
-            if (drugs.isEmpty) ...[
-              const Text(
-                '• Add a full drug regimen and view interactions.',
-                style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black54),
-              ),
-              const SizedBox(height: 30),
-            ],
-
-            if (drugs.isNotEmpty) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Patient Regimen',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xff613089),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: _clearAllDrugs,
-                    child: const Row(
-                      children: [
-                        Icon(
-                          Icons.clear_all,
-                          color: Color(0xff613089),
-                          size: 20,
-                        ),
-                        SizedBox(width: 5),
-                        Text(
-                          'Clear All',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Color(0xff613089),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-             ListView.builder(
-  shrinkWrap: true,
-  physics: const NeverScrollableScrollPhysics(),
-  itemCount: drugs.length,
-  itemBuilder: (context, index) {
-    return ListTile(
-      title: Text(
-        drugs[index],
-        style: const TextStyle(
-          fontSize: 18,
-          color: Color(0xff613089),
-        ),
-      ),
-      trailing: IconButton(
-        icon: const Icon(Icons.remove_circle_outline, color: Color(0xff613089)),
-        onPressed: () {
-          setState(() {
-            drugs.removeAt(index);
-            // التحقق إذا كانت القائمة فارغة بعد الحذف
-            if (drugs.isEmpty) {
-              _clearAllDrugs(); // استدعاء دالة _clearAllDrugs
-            }
-          });
+          
+          return kIsWeb ? Center(child: bodyContent) : bodyContent;
         },
-      ),
-    );
-  },
-),
-
-            ],
-
-            if (interactionMessage.contains('Some interactions found')) ...[
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  color: Colors.blueGrey.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Drugs Involved in Interaction:',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xff613089),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      children: interactionDrugs.map((drug) {
-                        return Chip(
-                          label: Text(
-                            drug,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                          backgroundColor: const Color(0xff613089),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 15),
-                    const Text(
-                      'Interaction Details:',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xff613089),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      interactionDetails,
-                      style: const TextStyle(fontSize: 14, color: Colors.black),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
       ),
     );
   }
