@@ -156,7 +156,7 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
           },
         ),
         title: const Text(
-          'Diabetes Control',
+          'Diabetes Tracking',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: Color(0xff613089),

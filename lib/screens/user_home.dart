@@ -17,7 +17,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
 import 'dart:convert';
-
+import 'blood_pressure.dart';
 
 const storage = FlutterSecureStorage();
 
@@ -1049,6 +1049,21 @@ Widget build(BuildContext context) {
                               );
                             },
                           ),
+                          const SizedBox(width: 20),
+                                                  
+                            buildCircleButton(
+                              icon: Icons.monitor_heart,
+                              label: 'Blood Pressure',
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        BloodPressureControlPage(),
+                                  ),
+                                );
+                              },
+                            ),
                           const SizedBox(width: 20),
                           buildCircleButton(
                             icon: Icons.fact_check,

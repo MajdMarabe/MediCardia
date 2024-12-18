@@ -46,7 +46,7 @@ class _PublicInfoState extends State<PublicInfo> {
   List<String> genders = ['Male', 'Female'];
   List<Map<String, dynamic>> chronicDiseases = [
 {'name': 'Diabetes', 'icon': Icons.bloodtype},
-{'name': 'Hypertension', 'icon': Icons.monitor_heart},
+{'name': 'Blood Pressure', 'icon': Icons.monitor_heart},
 {'name': 'Asthma', 'icon': Icons.air},
 {'name': 'Cancer', 'icon': Icons.coronavirus},
 {'name': 'Kidney Failure', 'icon': Icons.opacity},

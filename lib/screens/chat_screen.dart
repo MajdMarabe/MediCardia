@@ -214,7 +214,7 @@ Widget _buildWebChatUI() {
                 },
               ),
             ),
-            const Divider(height: 1, color: Colors.grey),
+            //const Divider(height: 1, color: Colors.grey),
             _buildMessageInput(),
           ],
         ),

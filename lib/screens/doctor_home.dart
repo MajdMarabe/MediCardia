@@ -7,8 +7,9 @@ import 'doctor_calender.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
 import 'patient_view.dart';
+import 'blood_donation.dart'; 
 
-final storage = FlutterSecureStorage();
+const storage = FlutterSecureStorage();
 
 class DoctorHomePage extends StatefulWidget {
   @override
@@ -142,7 +143,8 @@ Future<void> _fetchAllPatients() async {
 
                   buildSearchSection(),
                 const SizedBox(height: 20),
-
+    buildBloodDonationTile(context), 
+    const SizedBox(height: 20),
             _buildToggleButtons(),
             Expanded(
               child: _isLoading
@@ -154,6 +156,67 @@ Future<void> _fetchAllPatients() async {
       ),
     );
   }
+
+  
+Widget buildBloodDonationTile(BuildContext context) {
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => BloodDonationPage()),
+      );
+    },
+    child: Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            spreadRadius: 2,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: const Color(0xff613089).withOpacity(0.2),
+            child: const Icon(Icons.bloodtype, color: Color(0xff613089)),
+          ),
+          const SizedBox(width: 15),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Blood Donation",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xff613089),
+                  ),
+                ),
+                Text(
+                  "Click to view blood donation requests and share information.",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+
+
   Widget buildSearchSection() {
     return Container(
       padding: const EdgeInsets.all(15),
@@ -309,9 +372,9 @@ Widget _buildToggleButtons() {
 
 Widget _buildPatientList() {
   return Container(
-    decoration: BoxDecoration(
+    decoration: const BoxDecoration(
       color: Colors.white,
-      borderRadius: const BorderRadius.only(
+      borderRadius: BorderRadius.only(
         bottomLeft: Radius.circular(15),
         bottomRight: Radius.circular(15),
       ),
@@ -435,7 +498,7 @@ class NotificationsPage extends StatelessWidget {
         ),
         title: Text(
           title,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.black,
@@ -446,11 +509,11 @@ class NotificationsPage extends StatelessWidget {
             Expanded(
               child: Text(
                 subtitle,
-                style: TextStyle(color: Colors.black54, fontSize: 14),
+                style: const TextStyle(color: Colors.black54, fontSize: 14),
               ),
             ),
             Chip(
-              label: Text(urgencyLevel, style: TextStyle(color: Colors.white)),
+              label: Text(urgencyLevel, style: const TextStyle(color: Colors.white)),
               backgroundColor: urgencyLevel == "High"
                   ? Colors.red
                   : urgencyLevel == "Moderate"
@@ -502,13 +565,13 @@ class NotificationsPage extends StatelessWidget {
           children: [
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             content,
           ],
         ),
