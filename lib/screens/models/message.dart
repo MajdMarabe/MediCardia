@@ -1,10 +1,10 @@
 class Message {
-  String sender;      // معرف المرسل
-  String receiver;    // معرف المستقبل
-  String text;        // نص الرسالة
-  int timestamp;      // توقيت الإرسال (بالمللي ثانية)
-  String status;      // حالة الرسالة (مرسلة، مقروءة)
-  String chatId;      // معرف المحادثة (جديد)
+  String sender;      
+  String receiver;    
+  String text;       
+  int timestamp;     
+  String status;     
+  String chatId;    
 
   Message({
     required this.sender,
@@ -15,7 +15,6 @@ class Message {
     required this.chatId,
   });
 
-  // تحويل الكائن إلى خريطة (Map) لكتابة البيانات في Firebase
   Map<String, dynamic> toMap() {
     return {
       'sender': sender,
@@ -27,7 +26,6 @@ class Message {
     };
   }
 
-  // إنشاء كائن `Message` من خريطة (Map) عند قراءة البيانات من Firebase
   factory Message.fromMap(Map<String, dynamic> map) {
     return Message(
       sender: map['sender'],

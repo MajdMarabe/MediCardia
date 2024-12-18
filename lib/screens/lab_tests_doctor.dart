@@ -9,6 +9,8 @@ import 'constants.dart';
 const storage = FlutterSecureStorage();
 
 class LabTestsPage extends StatefulWidget {
+  final String patientId;
+  const LabTestsPage({Key? key, required this.patientId}) : super(key: key);
   @override
   _LabTestsPageState createState() => _LabTestsPageState();
 }
@@ -26,7 +28,7 @@ class _LabTestsPageState extends State<LabTestsPage> {
 
   Future<void> fetchLabTests() async {
     try {
-      final userId = await storage.read(key: 'userid');
+      final userId =widget.patientId;
       if (userId != null) {
         final response = await http.get(
           Uri.parse('${ApiConstants.baseUrl}/users/$userId'),

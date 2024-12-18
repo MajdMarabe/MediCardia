@@ -1,7 +1,5 @@
-
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'doctor_profile.dart';
@@ -11,6 +9,7 @@ import 'constants.dart';
 import 'patient_view.dart';
 
 final storage = FlutterSecureStorage();
+
 class DoctorHomePage extends StatefulWidget {
   @override
   _DoctorHomePageState createState() => _DoctorHomePageState();
@@ -36,6 +35,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      
     });
   }
 
@@ -64,17 +64,48 @@ class HomePageContent extends StatefulWidget {
 
 class _HomePageContentState extends State<HomePageContent> {
   List<dynamic> _patients = [];
+    List<dynamic> _Allpatients = [];
+
   bool _isLoading = true;
+  bool _showMyPatients = true;
+  List<dynamic> _allPatients = [];
+  List<dynamic> _filteredPatients = [];
 
   @override
   void initState() {
     super.initState();
     _fetchPatients();
   }
+Future<void> _fetchAllPatients() async {
+  try {
+    final doctorId = await storage.read(key: 'userid');
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/users'),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        _Allpatients = data;
+        _filteredPatients = data;  // هنا نحدث المرضى في القائمة لعرض كل المرضى
+        _isLoading = false;
+      });
+    } else {
+      throw Exception('Failed to load all patients');
+    }
+  } catch (e) {
+    setState(() {
+      _isLoading = false;
+    });
+    print('Error fetching all patients: $e');
+  }
+}
+
 
   Future<void> _fetchPatients() async {
     try {
-      final doctorId = await storage.read(key: 'userid'); // Fetch doctor ID
+      final doctorId = await storage.read(key: 'userid');
       final response = await http.get(
         Uri.parse('${ApiConstants.baseUrl}/doctorsusers/relations/doctor/$doctorId'),
         headers: {'Content-Type': 'application/json'},
@@ -84,6 +115,7 @@ class _HomePageContentState extends State<HomePageContent> {
         final data = json.decode(response.body);
         setState(() {
           _patients = data;
+          _filteredPatients = data;
           _isLoading = false;
         });
       } else {
@@ -102,31 +134,26 @@ class _HomePageContentState extends State<HomePageContent> {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F5FF),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(15.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 50),
-                // Header with Profile and Stats
-                _buildDoctorProfile(),
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+            _buildDoctorProfile(),
+            const SizedBox(height: 20),
+
+                  buildSearchSection(),
                 const SizedBox(height: 20),
-                // Search Section
-                buildSearchSection(),
-                const SizedBox(height: 20),
-                // Patient List
-                _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _buildPatientList(),
-              ],
+
+            _buildToggleButtons(),
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _buildPatientList(),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
-
   Widget buildSearchSection() {
     return Container(
       padding: const EdgeInsets.all(15),
@@ -154,17 +181,27 @@ class _HomePageContentState extends State<HomePageContent> {
                 hintText: 'Search for patient by ID...',
                 hintStyle: TextStyle(color: Colors.grey[500]),
               ),
-              onChanged: (value) {
-                // Logic for searching by patient ID (e.g., filtering patient list)
-              },
+            onChanged: (value) {
+  setState(() {
+    _filteredPatients = _showMyPatients
+        ? _patients.where((patient) {
+            final idNumber = patient['patientId']?['medicalCard']?['publicData']?['idNumber'] ?? '';
+            return idNumber.contains(value);
+          }).toList()
+        : _Allpatients.where((patient) {
+            final idNumber = patient['medicalCard']?['publicData']?['idNumber'] ?? '';
+            return idNumber.contains(value);
+          }).toList();
+  });
+},
+
             ),
           ),
         ],
       ),
     );
   }
-
-  Widget _buildDoctorProfile() {
+    Widget _buildDoctorProfile() {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -211,7 +248,6 @@ class _HomePageContentState extends State<HomePageContent> {
       ),
     );
   }
-
   Widget _buildProfileStat(String value, String label) {
     return Column(
       children: [
@@ -220,58 +256,103 @@ class _HomePageContentState extends State<HomePageContent> {
       ],
     );
   }
-Widget _buildPatientList() {
-  return _buildSectionContainer(
-    title: "Patient List",
-    content: Column(
-      children: _patients.map((patient) {
-        final patientData = patient['patientId'];
-        return _buildPatientInfoTile(
-          patientData['username'] ?? 'Unknown',
-          "ID Number: ${patientData['medicalCard']?['publicData']?['idNumber'] }        Location: ${patientData['location'] ?? 'N/A'}",
-          Color(0xff613089),
-          Icons.account_circle,
-          patientData['_id'], // تمرير الـ ID إلى الـ Tile
-        );
-      }).toList(),
+Widget _buildToggleButtons() {
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(15),
+        topRight: Radius.circular(15),
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          blurRadius: 5,
+          spreadRadius: 1,
+        ),
+      ],
+    ),
+    child: ToggleButtons(
+      isSelected: [_showMyPatients, !_showMyPatients],
+      onPressed: (int index) {
+        setState(() {
+          _showMyPatients = index == 0;
+          // استدعاء الدالة المناسبة بناءً على الاختيار
+          if (_showMyPatients) {
+            _fetchPatients(); // استدعاء دالة "مرضاي"
+          } else {
+            _fetchAllPatients(); // استدعاء دالة "كل المرضى"
+          }
+        });
+      },
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(15),
+        topRight: Radius.circular(15),
+      ),
+      selectedColor: Colors.white,
+      fillColor: const Color(0xff613089),
+      color: Colors.black,
+      constraints: const BoxConstraints(minHeight: 40, minWidth: 150),
+      children: const [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Text('Your patients', style: TextStyle(fontSize: 16)),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Text('All patients', style: TextStyle(fontSize: 16)),
+        ),
+      ],
     ),
   );
 }
 
-
-  Widget _buildSectionContainer({required String title, required Widget content}) {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            spreadRadius: 2,
-          ),
-        ],
+Widget _buildPatientList() {
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: const BorderRadius.only(
+        bottomLeft: Radius.circular(15),
+        bottomRight: Radius.circular(15),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xff613089),
-            ),
-          ),
-          const SizedBox(height: 15),
-          content,
-        ],
-      ),
-    );
-  }
+    ),
+    child: ListView.builder(
+      padding: const EdgeInsets.all(10),
+      itemCount: _filteredPatients.length,
+      itemBuilder: (context, index) {
+        final patientData = _filteredPatients[index];
+        
+        if (_showMyPatients) {
+          final name = patientData['patientId']?['username'] ?? 'Unknown';
+          final details = "ID Number: ${patientData['patientId']?['medicalCard']?['publicData']?['idNumber'] ?? 'N/A'} Location: ${patientData['patientId']?['location'] ?? 'N/A'}";
+          final patientId = patientData['patientId']?['_id'] ?? '';
+          
+          return _buildPatientInfoTile(
+            name,
+            details,
+            const Color(0xff613089),
+            Icons.account_circle,   
+            patientId,               
+          );
+        } else {
+          final name = patientData['username'] ?? 'Unknown';
+          final details = "ID Number: ${patientData['medicalCard']?['publicData']?['idNumber'] ?? 'N/A'} Location: ${patientData['location'] ?? 'N/A'}";
+          final patientId = patientData['_id'] ?? '';
+          
+          return _buildPatientInfoTile(
+            name,
+            details,
+            const Color(0xff613089), 
+            Icons.account_circle,   
+            patientId,               
+          );
+        }
+      },
+    ),
+  );
+}
 
- Widget _buildPatientInfoTile(
+Widget _buildPatientInfoTile(
   String name,
   String details,
   Color iconColor,
@@ -297,7 +378,6 @@ Widget _buildPatientList() {
 }
 
 }
-
 class NotificationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -389,13 +469,13 @@ class NotificationsPage extends StatelessWidget {
       title: "Blood Sugar Tracking",
       content: Column(
         children: [
-          _buildPatientInfoTile(
+          _buildPatientInfoTile1(
             "John Doe",
             "Morning: 110 mg/dL | After Meal: 145 mg/dL",
             Colors.green,
             Icons.timeline,
           ),
-          _buildPatientInfoTile(
+          _buildPatientInfoTile1(
             "Mary Jane",
             "Morning: 180 mg/dL | Alert: High",
             Colors.red,
@@ -437,7 +517,7 @@ class NotificationsPage extends StatelessWidget {
   }
 
   // Example patient info tile widget
-  Widget _buildPatientInfoTile(
+  Widget _buildPatientInfoTile1(
       String patientName, String info, Color infoColor, IconData icon) {
     return ListTile(
       contentPadding: const EdgeInsets.all(10.0),
@@ -446,5 +526,7 @@ class NotificationsPage extends StatelessWidget {
       subtitle: Text(info),
     );
   }
+
+
 }
 

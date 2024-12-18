@@ -7,6 +7,7 @@ import 'constants.dart';
 import 'user_doctors.dart';
 import 'user_home.dart';
 import 'chat_screen.dart';
+import 'permission_requests.dart';
 
 final storage = FlutterSecureStorage();
 
@@ -125,17 +126,32 @@ final Map<String, IconData> specialtiesWithIcons = {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F5FF),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF2F5FF),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        centerTitle: true,
-      ),
+     appBar: AppBar(
+  backgroundColor: const Color(0xFFF2F5FF),
+  elevation: 0,
+  leading: IconButton(
+    icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+    onPressed: () {
+      Navigator.of(context).pop();
+    },
+  ),
+  centerTitle: true,
+  actions: [
+    IconButton(
+      icon: const Icon(Icons.notifications, color: Color(0xFF613089),    size: 40,  
+),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PermissionRequestsPage(), // Navigate to the permission requests page
+          ),
+        );
+      },
+    ),
+  ],
+),
+
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
