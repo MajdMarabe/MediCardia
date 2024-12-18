@@ -188,7 +188,7 @@ module.exports.login= asyncHandler(async(req,res) =>{
  * @method get
  * @access public 
 */
-    module.exports.getAllUsers=verifyTokenAndAdmin,asyncHandler(async(req,res)=>{
+    module.exports.getAllUsers=asyncHandler(async(req,res)=>{
         const users = await User.find().select("-password_hash");  
         res.status(200).json(users);
     });

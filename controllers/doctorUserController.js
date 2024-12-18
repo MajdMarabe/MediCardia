@@ -53,9 +53,10 @@ module.exports.addRelation = asyncHandler(async (req, res) => {
  */
 module.exports.getPatientsForDoctor =  asyncHandler(async (req, res) => {
     const { doctorId } = req.params;
-
+console.log(doctorId);
     const relations = await DoctorPatientRelation.find({ doctorId, isActive: true })
         .populate('patientId', 'username email location medicalCard');
+        console.log(relations);
 
     res.status(200).json(relations);
 });
