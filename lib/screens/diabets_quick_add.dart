@@ -267,7 +267,7 @@ class _DiabetesQuickAddPageState extends State<DiabetesQuickAddPage> {
 
                   // Call API to save the glucose level
                   final response = await _addGlucoseReading(glucoseLevel, measurementType, token);
-                  final data = jsonDecode(response.body);
+                  //final data = jsonDecode(response.body);
 
                   // Handle the response
                   if (response != null && response.statusCode == 201) {

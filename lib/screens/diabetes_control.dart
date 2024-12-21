@@ -47,7 +47,7 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
     List<dynamic> levels = data['week']['levels'];
-    List<dynamic> labels = data['week']['labels'];
+    //List<dynamic> labels = data['week']['labels'];
 
     setState(() {
       weekReadings = List.generate(levels.length, (index) {

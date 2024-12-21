@@ -7,7 +7,7 @@ import 'doctor_calender.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
 import 'patient_view.dart';
-import 'blood_donation.dart'; 
+import 'blood_donation.dart';
 
 const storage = FlutterSecureStorage();
 
@@ -36,7 +36,6 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-      
     });
   }
 
@@ -65,7 +64,7 @@ class HomePageContent extends StatefulWidget {
 
 class _HomePageContentState extends State<HomePageContent> {
   List<dynamic> _patients = [];
-    List<dynamic> _Allpatients = [];
+  List<dynamic> _Allpatients = [];
 
   bool _isLoading = true;
   bool _showMyPatients = true;
@@ -77,38 +76,39 @@ class _HomePageContentState extends State<HomePageContent> {
     super.initState();
     _fetchPatients();
   }
-Future<void> _fetchAllPatients() async {
-  try {
-    final doctorId = await storage.read(key: 'userid');
-    final response = await http.get(
-      Uri.parse('${ApiConstants.baseUrl}/users'),
-      headers: {'Content-Type': 'application/json'},
-    );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+  Future<void> _fetchAllPatients() async {
+    try {
+      final doctorId = await storage.read(key: 'userid');
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/users'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _Allpatients = data;
+          _filteredPatients = data; // هنا نحدث المرضى في القائمة لعرض كل المرضى
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load all patients');
+      }
+    } catch (e) {
       setState(() {
-        _Allpatients = data;
-        _filteredPatients = data;  // هنا نحدث المرضى في القائمة لعرض كل المرضى
         _isLoading = false;
       });
-    } else {
-      throw Exception('Failed to load all patients');
+      print('Error fetching all patients: $e');
     }
-  } catch (e) {
-    setState(() {
-      _isLoading = false;
-    });
-    print('Error fetching all patients: $e');
   }
-}
-
 
   Future<void> _fetchPatients() async {
     try {
       final doctorId = await storage.read(key: 'userid');
       final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/doctorsusers/relations/doctor/$doctorId'),
+        Uri.parse(
+            '${ApiConstants.baseUrl}/doctorsusers/relations/doctor/$doctorId'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -140,11 +140,10 @@ Future<void> _fetchAllPatients() async {
             const SizedBox(height: 20),
             _buildDoctorProfile(),
             const SizedBox(height: 20),
-
-                  buildSearchSection(),
-                const SizedBox(height: 20),
-    buildBloodDonationTile(context), 
-    const SizedBox(height: 20),
+            buildSearchSection(),
+            const SizedBox(height: 20),
+            buildBloodDonationTile(context),
+            const SizedBox(height: 20),
             _buildToggleButtons(),
             Expanded(
               child: _isLoading
@@ -157,65 +156,62 @@ Future<void> _fetchAllPatients() async {
     );
   }
 
-  
-Widget buildBloodDonationTile(BuildContext context) {
-  return GestureDetector(
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => BloodDonationPage()),
-      );
-    },
-    child: Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            spreadRadius: 2,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: const Color(0xff613089).withOpacity(0.2),
-            child: const Icon(Icons.bloodtype, color: Color(0xff613089)),
-          ),
-          const SizedBox(width: 15),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Blood Donation",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xff613089),
-                  ),
-                ),
-                Text(
-                  "Click to view blood donation requests and share information.",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
+  Widget buildBloodDonationTile(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => BloodDonationPage()),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              spreadRadius: 2,
+              offset: const Offset(0, 5),
             ),
-          ),
-        ],
+          ],
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: const Color(0xff613089).withOpacity(0.2),
+              child: const Icon(Icons.bloodtype, color: Color(0xff613089)),
+            ),
+            const SizedBox(width: 15),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Blood Donation",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xff613089),
+                    ),
+                  ),
+                  Text(
+                    "Click to view blood donation requests and share information.",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
-
-
+    );
+  }
 
   Widget buildSearchSection() {
     return Container(
@@ -244,27 +240,31 @@ Widget buildBloodDonationTile(BuildContext context) {
                 hintText: 'Search for patient by ID...',
                 hintStyle: TextStyle(color: Colors.grey[500]),
               ),
-            onChanged: (value) {
-  setState(() {
-    _filteredPatients = _showMyPatients
-        ? _patients.where((patient) {
-            final idNumber = patient['patientId']?['medicalCard']?['publicData']?['idNumber'] ?? '';
-            return idNumber.contains(value);
-          }).toList()
-        : _Allpatients.where((patient) {
-            final idNumber = patient['medicalCard']?['publicData']?['idNumber'] ?? '';
-            return idNumber.contains(value);
-          }).toList();
-  });
-},
-
+              onChanged: (value) {
+                setState(() {
+                  _filteredPatients = _showMyPatients
+                      ? _patients.where((patient) {
+                          final idNumber = patient['patientId']?['medicalCard']
+                                  ?['publicData']?['idNumber'] ??
+                              '';
+                          return idNumber.contains(value);
+                        }).toList()
+                      : _Allpatients.where((patient) {
+                          final idNumber = patient['medicalCard']?['publicData']
+                                  ?['idNumber'] ??
+                              '';
+                          return idNumber.contains(value);
+                        }).toList();
+                });
+              },
             ),
           ),
         ],
       ),
     );
   }
-    Widget _buildDoctorProfile() {
+
+  Widget _buildDoctorProfile() {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -284,7 +284,7 @@ Widget buildBloodDonationTile(BuildContext context) {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "Dr. John Smith",
+                  "Dr.bayan",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -311,136 +311,143 @@ Widget buildBloodDonationTile(BuildContext context) {
       ),
     );
   }
+
   Widget _buildProfileStat(String value, String label) {
     return Column(
       children: [
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+        Text(value,
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold)),
+        Text(label,
+            style: const TextStyle(color: Colors.white70, fontSize: 12)),
       ],
     );
   }
-Widget _buildToggleButtons() {
-  return Container(
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: const BorderRadius.only(
-        topLeft: Radius.circular(15),
-        topRight: Radius.circular(15),
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.1),
-          blurRadius: 5,
-          spreadRadius: 1,
+
+  Widget _buildToggleButtons() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(15),
+          topRight: Radius.circular(15),
         ),
-      ],
-    ),
-    child: ToggleButtons(
-      isSelected: [_showMyPatients, !_showMyPatients],
-      onPressed: (int index) {
-        setState(() {
-          _showMyPatients = index == 0;
-          // استدعاء الدالة المناسبة بناءً على الاختيار
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 5,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: ToggleButtons(
+        isSelected: [_showMyPatients, !_showMyPatients],
+        onPressed: (int index) {
+          setState(() {
+            _showMyPatients = index == 0;
+            // استدعاء الدالة المناسبة بناءً على الاختيار
+            if (_showMyPatients) {
+              _fetchPatients(); // استدعاء دالة "مرضاي"
+            } else {
+              _fetchAllPatients(); // استدعاء دالة "كل المرضى"
+            }
+          });
+        },
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(15),
+          topRight: Radius.circular(15),
+        ),
+        selectedColor: Colors.white,
+        fillColor: const Color(0xff613089),
+        color: Colors.black,
+        constraints: const BoxConstraints(minHeight: 40, minWidth: 150),
+        children: const [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Text('Your patients', style: TextStyle(fontSize: 16)),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Text('All patients', style: TextStyle(fontSize: 16)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPatientList() {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(15),
+          bottomRight: Radius.circular(15),
+        ),
+      ),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(10),
+        itemCount: _filteredPatients.length,
+        itemBuilder: (context, index) {
+          final patientData = _filteredPatients[index];
+
           if (_showMyPatients) {
-            _fetchPatients(); // استدعاء دالة "مرضاي"
+            final name = patientData['patientId']?['username'] ?? 'Unknown';
+            final details =
+                "ID Number: ${patientData['patientId']?['medicalCard']?['publicData']?['idNumber'] ?? 'N/A'} Location: ${patientData['patientId']?['location'] ?? 'N/A'}";
+            final patientId = patientData['patientId']?['_id'] ?? '';
+
+            return _buildPatientInfoTile(
+              name,
+              details,
+              const Color(0xff613089),
+              Icons.account_circle,
+              patientId,
+            );
           } else {
-            _fetchAllPatients(); // استدعاء دالة "كل المرضى"
+            final name = patientData['username'] ?? 'Unknown';
+            final details =
+                "ID Number: ${patientData['medicalCard']?['publicData']?['idNumber'] ?? 'N/A'} Location: ${patientData['location'] ?? 'N/A'}";
+            final patientId = patientData['_id'] ?? '';
+
+            return _buildPatientInfoTile(
+              name,
+              details,
+              const Color(0xff613089),
+              Icons.account_circle,
+              patientId,
+            );
           }
-        });
-      },
-      borderRadius: const BorderRadius.only(
-        topLeft: Radius.circular(15),
-        topRight: Radius.circular(15),
+        },
       ),
-      selectedColor: Colors.white,
-      fillColor: const Color(0xff613089),
-      color: Colors.black,
-      constraints: const BoxConstraints(minHeight: 40, minWidth: 150),
-      children: const [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Text('Your patients', style: TextStyle(fontSize: 16)),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Text('All patients', style: TextStyle(fontSize: 16)),
-        ),
-      ],
-    ),
-  );
-}
+    );
+  }
 
-Widget _buildPatientList() {
-  return Container(
-    decoration: const BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.only(
-        bottomLeft: Radius.circular(15),
-        bottomRight: Radius.circular(15),
+  Widget _buildPatientInfoTile(
+    String name,
+    String details,
+    Color iconColor,
+    IconData actionIcon,
+    String patientId, // إضافة معامل لاستقبال الـ ID
+  ) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: iconColor.withOpacity(0.2),
+        child: Icon(actionIcon, color: iconColor),
       ),
-    ),
-    child: ListView.builder(
-      padding: const EdgeInsets.all(10),
-      itemCount: _filteredPatients.length,
-      itemBuilder: (context, index) {
-        final patientData = _filteredPatients[index];
-        
-        if (_showMyPatients) {
-          final name = patientData['patientId']?['username'] ?? 'Unknown';
-          final details = "ID Number: ${patientData['patientId']?['medicalCard']?['publicData']?['idNumber'] ?? 'N/A'} Location: ${patientData['patientId']?['location'] ?? 'N/A'}";
-          final patientId = patientData['patientId']?['_id'] ?? '';
-          
-          return _buildPatientInfoTile(
-            name,
-            details,
-            const Color(0xff613089),
-            Icons.account_circle,   
-            patientId,               
-          );
-        } else {
-          final name = patientData['username'] ?? 'Unknown';
-          final details = "ID Number: ${patientData['medicalCard']?['publicData']?['idNumber'] ?? 'N/A'} Location: ${patientData['location'] ?? 'N/A'}";
-          final patientId = patientData['_id'] ?? '';
-          
-          return _buildPatientInfoTile(
-            name,
-            details,
-            const Color(0xff613089), 
-            Icons.account_circle,   
-            patientId,               
-          );
-        }
+      title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+      subtitle: Text(details),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PatientViewPage(patientId: patientId),
+          ),
+        );
       },
-    ),
-  );
+    );
+  }
 }
 
-Widget _buildPatientInfoTile(
-  String name,
-  String details,
-  Color iconColor,
-  IconData actionIcon,
-  String patientId, // إضافة معامل لاستقبال الـ ID
-) {
-  return ListTile(
-    leading: CircleAvatar(
-      backgroundColor: iconColor.withOpacity(0.2),
-      child: Icon(actionIcon, color: iconColor),
-    ),
-    title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-    subtitle: Text(details),
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PatientViewPage(patientId: patientId),
-        ),
-      );
-    },
-  );
-}
-
-}
 class NotificationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -513,7 +520,8 @@ class NotificationsPage extends StatelessWidget {
               ),
             ),
             Chip(
-              label: Text(urgencyLevel, style: const TextStyle(color: Colors.white)),
+              label: Text(urgencyLevel,
+                  style: const TextStyle(color: Colors.white)),
               backgroundColor: urgencyLevel == "High"
                   ? Colors.red
                   : urgencyLevel == "Moderate"
@@ -550,7 +558,8 @@ class NotificationsPage extends StatelessWidget {
   }
 
   // Example section container widget
-  Widget _buildSectionContainer({required String title, required Widget content}) {
+  Widget _buildSectionContainer(
+      {required String title, required Widget content}) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       shape: RoundedRectangleBorder(
@@ -589,7 +598,4 @@ class NotificationsPage extends StatelessWidget {
       subtitle: Text(info),
     );
   }
-
-
 }
-

@@ -1,15 +1,16 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
 import 'user_doctors.dart';
-import 'user_home.dart';
 import 'chat_screen.dart';
 import 'permission_requests.dart';
 
-final storage = FlutterSecureStorage();
+
+const storage = FlutterSecureStorage();
 
 class FindDoctorPage extends StatefulWidget {
   const FindDoctorPage({Key? key}) : super(key: key);
@@ -24,7 +25,7 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
   bool isLoading = true;
   String selectedSpecialty = "All";
   TextEditingController searchController = TextEditingController();
-  List<String> doctorNames = []; // List for autocomplete suggestions
+  List<String> doctorNames = [];
 
   @override
   void initState() {
@@ -34,10 +35,11 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
   }
 
   @override
-void dispose() {
-  searchController.removeListener(_onSearchChanged);
-  super.dispose();
-}
+  void dispose() {
+    searchController.removeListener(_onSearchChanged);
+    super.dispose();
+  }
+
 
 
   // Fetch all doctors from the API
@@ -56,7 +58,7 @@ void dispose() {
               'name': doc['fullName'] ?? 'Unknown',
               'specialty': doc['specialization'] ?? 'Unknown',
               'rating': doc['rating'] ?? 0.0,
-              'image': doc['image'] ?? 'https://via.placeholder.com/150',
+              'image': doc['image'] ?? 'assets/images/doctor1.jpg',
               'email': doc['email'] ?? 'No email provided',
               'phone': doc['phone'] ?? 'No phone number provided',
               'workplace': {
@@ -65,9 +67,8 @@ void dispose() {
               },
             };
           }).toList();
-          doctorNames = allDoctors
-              .map((doctor) => doctor['name'] as String)
-              .toList(); // Populate autocomplete options
+          doctorNames =
+              allDoctors.map((doctor) => doctor['name'] as String).toList();
           displayedDoctors = List.from(allDoctors);
           isLoading = false;
         });
@@ -109,207 +110,174 @@ void dispose() {
     filterDoctors();
   }
 
-final Map<String, IconData> specialtiesWithIcons = {
-  "All": Icons.local_hospital, 
-  "Eye": Icons.visibility,
-  "Nose": Icons.emoji_emotions, 
-  "General": Icons.person, 
-  "Pediatrics": Icons.child_friendly, 
-  "Cardiology": FontAwesomeIcons.heartbeat, 
-  "Dentistry": FontAwesomeIcons.tooth, 
-  "Orthopedics": Icons.accessibility_new, 
-};
 
 
+  ///////////////////////////////////////
+
+
+
+  final Map<String, IconData> specialtiesWithIcons = {
+    "All": Icons.local_hospital,
+    "Eye": Icons.visibility,
+    "Nose": Icons.emoji_emotions,
+    "General": Icons.person,
+    "Pediatrics": Icons.child_friendly,
+    // ignore: deprecated_member_use
+    "Cardiology": FontAwesomeIcons.heartbeat,
+    "Dentistry": FontAwesomeIcons.tooth,
+    "Orthopedics": Icons.accessibility_new,
+  };
+
+  
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F5FF),
-     appBar: AppBar(
-  backgroundColor: const Color(0xFFF2F5FF),
-  elevation: 0,
-  leading: IconButton(
-    icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
-    onPressed: () {
-      Navigator.of(context).pop();
-    },
-  ),
-  centerTitle: true,
-  actions: [
-    IconButton(
-      icon: const Icon(Icons.notifications, color: Color(0xFF613089),    size: 40,  
-),
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PermissionRequestsPage(), // Navigate to the permission requests page
-          ),
-        );
-      },
-    ),
-  ],
-),
-
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Let’s Find Your\nDoctor",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF6A4C9C),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: const Color(0xFF6A4C9C), width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 5,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.search, color: Color(0xFF6A4C9C), size: 28),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Autocomplete<String>(
-                      optionsBuilder: (TextEditingValue textEditingValue) {
-                        if (textEditingValue.text.isEmpty) {
-                          return const Iterable<String>.empty();
-                        }
-                        return doctorNames.where((name) => name
-                            .toLowerCase()
-                            .contains(textEditingValue.text.toLowerCase()));
-                      },
-                      onSelected: (String selection) {
-                        searchController.text = selection;
-                        filterDoctors();
-                      },
-                      fieldViewBuilder:
-                          (context, controller, focusNode, onEditingComplete) {
-                        searchController = controller;
-                        return TextField(
-                          controller: controller,
-                          focusNode: focusNode,
-                          onEditingComplete: onEditingComplete,
-                          decoration: const InputDecoration(
-                            hintText: 'Search for doctors by name...',
-                            border: InputBorder.none,
-                            hintStyle: TextStyle(color: Colors.grey),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Doctors",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF613089),
-                  ),
+      appBar: kIsWeb
+          ? AppBar(
+              backgroundColor: const Color(0xFFF2F5FF),
+              elevation: 0,
+              automaticallyImplyLeading: false,
+                actions: [
+                IconButton(
+                  icon: const Icon(Icons.notifications,
+                      color: Color(0xFF613089), size: 40),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PermissionRequestsPage(),
+                      ),
+                    );
+                  },
                 ),
-                const SizedBox(width: 150),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: DropdownButtonFormField<String>(
-                      value: selectedSpecialty,
-                      items: specialtiesWithIcons.entries.map((entry) {
-                        return DropdownMenuItem<String>(
-                          value: entry.key,
-                          child: Row(
-                            children: [
-                              Icon(entry.value,
-                                  color: const Color(0xFF613089), size: 20),
-                              const SizedBox(width: 3),
-                              Text(
-                                entry.key,
-                                style: const TextStyle(
-                                  color: Color(0xFF613089),
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            selectedSpecialty = value;
-                            filterDoctors();
-                          });
-                        }
-                      },
-                      dropdownColor: Colors.white,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF613089),
+              ],
+            )
+          : AppBar(
+              backgroundColor: const Color(0xFFF2F5FF),
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              centerTitle: true,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.notifications,
+                      color: Color(0xFF613089), size: 40),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PermissionRequestsPage(),
                       ),
-                      icon: const Icon(
-                        Icons.arrow_drop_down,
-                        color: Color(0xFF613089),
-                        size: 20,
-                      ),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : displayedDoctors.isEmpty
-                      ? const Center(child: Text("No doctors found."))
-                      : ListView.builder(
-                          itemCount: displayedDoctors.length,
-                          itemBuilder: (context, index) {
-                            final doctor = displayedDoctors[index];
-                            return InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => DoctorDetailPage(
-                                      doctor: doctor,
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: DoctorCard(
-                                doctor: doctor,
-                              ),
-                            );
-                          },
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final double maxWidth =
+              constraints.maxWidth > 600 ? 1000 : constraints.maxWidth;
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Let’s Find Your\nDoctor",
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF6A4C9C),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    buildSearchSection(),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Doctors",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF613089),
+                          ),
                         ),
+                        Expanded(
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: buildDropdownSection(),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : displayedDoctors.isEmpty
+                              ? const Center(child: Text("No doctors found."))
+                              : LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final bool isWeb =
+                                        constraints.maxWidth > 600;
+                                    final int crossAxisCount = isWeb ? 3 : 1;
+                                    return SingleChildScrollView(
+                                      child: GridView.builder(
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        shrinkWrap: true,
+                                        gridDelegate:
+                                            SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: crossAxisCount,
+                                          crossAxisSpacing: 16,
+                                          mainAxisSpacing: 16,
+                                          childAspectRatio: isWeb ? 1 : 2.5,
+                                        ),
+                                        itemCount: displayedDoctors.length,
+                                        itemBuilder: (context, index) {
+                                          final doctor =
+                                              displayedDoctors[index];
+                                          return InkWell(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      DoctorDetailPage(
+                                                    doctor: doctor,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: DoctorCard(
+                                              doctor: doctor,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ],
-        ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -318,17 +286,127 @@ final Map<String, IconData> specialtiesWithIcons = {
             MaterialPageRoute(builder: (context) => DoctorsPage()),
           );
         },
-        icon: const Icon(FontAwesomeIcons.userMd,color: Colors.white),
+        // ignore: deprecated_member_use
+        icon: const Icon(FontAwesomeIcons.userMd, color: Colors.white),
         label: const Text(
           "Your Doctors",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Color(0xFF613089),
+        backgroundColor: const Color(0xFF613089),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
+
+  Widget buildSearchSection() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: const Color(0xFF6A4C9C), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.search, color: Color(0xFF6A4C9C), size: 28),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Autocomplete<String>(
+              optionsBuilder: (TextEditingValue textEditingValue) {
+                if (textEditingValue.text.isEmpty) {
+                  fetchDoctors();
+                  return const Iterable<String>.empty();
+                }
+                return doctorNames.where((name) => name
+                    .toLowerCase()
+                    .contains(textEditingValue.text.toLowerCase()));
+              },
+              onSelected: (String selection) {
+                searchController.text = selection;
+                filterDoctors();
+              },
+              fieldViewBuilder:
+                  (context, controller, focusNode, onEditingComplete) {
+                searchController = controller;
+                return TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  onEditingComplete: onEditingComplete,
+                  decoration: const InputDecoration(
+                    hintText: 'Search for doctors by name...',
+                    border: InputBorder.none,
+                    hintStyle: TextStyle(color: Colors.grey),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildDropdownSection() {
+    return Align(
+      alignment: Alignment.centerRight, // Align dropdown to the right
+      child: SizedBox(
+        width: 150, // Adjust width to make it smaller
+        child: DropdownButtonFormField<String>(
+          value: selectedSpecialty,
+          items: specialtiesWithIcons.entries.map((entry) {
+            return DropdownMenuItem<String>(
+              value: entry.key,
+              child: Row(
+                children: [
+                  Icon(entry.value,
+                      color: const Color(0xFF613089), size: 18), // Smaller icon
+                  const SizedBox(width: 3),
+                  Text(
+                    entry.key,
+                    style: const TextStyle(
+                      color: Color(0xFF613089),
+                      fontSize: 12, // Smaller text
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                selectedSpecialty = value;
+                filterDoctors();
+              });
+            }
+          },
+          dropdownColor: Colors.white,
+          style: const TextStyle(
+            fontSize: 12, // Smaller text
+            color: Color(0xFF613089),
+          ),
+          icon: const Icon(
+            Icons.arrow_drop_down,
+            color: Color(0xFF613089),
+            size: 18, // Smaller icon
+          ),
+          decoration: const InputDecoration(
+            border: InputBorder.none,
+          ),
+        ),
+      ),
+    );
+  }
 }
+
+//////////////////////////// Doctor Detail Page ////////////////////////////////
 
 class DoctorDetailPage extends StatefulWidget {
   final Map<String, dynamic> doctor;
@@ -383,9 +461,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
     }
   }
 
-  void _startChat(BuildContext context) {
-    // Implement the chat start functionality here
-  }
+/////////////////////////////////////////////
 
   @override
   Widget build(BuildContext context) {
@@ -398,277 +474,327 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
       "1:00 PM"
     ];
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Color(0xFF613089)),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        centerTitle: true,
-        title: Text(
-          'Doctor Details',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xff613089),
-            letterSpacing: 1.5,
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Column(
-            children: [
-              // Combined box with image, name, and specialty
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10.0),
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF2F5FF),
+          appBar: kIsWeb
+              ? AppBar(
+                  backgroundColor: const Color(0xFFF2F5FF),
+                  elevation: 0,
+                  automaticallyImplyLeading: false,
+                  centerTitle: true,
+                  title: const Text(
+                    'Doctor Details',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xff613089),
+                      letterSpacing: 1.5,
+                    ),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Doctor Image
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            widget.doctor['image'],
-                            width:
-                                double.infinity, // Image takes the full width
-                            height: 180, // Set a fixed height for the image
-                            fit: BoxFit.cover,
+                )
+              : AppBar(
+                  backgroundColor: const Color(0xFFF2F5FF),
+                  elevation: 0,
+                  leading: IconButton(
+                    icon:
+                        const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  centerTitle: true,
+                  title: const Text(
+                    'Doctor Details',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xff613089),
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth:
+                        constraints.maxWidth > 600 ? 800 : double.infinity,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10.0),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                blurRadius: 6,
+                                spreadRadius: 2,
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(
-                            height: 12), // Space between image and text
-                        // Doctor Details (name and specialty with icons)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Doctor's name and specialty in the left
-                            Column(
+                          child: Padding(
+                            padding: const EdgeInsets.all(0),
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'Dr ${widget.doctor['name']}',
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF613089),
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.vertical,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.network(
+                                      widget.doctor['image'],
+                                      width: double.infinity,
+                                      height: 220,
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  widget.doctor['specialty'],
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.black54,
+                                const SizedBox(height: 12),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Dr ${widget.doctor['name']}',
+                                            style: const TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF613089),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            widget.doctor['specialty'],
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              color: Colors.black54,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                            icon: Icon(
+                                              isFavorite
+                                                  ? Icons.favorite
+                                                  : Icons.favorite_border,
+                                              color: const Color(0xFF613089),
+                                              size: 30,
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                isFavorite = !isFavorite;
+                                              });
+                                            },
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.chat,
+                                              color: Color(0xFF613089),
+                                              size: 30,
+                                            ),
+                                            onPressed: () {
+                                              final String id =
+                                                  widget.doctor['id'];
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        ChatPage(
+                                                            receiverId: id,
+                                                            name: widget.doctor[
+                                                                'name'])),
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    isFavorite
-                                        ? Icons.favorite
-                                        : Icons.favorite_border,
-                                    color: const Color(0xFF613089),
-                                    size: 30,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      isFavorite = !isFavorite;
-                                    });
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.chat,
-                                    color: Color(0xFF613089),
-                                    size: 30,
-                                  ),
-                                  onPressed: () {
-                                    final String  id = widget.doctor['id'];
-                                    Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ChatPage( receiverId: id,name:widget.doctor['name'])),
-          );
-                                    //_startChat(context);
-                                  },
-                                ),
-                              ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          "About",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF613089),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod sapien nec augue eleifend venenatis.",
+                          style: TextStyle(fontSize: 16, color: Colors.black54),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          "Location",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF613089),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.location_on,
+                                color: Color(0xFF613089)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                "${widget.doctor['workplace']['name']} - ${widget.doctor['workplace']['address']}",
+                                style: const TextStyle(
+                                    fontSize: 16, color: Colors.black54),
+                              ),
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              Align(
-                alignment: Alignment.centerLeft,
-                child: const Text(
-                  "About",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF613089),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod sapien nec augue eleifend venenatis.",
-                style: TextStyle(fontSize: 16, color: Colors.black54),
-              ),
-              const SizedBox(height: 20),
-
-              Align(
-                alignment: Alignment.centerLeft,
-                child: const Text(
-                  "Location",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF613089),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(Icons.location_on, color: Color(0xFF613089)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      "${widget.doctor['workplace']['name']} - ${widget.doctor['workplace']['address']}",
-                      style:
-                          const TextStyle(fontSize: 16, color: Colors.black54),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              // Appointment section
-              Align(
-                alignment: Alignment.centerLeft,
-                child: const Text(
-                  "Appointment",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF613089),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // Select Day of the Week
-              Align(
-                alignment: Alignment.centerLeft, // Align to the left
-                child: DropdownButton<int>(
-                  hint: Text(
-                    "Select Day",
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                  value: selectedDay,
-                  items: List.generate(7, (index) {
-                    return DropdownMenuItem<int>(
-                      value: index,
-                      child: Text(
-                        days[index],
-                        style: const TextStyle(color: Color(0xFF613089)),
                       ),
-                    );
-                  }),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedDay = value;
-                      selectedTime = null;
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              if (selectedDay != null)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Available Time",
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF613089),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: List.generate(
-                          availableTimes.length,
-                          (index) => Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: ChoiceChip(
-                              label: Text(availableTimes[index]),
-                              selected: selectedTime == index,
-                              onSelected: (selected) {
-                                setState(() {
-                                  selectedTime = selected ? index : null;
-                                });
-                              },
-                              selectedColor: const Color(0xFF613089),
-                              labelStyle: TextStyle(
-                                color: selectedTime == index
-                                    ? Colors.white
-                                    : Colors.black87,
-                              ),
-                            ),
+                      const SizedBox(height: 20),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          "Appointment",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF613089),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              const SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () => _setAsMyDoctor(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF613089),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 32),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    "Set as My Doctor",
-                    style: TextStyle(fontSize: 16, color: Colors.white),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: DropdownButton<int>(
+                          hint: Text(
+                            "Select Day",
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                          value: selectedDay,
+                          items: List.generate(7, (index) {
+                            return DropdownMenuItem<int>(
+                              value: index,
+                              child: Text(
+                                days[index],
+                                style:
+                                    const TextStyle(color: Color(0xFF613089)),
+                              ),
+                            );
+                          }),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedDay = value;
+                              selectedTime = null;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      if (selectedDay != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "Available Time",
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF613089),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: List.generate(
+                                    availableTimes.length,
+                                    (index) => Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 8.0),
+                                      child: ChoiceChip(
+                                        label: Text(availableTimes[index]),
+                                        selected: selectedTime == index,
+                                        onSelected: (selected) {
+                                          setState(() {
+                                            selectedTime =
+                                                selected ? index : null;
+                                          });
+                                        },
+                                        selectedColor: const Color(0xFF613089),
+                                        labelStyle: TextStyle(
+                                          color: selectedTime == index
+                                              ? Colors.white
+                                              : Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      const SizedBox(height: 20),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: () => _setAsMyDoctor(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF613089),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 32),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            "Set as My Doctor",
+                            style: TextStyle(fontSize: 16, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

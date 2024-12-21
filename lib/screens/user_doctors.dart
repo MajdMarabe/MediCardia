@@ -1,13 +1,11 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
-import 'user_doctors.dart';
-import 'viewdoctors.dart';
 
-
-final storage = FlutterSecureStorage();
+const storage = FlutterSecureStorage();
 
 class DoctorsPage extends StatefulWidget {
   @override
@@ -19,7 +17,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
   List<Map<String, dynamic>> filteredDoctors = [];
   bool isLoading = true;
   String searchQuery = '';
-  TextEditingController searchController = TextEditingController(); // Add controller for search
+  TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
@@ -28,11 +26,12 @@ class _DoctorsPageState extends State<DoctorsPage> {
   }
 
   Future<void> fetchDoctors() async {
-    final patientId = await storage.read(key: 'userid'); 
+    final patientId = await storage.read(key: 'userid');
 
     try {
       final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/doctorsusers/relations/patient/$patientId'),
+        Uri.parse(
+            '${ApiConstants.baseUrl}/doctorsusers/relations/patient/$patientId'),
       );
 
       if (response.statusCode == 200) {
@@ -44,12 +43,12 @@ class _DoctorsPageState extends State<DoctorsPage> {
             return {
               'name': doctor['fullName'] ?? 'Unknown',
               'specialty': doctor['specialization'] ?? 'Unknown',
-              'price': doctor['price'] ?? 0, 
-              'rating': doctor['rating'] ?? 0.0, 
-              'image': doctor['image'] ?? 'https://via.placeholder.com/150',
+              'price': doctor['price'] ?? 0,
+              'rating': doctor['rating'] ?? 0.0,
+              'image': doctor['image'] ?? 'assets/images/doctor1.jpg',
             };
           }).toList();
-          filteredDoctors = doctors; 
+          filteredDoctors = doctors;
           isLoading = false;
         });
       } else {
@@ -83,98 +82,150 @@ class _DoctorsPageState extends State<DoctorsPage> {
     });
   }
 
-  // Function to build search section (full width)
-  Widget buildSearchSection() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: const Color(0xFF6A4C9C), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.search, color: Color(0xFF6A4C9C), size: 28),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: searchController,
-              onChanged: updateSearchResults,
-              decoration: const InputDecoration(
-                hintText: 'Search doctors...',
-                hintStyle: TextStyle(color: Colors.grey),
-                border: InputBorder.none,
-              ),
+  ////////////////////////////////
+
+Widget buildSearchSection() {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(30),
+      border: Border.all(color: const Color(0xFF6A4C9C), width: 2),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          blurRadius: 5,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    ),
+    child: Row(
+      children: [
+        const Icon(Icons.search, color: Color(0xFF6A4C9C), size: 28),
+        const SizedBox(width: 8),
+        Expanded(
+          child: TextField(
+            controller: searchController,
+            onChanged: (text) {
+              updateSearchResults(text);
+              if (text.isEmpty) {
+                fetchDoctors();  // Call fetchDoctors if the search text is empty
+              }
+            },
+            decoration: const InputDecoration(
+              hintText: 'Search doctors by name...',
+              hintStyle: TextStyle(color: Colors.grey),
+              border: InputBorder.none,
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
+
+
+/////////////////////////
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF2F5FF),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF2F5FF),
-        elevation: 0,
-       leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Color(0xFF613089)),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF2F5FF),
+          appBar: kIsWeb
+              ? AppBar(
+                  backgroundColor: const Color(0xFFF2F5FF),
+                  elevation: 0,
+                  automaticallyImplyLeading: false,
+                  title: const Text(
+                    "Your Doctors",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF613089),
+                      letterSpacing: 1.5,
+                      fontSize: 22,
+                    ),
+                  ),
+                  centerTitle: true,
+                )
+              : AppBar(
+                  backgroundColor: const Color(0xFFF2F5FF),
+                  elevation: 0,
+                  leading: IconButton(
+                    icon:
+                        const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  title: const Text(
+                    "Your Doctors",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF613089),
+                      letterSpacing: 1.5,
+                      fontSize: 22,
+                    ),
+                  ),
+                  centerTitle: true,
+                ),
+          body: SingleChildScrollView(
+  child: Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 25.0),
+    child: Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: constraints.maxWidth > 600 ? 1000 : double.infinity,
         ),
-        title: const Text(
-          "Your Doctors",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF613089),
-            letterSpacing: 1.5,
-            fontSize: 22,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          // Search section
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: buildSearchSection(),
-          ),
-          Expanded(
-            child: isLoading
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: buildSearchSection(),
+            ),
+            isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : filteredDoctors.isEmpty
                     ? const Center(child: Text("No doctors found."))
-                    : GridView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.8,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                        ),
-                        itemCount: filteredDoctors.length,
-                        itemBuilder: (context, index) {
-                          final doctor = filteredDoctors[index];
-                          return DoctorCard(doctor: doctor);
+                    : LayoutBuilder(
+                        builder: (context, constraints) {
+                          // Check if the screen width is large enough for web
+                          bool isWeb = constraints.maxWidth > 600;
+
+                          return GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: isWeb ? 3 : 2, // Adjust based on device
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: isWeb ? 1.1 : 1.0, // Adjust aspect ratio
+                            ),
+                            itemCount: filteredDoctors.length,
+                            itemBuilder: (context, index) {
+                              final doctor = filteredDoctors[index];
+                              return DoctorCard(doctor: doctor);
+                            },
+                          );
                         },
                       ),
-          ),
-        ],
+          ],
+        ),
       ),
+    ),
+  ),
+),
+        );
+      },
     );
   }
 }
+
+///////////////////////////////
 
 class DoctorCard extends StatelessWidget {
   final Map<String, dynamic> doctor;
@@ -192,7 +243,7 @@ class DoctorCard extends StatelessWidget {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child: Image.network(
               doctor["image"],
-              height: 100,
+              height: 170,
               width: double.infinity,
               fit: BoxFit.cover,
             ),
@@ -204,7 +255,8 @@ class DoctorCard extends StatelessWidget {
               children: [
                 Text(
                   doctor["name"],
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 const SizedBox(height: 4),
                 Text(
