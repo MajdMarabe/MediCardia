@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_3/screens/donation_requests';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
@@ -1073,6 +1074,19 @@ Widget build(BuildContext context) {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => MedicalHistoryPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 20),
+                                   buildCircleButton(
+                            icon: Icons.favorite,
+                            label: 'Blood Donation',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => DonationRequestsPage(),
                                 ),
                               );
                             },
