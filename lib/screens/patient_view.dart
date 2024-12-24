@@ -1,8 +1,8 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/services/notification_service.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:intl/intl.dart';
 import 'drugs_doctor.dart';
 import 'lab_tests_doctor.dart';
 import 'med_history_doctor.dart';
@@ -14,7 +14,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
-final storage = FlutterSecureStorage();
+
+
+const storage = FlutterSecureStorage();
+
 
 class PatientViewPage extends StatefulWidget {
     final String patientId;
@@ -23,52 +26,59 @@ class PatientViewPage extends StatefulWidget {
   _PatientViewPageState createState() => _PatientViewPageState();
 }
 
+
 class _PatientViewPageState extends State<PatientViewPage> {
-    String username = 'Loading..'; // اسم المستخدم
-  String gender = 'Unknown'; // الجنس
-  String bloodType = 'Unknown'; // فصيلة الدم
-  int age = 0; // العمر
-  String phoneNumber = 'N/A'; // رقم الهاتف
-  String lastDonationDate = 'N/A'; // آخر تاريخ للتبرع بالدم
+String username = 'Loading..'; 
+String gender = 'Unknown';
+String bloodType = 'Unknown'; 
+int age = 0; 
+String phoneNumber = 'N/A'; 
+String lastDonationDate = 'N/A'; 
 String? base64Image ='';
 String idNumber ='';
 String email ='';
 String location ='';
 String userid ='';
- bool isallawod= false;
- var doctorId ='';
-  // القوائم الديناميكية
-  List<String> chronicDiseases = []; // قائمة الأمراض المزمنة
-  List<String> allergies = []; // قائمة الحساسية
-  bool isLoading = true; // للتحقق مما إذا كان يتم تحميل البيانات
-  Map<String, bool> sectionExpanded = {
+bool isallawod= false;
+var doctorId ='';
+List<String> chronicDiseases = []; 
+List<String> allergies = []; 
+bool isLoading = true; 
+Map<String, bool> sectionExpanded = {
     'personalInfo': false,
     'medicalInfo': false,
   };
+
+
+
   @override
   void initState() {
-    
     super.initState();
     getDoctorId();
     isPatientAssignedToDoctor();
     fetchUserInfo();
   }
+
+
+
   // Toggle function to expand/collapse sections
   void toggleSection(String sectionKey) {
     setState(() {
       sectionExpanded[sectionKey] = !sectionExpanded[sectionKey]!;
     });
   }
+
+
 Future<void> getDoctorId() async {
    doctorId = (await storage.read(key: 'userid'))!;
 }
 
+
+
 Future<void>  isPatientAssignedToDoctor() async {
-  
   String patientId = widget.patientId;
   try {
     final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/doctorsusers/relations/patient/$patientId'));
-
     if (response.statusCode == 200) {
       List<dynamic> relations = json.decode(response.body);
                 print(doctorId);
@@ -81,7 +91,6 @@ Future<void>  isPatientAssignedToDoctor() async {
           
         }
       }
-
      // isallawod = false;
     } else {
       throw Exception('field ');
@@ -91,6 +100,9 @@ Future<void>  isPatientAssignedToDoctor() async {
     isallawod = false; 
   }
 }
+
+
+
 Future<void> fetchUserInfo() async {
   isPatientAssignedToDoctor();
   final String  userid =  widget.patientId;
@@ -121,7 +133,7 @@ userid ==data['_id']?? 'Unknown';
           data['medicalCard']?['publicData']?['allergies'] ?? [],
         );
        //  base64Image=data['medicalCard']?['publicData']?['image'] ?? 'Unknown';
-        isLoading = false; // Update the loading state
+        isLoading = false; 
       });
     } else {
       _showMessage('Failed to load user information');
@@ -141,43 +153,44 @@ userid ==data['_id']?? 'Unknown';
       SnackBar(content: Text(message)),
     );
   }
-  // Widget to display patient information
-  Widget buildPatientInfo() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 57, 33, 77),
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-       child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+
+
+
+
+Widget buildPatientInfo() {
+  return Container(
+    padding: const EdgeInsets.all(20),
+    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+    decoration: BoxDecoration(
+      color: const Color(0xff613089),
+      borderRadius: BorderRadius.circular(15),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          blurRadius: 10,
+          spreadRadius: 2,
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         Row(
-              children: [
-                CircleAvatar(
-                  radius: 42,
-                  backgroundColor: Colors.white,
-                  backgroundImage: AssetImage('assets/images/doctor3.jpg'),
-                ),
-                const SizedBox(width: 18),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                    Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const CircleAvatar(
+              radius: 42,
+              backgroundColor: Colors.white,
+              backgroundImage: AssetImage('assets/images/doctor3.jpg'),
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+Row(
   children: [
     Text(
-      username ,
+      username,
       style: TextStyle(
         fontSize: 28,
         fontWeight: FontWeight.bold,
@@ -190,7 +203,7 @@ userid ==data['_id']?? 'Unknown';
         ],
       ),
     ),
-    const SizedBox(width: 10), // Adds spacing between the text and the icon
+    const Spacer(),
     IconButton(
       icon: const Icon(
         Icons.chat,
@@ -198,55 +211,58 @@ userid ==data['_id']?? 'Unknown';
         size: 30,
       ),
       onPressed: () async {
-        final String id =widget.patientId;
+        final String id = widget.patientId;
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ChatPage(receiverId: id,name:username)),
+          MaterialPageRoute(
+            builder: (context) => ChatPage(
+              receiverId: id,
+              name: username,
+            ),
+          ),
         );
       },
     ),
   ],
-)
+),
 
-                                ,
-                                              const SizedBox(height: 20),
-
-                      RichText(
-                        text: TextSpan(
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 16),
-                          children: [
-                            WidgetSpan(
-                              child: Icon(Icons.person,
-                                  size: 20, color: Colors.white70),
-                            ),
-                             TextSpan(text: '  Age: $age | Gender: $gender'),
-                          ],
+                  const SizedBox(height: 5),
+                  RichText(
+                    text: TextSpan(
+                      style: const TextStyle(color: Colors.white70, fontSize: 16),
+                      children: [
+                        const WidgetSpan(
+                          child: Icon(Icons.person, size: 20, color: Colors.white70),
                         ),
-                      ),
-                       const SizedBox(height: 6),
-                      RichText(
-                        text: TextSpan(
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 16),
-                          children: [
-                            WidgetSpan(
-                              child: Icon(Icons.bloodtype,
-                                  size: 20, color: Colors.white70),
-                            ),
-                             TextSpan(text: '  Blood Type: $bloodType'),
-                          ],
-                        ),
-                      ),
-                    ],
+                        TextSpan(text: '  Age: $age | Gender: $gender'),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 6),
+                  RichText(
+                    text: TextSpan(
+                      style: const TextStyle(color: Colors.white70, fontSize: 16),
+                      children: [
+                        const WidgetSpan(
+                          child: Icon(Icons.bloodtype, size: 20, color: Colors.white70),
+                        ),
+                        TextSpan(text: '  Blood Type: $bloodType'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-             ],
-       )
-    );
-  }
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+
+
+
 
   // Widget for personal information box
 Widget buildPersonalInfoBox() {
@@ -269,7 +285,7 @@ Widget buildPersonalInfoBox() {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // العنوان الرئيسي مع الأيقونة
+     
           Row(
             children: [
               const Icon(Icons.info_outline, color: Color(0xff613089)),
@@ -293,7 +309,6 @@ Widget buildPersonalInfoBox() {
           ),
           const SizedBox(height: 15),
 
-          // عرض المعلومات الشخصية بشكل جميل
           if (sectionExpanded['personalInfo']!) ...[
             _buildInfoRow(Icons.badge, 'ID Number', idNumber),
             _buildInfoRow(Icons.email, 'Email', email),
@@ -306,13 +321,14 @@ Widget buildPersonalInfoBox() {
   );
 }
 
-// دالة مساعدة لبناء صف المعلومات مع أيقونة
+
+
 Widget _buildInfoRow(IconData icon, String label, String value) {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 8.0),
     child: Row(
       children: [
-        Icon(icon, color: Color(0xff613089)),
+        Icon(icon, color: const Color(0xff613089)),
         const SizedBox(width: 10),
         Text(
           '$label:',
@@ -333,6 +349,18 @@ Widget _buildInfoRow(IconData icon, String label, String value) {
     ),
   );
 }
+
+
+
+  String formatDate(String isoDate) {
+    try {
+      DateTime parsedDate = DateTime.parse(isoDate);
+      return "${parsedDate.year}-${parsedDate.month.toString().padLeft(2, '0')}-${parsedDate.day.toString().padLeft(2, '0')}";
+    } catch (e) {
+      print("Error parsing date: $e");
+      return isoDate;
+    }
+  }
 
 
   // Widget for public information box
@@ -356,7 +384,7 @@ Widget _buildInfoRow(IconData icon, String label, String value) {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // العنوان مع أيقونة السهم
+          
           Row(
             children: [
               const Icon(Icons.info_outline, color: Color(0xff613089)),
@@ -380,12 +408,11 @@ Widget _buildInfoRow(IconData icon, String label, String value) {
           ),
           const SizedBox(height: 15),
 
-          // المحتوى الموسع
+        
           if (sectionExpanded['medicalInfo']!) ...[
            _buildInfoRow(Icons.healing, 'Chronic Diseases', chronicDiseases.join(', ')),
            _buildInfoRow(Icons.warning_amber_rounded, 'Allergies', allergies.join(', ')),
-
-            _buildInfoRow(Icons.bloodtype, 'Last Blood Donation', lastDonationDate),
+            _buildInfoRow(Icons.bloodtype, 'Last Blood Donation', formatDate(lastDonationDate))
           ],
         ],
       ),
@@ -394,7 +421,7 @@ Widget _buildInfoRow(IconData icon, String label, String value) {
 }
 
 
-  // Widget to build square buttons for services
+
   Widget buildSquareButton({
     required IconData icon,
     required String label,
@@ -435,138 +462,238 @@ Widget _buildInfoRow(IconData icon, String label, String value) {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+
+
+// Widget to build square buttons for services using an image instead of icon
+Widget buildSquareButtonWithImage({
+  required String imagePath, 
+  required String label,
+  required Function() onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            spreadRadius: 2,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            imagePath,
+            width: 60,
+            height: 60,
+            fit: BoxFit.cover, 
+            color: const Color(0xff613089),
+          ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+
+
+
+/////////////////////////////////
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFF2F5FF),
+     appBar: kIsWeb ?
+     AppBar(
+              backgroundColor: const Color(0xFFF2F5FF),
+              elevation: 0,
+              centerTitle: true,
+              title: const Text(
+                'Patient Information',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xff613089),
+                  letterSpacing: 1.5,
+                ),
+              ),
+              automaticallyImplyLeading: false,
+            )
+          : AppBar(
       backgroundColor: const Color(0xFFF2F5FF),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF2F5FF),
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: const Text(
-          'Patient Information',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xff613089),
-            letterSpacing: 1.5,
-          ),
+      elevation: 0,
+      centerTitle: true,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+      title: const Text(
+        'Patient Information',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Color(0xff613089),
+          letterSpacing: 1.5,
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            buildPatientInfo(),
-            const SizedBox(height: 10),
-            buildPersonalInfoBox(),
-            const SizedBox(height: 10),
-            buildPublicInfoBox(),
-         
-            const SizedBox(height: 20),
-            // Remaining GridView for Services
-            Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 20),
-  child: isallawod
-      ? GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 20,
-          mainAxisSpacing: 20,
-          children: [
-            buildSquareButton(
-              icon: FontAwesomeIcons.capsules,
-              label: 'Drugs',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => MedicineListPage()),
-                );
-              },
+    ),
+    body: kIsWeb
+        ? Center( 
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.75, 
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    buildPatientInfo(),
+                    const SizedBox(height: 10),
+                    buildPersonalInfoBox(),
+                    const SizedBox(height: 10),
+                    buildPublicInfoBox(),
+                    const SizedBox(height: 20),
+                    _buildPermissionOrContent(),
+                  ],
+                ),
+              ),
             ),
-            buildSquareButton(
-              icon: Icons.bloodtype,
-              label: 'Diabetes',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => DiabetesControlPage()),
-                );
-              },
-            ),
-            buildSquareButton(
-              icon: Icons.science,
-              label: 'Lab Tests',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LabTestsPage(patientId: userid)),
-                );
-              },
-            ),
-            buildSquareButton(
-              icon: Icons.note_alt,
-              label: 'Medical Notes',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => MedicalNotesPage()),
-                );
-              },
-            ),
-            buildSquareButton(
-              icon: Icons.fact_check,
-              label: 'Medical History',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => MedicalHistoryPage()),
-                );
-              },
-            ),
-            buildSquareButton(
-              icon: Icons.medication,
-              label: 'Treatment Plans',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => TreatmentPlansPage()),
-                );
-              },
-            ),
-          ],
-        )
-      : SizedBox(
-         // height: MediaQuery.of(context).size.height * 0.6, // لجعل الزر في منتصف الشاشة
-          child: Center(
-            child: buildSquareButton(
-              
-              icon: Icons.medication,
-              label: ' Request permission ',
-             onTap: () => _showRequestPermissionModal(context, widget.patientId),
+          )
+        : SizedBox(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  buildPatientInfo(),
+                  const SizedBox(height: 10),
+                  buildPersonalInfoBox(),
+                  const SizedBox(height: 10),
+                  buildPublicInfoBox(),
+                  const SizedBox(height: 20),
+                  _buildPermissionOrContent(),
+                ],
+              ),
             ),
           ),
-        ),
-),
+  );
+}
 
-      
-          ],
-        ),
-      ),
-    );
-  }
-    final TextEditingController _deadlineController = TextEditingController();
-        String _selectedPriority = ''; // Variable to store the selected priority.
-TextEditingController _reasonController = TextEditingController();
 
-  void _showRequestPermissionModal(BuildContext context, String patientId) {
-  const storage = FlutterSecureStorage();
+
+Widget _buildPermissionOrContent() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    child: isallawod
+        ? LayoutBuilder(
+            builder: (context, constraints) {
+              double crossAxisSpacing = constraints.maxWidth > 600 ? 90 : 20; 
+              double mainAxisSpacing = constraints.maxWidth > 600 ? 90 : 20; 
+              return GridView.count(
+                crossAxisCount: kIsWeb ? 4 : 2, 
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisSpacing: crossAxisSpacing,
+                mainAxisSpacing: mainAxisSpacing,
+                children: [
+                  buildSquareButton(
+                    icon: FontAwesomeIcons.capsules,
+                    label: 'Drugs',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => MedicineListPage()),
+                      );
+                    },
+                  ),
+                  buildSquareButton(
+                    icon: Icons.bloodtype,
+                    label: 'Diabetes',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => DiabetesControlPage()),
+                      );
+                    },
+                  ),
+                  buildSquareButton(
+                    icon: Icons.science,
+                    label: 'Lab Tests',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => LabTestsPage(patientId: userid)),
+                      );
+                    },
+                  ),
+                  buildSquareButton(
+                    icon: Icons.note_alt,
+                    label: 'Medical Notes',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => MedicalNotesPage()),
+                      );
+                    },
+                  ),
+                  buildSquareButton(
+                    icon: Icons.fact_check,
+                    label: 'Medical History',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => MedicalHistoryPage()),
+                      );
+                    },
+                  ),
+                  buildSquareButton(
+                    icon: Icons.medication,
+                    label: 'Treatment Plans',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => TreatmentPlansPage()),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
+          )
+        : Center(
+            child: SizedBox(
+              width: 200, 
+              height: 110,  
+              child: buildSquareButtonWithImage(
+                imagePath: 'assets/images/permission_request.png',
+                label: 'Request permission',
+                onTap: () => _showRequestPermissionModal(context, widget.patientId),
+              ),
+            ),
+          ),
+  );
+}
+
+
+
+final TextEditingController _deadlineController = TextEditingController();
+String _selectedPriority = ''; 
+final TextEditingController _reasonController = TextEditingController();
+   
+
+ void _showRequestPermissionModal(BuildContext context, String patientId) {
+  //const storage = FlutterSecureStorage();
   //final token =  storage.read(key: 'token');
 
   showModalBottomSheet(
@@ -622,8 +749,7 @@ TextEditingController _reasonController = TextEditingController();
                   ),
                   const SizedBox(height: 8),
                   TextField(
-                    controller: _reasonController, // ربط controller بـ TextField
-
+                    controller: _reasonController, 
                     maxLines: 3,
                     decoration: InputDecoration(
                       hintText: 'Enter reason for request...',
@@ -681,27 +807,27 @@ TextEditingController _reasonController = TextEditingController();
             ),
             const SizedBox(height: 16),
             // Priority Section
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Priority:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                    ChoiceChip(
+          Container(
+  padding: const EdgeInsets.all(16),
+  decoration: BoxDecoration(
+    color: Colors.grey[200],
+    borderRadius: BorderRadius.circular(10),
+  ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Priority:',
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      ),
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          // High Priority ChoiceChip
+          ChoiceChip(
             label: const Text('High'),
             selected: _selectedPriority == 'High',
-                        selectedColor: const Color(0xff613089), // Color whe
-
+            selectedColor: const Color(0xff613089), 
             onSelected: (selected) {
               setState(() {
                 _selectedPriority = selected ? 'High' : '';
@@ -709,81 +835,89 @@ TextEditingController _reasonController = TextEditingController();
             },
           ),
           const SizedBox(width: 10),
+          // Medium Priority ChoiceChip
           ChoiceChip(
             label: const Text('Medium'),
             selected: _selectedPriority == 'Medium',
             selectedColor: const Color(0xff613089), 
             onSelected: (selected) {
               setState(() {
-                _selectedPriority = selected ? 'Medium' : '';
+      
+                _selectedPriority = selected ? 'Medium' : ''; 
+                debugPrint('Selected Priority: $_selectedPriority');
               });
             },
           ),
           const SizedBox(width: 10),
+          // Low Priority ChoiceChip
           ChoiceChip(
             label: const Text('Low'),
             selected: _selectedPriority == 'Low',
-                        selectedColor: const Color(0xff613089), 
-
+            selectedColor: const Color(0xff613089), // Color when selected
             onSelected: (selected) {
               setState(() {
-                _selectedPriority = selected ? 'Low' : '';
+                // Update _selectedPriority directly
+                _selectedPriority = selected ? 'Low' : ''; 
+                debugPrint('Selected Priority: $_selectedPriority');
               });
             },
           ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-         ElevatedButton(
-  onPressed: () async {
-    if (_deadlineController.text.isEmpty || _selectedPriority.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all required fields")),
-      );
-      return;
-    }
-
-    final response = await _submitRequestPermission(
-      _deadlineController.text,
-      _selectedPriority,
-      _reasonController.text,
-      patientId,
-    );
-
-    // تفريغ الحقول بعد الإرسال
-    setState(() {
-      _reasonController.clear();
-      _deadlineController.clear();
-      _selectedPriority = '';
-    });
-
-    Navigator.of(context).pop();
-  },
-  style: ElevatedButton.styleFrom(
-    minimumSize: const Size(double.infinity, 48),
-    backgroundColor: const Color(0xff613089),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-  ),
-  child: const Text(
-    'Submit Request',
-    style: TextStyle(
-      fontSize: 16,
-      fontWeight: FontWeight.bold,
-    ),
+        ],
+      ),
+    ],
   ),
 ),
 
+
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () async {
+                if (_deadlineController.text.isEmpty || _selectedPriority.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Please fill all required fields")),
+                  );
+                  return;
+                }
+
+                final response = await _submitRequestPermission(
+                  _deadlineController.text,
+                  _selectedPriority,
+                  _reasonController.text,
+                  patientId,
+                );
+
+                setState(() {
+                  _reasonController.clear();
+                  _deadlineController.clear();
+                  _selectedPriority = '';
+                });
+
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+                backgroundColor: const Color(0xff613089),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Submit Request',
+                style: TextStyle(
+                  fontSize: 16,
+                
+                ),
+              ),
+            ),
           ],
         ),
       ),
     ),
   );
 }
+
+
+
 Future<void> _requestPermission(String patientId) async {
   try {
     final response = await http.post(
@@ -888,6 +1022,7 @@ Future<void> _selectDeadline(BuildContext context , TextEditingController contro
 }
 
 
+
 void _sendNotification(String receiverId, String title, String message) async {
   final DatabaseReference usersRef = FirebaseDatabase.instance.ref('users/$receiverId');
   final DataSnapshot snapshot = await usersRef.get();
@@ -914,6 +1049,8 @@ void _sendNotification(String receiverId, String title, String message) async {
     print('User not found in the database.');
   }
 }
+
+
 Future<void> addpermissionToDB(String deadline, selectedPriority, String text ,String patientId, String name) async {
   try {
     final DatabaseReference ref = FirebaseDatabase.instance.ref('Permission').push();
@@ -937,6 +1074,7 @@ Future<void> addpermissionToDB(String deadline, selectedPriority, String text ,S
     print('Error adding notification to Firebase: $error');
   }
 }
+
 
 
 }

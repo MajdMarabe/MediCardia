@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'doctor_profile.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
 import 'patient_view.dart';
 import 'blood_donation.dart';
+import 'package:flutter/foundation.dart';
 
 const storage = FlutterSecureStorage();
 
@@ -39,23 +41,96 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     });
   }
 
+
+
+////////////////////////////////
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+       appBar: kIsWeb
+        ? AppBar(
+            backgroundColor: const Color(0xFFF2F5FF),
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            title: Row(
+              children: [
+                   Image.asset(
+      'assets/images/appLogo.png',
+      height: 35,
+      width: 35,
+      color: const Color(0xff613089),
+    ),
+    // const SizedBox(width: 4),
+                const Text(
+                  'MediCardia',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'BAUHS93',
+                    color: Color(0xff613089),
+                  ),
+                ),
+              ],
+            ),
+            centerTitle: true,
+            
+            toolbarHeight: 60,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(20),
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.home, color: Color(0xff613089), size: 20),
+                tooltip: 'Home',
+                onPressed: () => _onItemTapped(0),
+              ),
+              IconButton(
+                icon: const Icon(FontAwesomeIcons.search, color: Color(0xff613089), size: 20),
+                tooltip: 'Search',
+                onPressed: () => _onItemTapped(1),
+              ),
+              IconButton(
+                icon: const Icon(Icons.notifications, color: Color(0xff613089), size: 20),
+                tooltip: 'Notifications',
+                onPressed: () => _onItemTapped(2),
+              ),
+              IconButton(
+                icon: const Icon(FontAwesomeIcons.userCircle, color: Color(0xff613089), size: 20),
+                tooltip: 'Profile',
+                onPressed: () => _onItemTapped(3),
+              ),
+              const SizedBox(width: 15),
+            ],
+          )
+        : null,
       body: _pages[_selectedIndex],
-      bottomNavigationBar: CurvedNavigationBar(
-        items: items,
-        index: _selectedIndex,
-        onTap: _onItemTapped,
-        backgroundColor: Colors.transparent,
-        color: const Color(0xff613089),
-        buttonBackgroundColor: const Color(0xff613089),
-        animationDuration: const Duration(milliseconds: 300),
-        height: 60,
-      ),
+      bottomNavigationBar: kIsWeb
+        ? null
+        : CurvedNavigationBar(
+            items: items,
+            index: _selectedIndex,
+            onTap: _onItemTapped,
+            backgroundColor: Colors.transparent,
+            color: const Color(0xff613089),
+            buttonBackgroundColor: const Color(0xff613089),
+            animationDuration: const Duration(milliseconds: 300),
+            height: 60,
+          ),
     );
   }
 }
+
+
+
+
+//////////////////////////////////////
+
+
+
 
 class HomePageContent extends StatefulWidget {
   @override
@@ -68,14 +143,18 @@ class _HomePageContentState extends State<HomePageContent> {
 
   bool _isLoading = true;
   bool _showMyPatients = true;
-  List<dynamic> _allPatients = [];
+  //List<dynamic> _allPatients = [];
   List<dynamic> _filteredPatients = [];
+
+
 
   @override
   void initState() {
     super.initState();
     _fetchPatients();
   }
+
+
 
   Future<void> _fetchAllPatients() async {
     try {
@@ -89,7 +168,7 @@ class _HomePageContentState extends State<HomePageContent> {
         final data = json.decode(response.body);
         setState(() {
           _Allpatients = data;
-          _filteredPatients = data; // هنا نحدث المرضى في القائمة لعرض كل المرضى
+          _filteredPatients = data; 
           _isLoading = false;
         });
       } else {
@@ -130,31 +209,56 @@ class _HomePageContentState extends State<HomePageContent> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF2F5FF),
-      body: SafeArea(
-        child: Column(
+
+
+
+/////////////////////////////////
+
+
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFF2F5FF),
+    body: Center(
+      child: Container(
+        width: kIsWeb
+            ? MediaQuery.of(context).size.width * 0.75
+            : MediaQuery.of(context).size.width,
+        child: Stack(
           children: [
-            const SizedBox(height: 20),
-            _buildDoctorProfile(),
-            const SizedBox(height: 20),
-            buildSearchSection(),
-            const SizedBox(height: 20),
-            buildBloodDonationTile(context),
-            const SizedBox(height: 20),
-            _buildToggleButtons(),
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _buildPatientList(),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    _buildDoctorProfile(),
+                    const SizedBox(height: 20),
+                    buildSearchSection(),
+                    const SizedBox(height: 20),
+                    buildBloodDonationTile(context),
+                    const SizedBox(height: 20),
+                    _buildToggleButtons(),
+                    Expanded(
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : _buildPatientList(),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
+
+
+
 
   Widget buildBloodDonationTile(BuildContext context) {
     return GestureDetector(
@@ -213,6 +317,7 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
+
   Widget buildSearchSection() {
     return Container(
       padding: const EdgeInsets.all(15),
@@ -264,6 +369,8 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
+
+
   Widget _buildDoctorProfile() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -284,7 +391,7 @@ class _HomePageContentState extends State<HomePageContent> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "Dr.bayan",
+                  "Dr. John Smith",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -301,7 +408,7 @@ class _HomePageContentState extends State<HomePageContent> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _buildProfileStat("250", "Total Patients"),
-                    _buildProfileStat("52", "Emergency Cases"),
+                   
                   ],
                 ),
               ],
@@ -311,6 +418,7 @@ class _HomePageContentState extends State<HomePageContent> {
       ),
     );
   }
+
 
   Widget _buildProfileStat(String value, String label) {
     return Column(
@@ -323,6 +431,7 @@ class _HomePageContentState extends State<HomePageContent> {
       ],
     );
   }
+
 
   Widget _buildToggleButtons() {
     return Container(
@@ -345,11 +454,11 @@ class _HomePageContentState extends State<HomePageContent> {
         onPressed: (int index) {
           setState(() {
             _showMyPatients = index == 0;
-            // استدعاء الدالة المناسبة بناءً على الاختيار
+         
             if (_showMyPatients) {
-              _fetchPatients(); // استدعاء دالة "مرضاي"
+              _fetchPatients();
             } else {
-              _fetchAllPatients(); // استدعاء دالة "كل المرضى"
+              _fetchAllPatients(); 
             }
           });
         },
@@ -375,17 +484,15 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
+
   Widget _buildPatientList() {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(15),
-          bottomRight: Radius.circular(15),
-        ),
+        borderRadius: BorderRadius.circular(15),
       ),
       child: ListView.builder(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(0),
         itemCount: _filteredPatients.length,
         itemBuilder: (context, index) {
           final patientData = _filteredPatients[index];
@@ -422,12 +529,13 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
+
   Widget _buildPatientInfoTile(
     String name,
     String details,
     Color iconColor,
     IconData actionIcon,
-    String patientId, // إضافة معامل لاستقبال الـ ID
+    String patientId, 
   ) {
     return ListTile(
       leading: CircleAvatar(
@@ -448,11 +556,19 @@ class _HomePageContentState extends State<HomePageContent> {
   }
 }
 
+
+
+
+
+////////////////////////////////////////
+
+
+
 class NotificationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Set the background color to white
+      backgroundColor: Colors.white, 
       appBar: AppBar(
         title: const Text("Notifications"),
         backgroundColor: const Color(0xff613089),
@@ -476,7 +592,7 @@ class NotificationsPage extends StatelessWidget {
               subtitle: "Central Clinic | Last donation: 25 days ago",
               urgencyLevel: "Moderate",
             ),
-            _buildBloodSugarTracking(), // Add the blood sugar tracking section here
+            _buildBloodSugarTracking(), 
           ],
         ),
       ),
@@ -495,8 +611,8 @@ class NotificationsPage extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      color: Colors.white, // Set the notification background to white
-      elevation: 4, // Maintain a slight shadow for separation
+      color: Colors.white, 
+      elevation: 4, 
       child: ListTile(
         contentPadding: const EdgeInsets.all(15.0),
         leading: CircleAvatar(

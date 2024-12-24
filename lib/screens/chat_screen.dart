@@ -123,7 +123,7 @@ class _ChatPageState extends State<ChatPage> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color.fromARGB(255, 105, 10, 122),
+        backgroundColor: const Color(0xff613089),
         leading: const BackButton(color: Colors.white),
         title: Row(
           children: [
