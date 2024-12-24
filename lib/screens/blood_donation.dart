@@ -442,42 +442,41 @@ _hospitalCity = city;
 
 
 Future<void> _submitForm() async {
+  if (selectedBloodType == null || _hospitalCity == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Please select a blood type and hospital city.")),
+    );
+    return;
+  }
+
   final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/users'));
- var bloodType='';
+
   if (response.statusCode == 200) {
     final List<dynamic> users = jsonDecode(response.body);
-
- String? requiredBloodType =selectedBloodType ;
+    String? requiredBloodType = selectedBloodType;
     String? requiredLocation = _hospitalCity;
+
     final eligibleUsers = users.where((user) {
       final publicData = user['medicalCard']['publicData'];
-       bloodType = publicData['bloodType'];
-      final lastDonationDate = DateTime.parse(publicData['lastBloodDonationDate']);
-      final location = user['location'];
-      final gender = publicData['gender'];
-final allowedDuration = gender == 'Female' 
-          ? Duration(days: 120) // 4
-          : Duration(days: 90); // 3 
+      final bloodType = publicData['bloodType'] ?? '';
+      final lastDonationDate = DateTime.tryParse(publicData['lastBloodDonationDate'] ?? '') ?? DateTime(2000);
+      final location = user['location'] ?? '';
+      final gender = publicData['gender'] ?? '';
+      final allowedDuration = gender == 'Female'
+          ? Duration(days: 120)
+          : Duration(days: 90);
       final allowedDate = DateTime.now().subtract(allowedDuration);
 
       return bloodType == requiredBloodType &&
           lastDonationDate.isBefore(allowedDate) &&
           location == requiredLocation;
     }).toList();
-print (requiredLocation);
-print(requiredBloodType);
-
 
     if (eligibleUsers.isNotEmpty) {
-      print("Eligible Users: ${eligibleUsers.length}");
       eligibleUsers.forEach((user) {
-
         _createDonationRequest(user['_id']);
-
-_sendNotification(user['_id'], "MediCardia","A chance to save a life! Blood donation needed for type $bloodType at [Hospital Name].");
-
-
-        print("Name: ${user['username']}, Phone: ${user['medicalCard']['publicData']['phoneNumber']}");
+        _sendNotification(user['_id'], "MediCardia",
+            "A chance to save a life! Blood donation needed for type $requiredBloodType at [Hospital Name].");
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -488,34 +487,35 @@ _sendNotification(user['_id'], "MediCardia","A chance to save a life! Blood dona
         SnackBar(content: Text("No eligible donors found.")),
       );
     }
-
-
   } else {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Failed to fetch users.")),
     );
-    
   }
+
 
     bloodTypes.clear();
     availableUnits.clear();
 _hospitalController.clear();
     // Navigate back to the previous page
     Navigator.pop(context);
-
-  
 }
 
+
 Future<void> _createDonationRequest(String assignedUserId) async {
- print(await storage.read(key: 'userid'));
-print(selectedUnit);
+  final userId = await storage.read(key: 'userid');
+  if (userId == null) {
+    print("User ID not found in storage.");
+    return;
+  }
+
   final Map<String, dynamic> requestPayload = {
-    'bloodType': selectedBloodType, 
-    'units' : selectedUnit.toString(),
-    'hospital':_hospitalId,  
-    'createdByDoctor': await storage.read(key: 'userid'),  
-    'requiredDate': DateTime.now().add(Duration(days: 1)).toIso8601String(),  
-    'assignedToUser': assignedUserId, 
+    'bloodType': selectedBloodType,
+    'units': selectedUnit.toString(),
+    'hospital': _hospitalId,
+    'createdByDoctor': userId,
+    'requiredDate': DateTime.now().add(Duration(days: 1)).toIso8601String(),
+    'assignedToUser': assignedUserId,
   };
 
   final response = await http.post(
@@ -527,10 +527,10 @@ print(selectedUnit);
   if (response.statusCode == 201) {
     print("Donation request added successfully.");
   } else {
-    // Handle error
-    print("Failed to add donation request: ${response.body}");
+    print("Failed to add donation request. Status code: ${response.statusCode}");
   }
 }
+
 
 void _sendNotification(String receiverId, String title, String message) async {
   final DatabaseReference usersRef = FirebaseDatabase.instance.ref('users/$receiverId');
