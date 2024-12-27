@@ -63,7 +63,11 @@ const DoctorSchema = new mongoose.Schema({
         enum: ['patient', 'doctor', 'admin'],
         default: 'doctor', 
     },
-    
+    notificationSettings: {
+       /// reminders: {type: Boolean, default: true} ,
+        messages: {type: Boolean, default: true} ,
+        requests: {type: Boolean, default: true} ,
+      },
 }, { timestamps: true });
 
 DoctorSchema.methods.generateToken = function () {

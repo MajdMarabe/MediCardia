@@ -47,20 +47,16 @@ module.exports.register = asyncHandler(async (req, res, next) => {
         },
     });
 
-    // Save doctor to database
     try {
         const result = await doctor.save();
 
-        // Trigger email verification
         const verifyResponse = await module.exports.verifyEmail({ body: { email: doctor.email } }, res, next);
         if (!verifyResponse) {
             return; // Prevent further execution if verification fails
         }
 
-        // Generate a JWT token for the doctor
         const token = doctor.generateToken();
 
-        // Remove sensitive data before sending the response
         const { password_hash, ...other } = result._doc;
 
         res.status(201).json({
@@ -124,8 +120,7 @@ module.exports.verifyEmail = asyncHandler(async (req, res, next) => {
  */
 module.exports.getAllDoctors = asyncHandler(async (req, res, next) => {
     try {
-        // Fetch all doctors from the database
-        const doctors = await Doctor.find().select('-password_hash'); // Exclude password hash for security
+        const doctors = await Doctor.find().select('-password_hash'); 
 
         if (!doctors || doctors.length === 0) {
             return res.status(404).json({ message: "No doctors found." });
@@ -137,3 +132,76 @@ module.exports.getAllDoctors = asyncHandler(async (req, res, next) => {
         res.status(500).json({ message: "There was an error retrieving the doctors." });
     }
 });
+
+
+
+
+
+
+
+/**
+ * @desc get doctor by id
+ * @route /api/doctors/:id
+ * @method get
+ * @access public 
+*/
+module.exports.getDoctorById=asyncHandler(async(req,res)=>{ 
+
+    const user = await Doctor.findById(req.params.id).populate(); 
+    if (user) {
+        res.status(200).json(user); 
+    }
+    else{
+        res.status(404).json({ message:"doctor not found"});
+    }
+});
+/**
+* @desc get settings by id
+* @route /api/doctors/:id/settings
+* @method get
+* @access public 
+*/
+module.exports.getSettings=asyncHandler(async(req,res)=>{ 
+
+const user = await Doctor.findById(req.params.id).populate(); 
+
+if (user) {
+    const Settings = user.notificationSettings;
+
+    res.status(200).json(Settings); 
+}
+else{
+    res.status(404).json({ message:"doctor not found"});
+}
+});
+/**
+* @desc    Update settings by user ID
+* @route   /api/doctors/:id/setsetting
+* @method  PUT
+* @access  public
+*/
+module.exports.updateSettings = asyncHandler(async (req, res) => {
+const userId = req.params.id;
+
+const { reminderNotifications, messageNotifications, requestNotifications } = req.body;
+
+const user = await Doctor.findById(userId);
+
+if (user) {
+  user.notificationSettings = {
+   // reminders: reminderNotifications !== undefined ? reminderNotifications : user.notificationSettings.reminderNotifications,
+    messages: messageNotifications !== undefined ? messageNotifications : user.notificationSettings.messageNotifications,
+    requests: requestNotifications !== undefined ? requestNotifications : user.notificationSettings.requestNotifications,
+  };
+
+  await user.save();
+
+  res.status(200).json({
+    message: "Notification settings updated successfully",
+    notificationSettings: user.notificationSettings,
+  });
+} else {
+  res.status(404).json({ message: "Doctor not found" });
+}
+});
+

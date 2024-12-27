@@ -208,6 +208,63 @@ module.exports.login= asyncHandler(async(req,res) =>{
             res.status(404).json({ message:"user not found"});
         }
     });
+    /**
+ * @desc get settings by id
+ * @route /api/users/:id/settings
+ * @method get
+ * @access public 
+*/
+module.exports.getSettings=asyncHandler(async(req,res)=>{ 
+
+    const user = await User.findById(req.params.id).populate(); 
+
+    if (user) {
+        const Settings = user.notificationSettings;
+
+        res.status(200).json(Settings); 
+    }
+    else{
+        res.status(404).json({ message:"user not found"});
+    }
+});
+/**
+ * @desc    Update settings by user ID
+ * @route   /api/users/:id/setsetting
+ * @method  PUT
+ * @access  public
+ */
+module.exports.updateSettings = asyncHandler(async (req, res) => {
+    // Extract the user ID from the request parameters
+    const userId = req.params.id;
+  
+    // Extract the settings from the request body
+    const { reminderNotifications, messageNotifications, requestNotifications,donationNotifications } = req.body;
+  
+    // Find the user by their ID
+    const user = await User.findById(userId);
+   
+    if (user) {
+      // Update the user's notification settings
+      user.notificationSettings = {
+        reminders: reminderNotifications !== undefined ? reminderNotifications : user.notificationSettings.reminderNotifications,
+        messages: messageNotifications !== undefined ? messageNotifications : user.notificationSettings.messageNotifications,
+        requests: requestNotifications !== undefined ? requestNotifications : user.notificationSettings.requestNotifications,
+        donation: donationNotifications !== undefined ? donationNotifications : user.notificationSettings.donationNotifications,
+    };
+  
+      // Save the updated user object
+      await user.save();
+  
+      // Return the updated settings
+      res.status(200).json({
+        message: "Notification settings updated successfully",
+        notificationSettings: user.notificationSettings,
+      });
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  });
+  
 /**
  * @desc update a user 
  * @route /api/user/:id

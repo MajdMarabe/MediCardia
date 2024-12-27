@@ -52,6 +52,12 @@ const UserSchema = new mongoose.Schema({
         enum: ['patient', 'doctor','admin'],
         default: 'patient' 
     },
+    notificationSettings: {
+        reminders: {type: Boolean, default: true} ,
+        messages: {type: Boolean, default: true} ,
+        requests: {type: Boolean, default: true} ,
+        donation:{type: Boolean, default: true} ,
+      },
     medicalCard: {
         publicData: {
             idNumber: { type: String, trim: true, default: null }, 
@@ -113,6 +119,7 @@ const UserSchema = new mongoose.Schema({
                 },
               ],
         },
+      
         permissions: {
            /* doctors: [
                 {
@@ -123,6 +130,7 @@ const UserSchema = new mongoose.Schema({
         }
         
     }
+    
     /*passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetTokenExpires: Date*/
