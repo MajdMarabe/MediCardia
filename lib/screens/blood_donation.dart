@@ -546,6 +546,7 @@ void _sendNotification(String receiverId, String title, String message) async {
           title: title,
           body: message,
           userId: receiverId,
+          type:'donation'
         );
         print('Notification sent successfully');
       } catch (error) {

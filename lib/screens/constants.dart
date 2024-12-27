@@ -11,7 +11,7 @@ class ApiConstants {
     if (kIsWeb) {
       return 'http://localhost:5001/api'; // for web
     } else {
-      return 'http://192.168.0.111:5001/api'; //for mobile  http://192.168.10.86:5001/api
+      return 'http://192.168.88.14:5001/api'; //for mobile  http://192.168.10.86:5001/api
     }
   }
 }

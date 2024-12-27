@@ -340,6 +340,7 @@ void _sendNotification(String receiverId, String title, String message) async {
           title: title,
           body: message,
           userId: receiverId,
+          type: 'message'
         );
         print('Notification sent successfully');
       } catch (error) {

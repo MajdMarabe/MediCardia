@@ -64,6 +64,10 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
               'workplace': {
                 'name': doc['workplace']?['name'] ?? 'No workplace name',
                 'address': doc['workplace']?['address'] ?? 'No address',
+                     'notificationSettings': {
+        'messages': doc['notificationSettings']?['messages'] ?? true,
+        'requests': doc['notificationSettings']?['requests'] ?? true,
+      },
               },
             };
           }).toList();

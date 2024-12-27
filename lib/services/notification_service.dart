@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_application_3/screens/constants.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:dio/dio.dart';
@@ -37,7 +38,6 @@ Future<void> requestNotificationPermissions() async {
 }
 
 
-// تهيئة FirebaseMessaging والحصول على التوكن
 Future<void> initNotifications() async {
  /* NotificationSettings settings = await FirebaseMessaging.instance.requestPermission(
     alert: true,
@@ -68,6 +68,37 @@ Future<void> sendNotifications({
   String? type,
 }) async {
   try {
+
+    final userPreferences = await fetchUserPreferences(userId);
+    if (userPreferences == null) {
+      print('Error fetching user preferences');
+      return;
+    }
+
+    if (type == 'message' && !userPreferences['messages']) {
+      print('User has disabled message notifications');
+      return;  
+    }
+
+    if (type == 'reminder' && !userPreferences['reminders']) {
+      print('User has disabled reminder notifications');
+      return;  
+    }
+
+    if (type == 'request' && !userPreferences['requests']) {
+      print('User has disabled request notifications');
+      return;  
+    }
+ if (type == 'donation' && !userPreferences['donation']) {
+      print('User has disabled donation notifications');
+      return;  
+    }
+
+
+
+
+
+
     var serverKeyAuthorization = await getAccessToken();
 
     const String urlEndPoint = "https://fcm.googleapis.com/v1/projects/majd-726c9/messages:send";
@@ -91,6 +122,37 @@ Future<void> sendNotifications({
     print('Response Data: ${response.data}');
   } catch (e) {
     print("Error sending notification: $e");
+  }
+}
+Future<Map<String, dynamic>?> fetchUserPreferences(String userId) async {
+  try {
+    final userResponse = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/users/$userId/setting'),
+    );
+    print('User response: ${userResponse.body}');
+
+    if (userResponse.statusCode == 200) {
+      final Map<String, dynamic> userData = json.decode(userResponse.body);
+      print('User data: $userData');
+      return userData; 
+    }
+
+    final doctorResponse = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/doctors/$userId/setting'),
+    );
+    print('Doctor response: ${doctorResponse.body}');
+
+    if (doctorResponse.statusCode == 200) {
+      final Map<String, dynamic> doctorData = json.decode(doctorResponse.body);
+      print('Doctor data: $doctorData');
+      return doctorData;
+    }
+
+    print('No matching user or doctor found.');
+    return null;
+  } catch (e) {
+    print('Error fetching user preferences: $e');
+    return null;
   }
 }
 
@@ -181,42 +243,49 @@ Future<void> addNotificationToDB(String userId, String title, String body) async
     print('Error adding notification to Firebase: $error');
   }
 }
-
 Future<void> scheduleReminder(TimeOfDay time, String userId) async {
-  final now = DateTime.now();
-  final scheduledDate = DateTime(now.year, now.month, now.day, time.hour, time.minute);
-
-  final tz.TZDateTime scheduledTime = scheduledDate.isBefore(DateTime.now())
-      ? tz.TZDateTime.from(scheduledDate.add(Duration(days: 1)), tz.local)
-      : tz.TZDateTime.from(scheduledDate, tz.local);
-
-  const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-    'reminder_channel', 'Reminder Notifications',
-    importance: Importance.high,
-    priority: Priority.high,
-    icon: 'app_logo',
-    color: Color(0xff613089),
-  );
-
-  const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
-await addNotificationToDB(
-    userId,
-    'Reminder: Time to measure your glucose level!',
-    'You set a reminder to measure your glucose level at ${scheduledTime.toLocal()}',
-  );
-  await flutterLocalNotificationsPlugin.zonedSchedule(
-    time.hashCode,
-    'MediCardia',
-    'Time to measure your glucose level!',
-    scheduledTime,
-    notificationDetails,
-    androidAllowWhileIdle: true,
-    uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.wallClockTime,
-    matchDateTimeComponents: DateTimeComponents.time,
-    payload: jsonEncode({'userId': userId, 'title': 'MediCardia', 'body': 'Time to measure your glucose level!'}),
-  );
+  final userPreferences = await fetchUserPreferences(userId);
   
+  if (userPreferences != null && userPreferences['reminders'] == true) {
+    final now = DateTime.now();
+    final scheduledDate = DateTime(now.year, now.month, now.day, time.hour, time.minute);
+
+    final tz.TZDateTime scheduledTime = scheduledDate.isBefore(DateTime.now())
+        ? tz.TZDateTime.from(scheduledDate.add(Duration(days: 1)), tz.local)
+        : tz.TZDateTime.from(scheduledDate, tz.local);
+
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'reminder_channel', 'Reminder Notifications',
+      importance: Importance.high,
+      priority: Priority.high,
+      icon: 'app_logo',
+      color: Color(0xff613089),
+    );
+
+    const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
+    
+    await addNotificationToDB(
+      userId,
+      'Reminder: Time to measure your glucose level!',
+      'You set a reminder to measure your glucose level at ${scheduledTime.toLocal()}',
+    );
+
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      time.hashCode,
+      'MediCardia',
+      'Time to measure your glucose level!',
+      scheduledTime,
+      notificationDetails,
+      androidAllowWhileIdle: true,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.wallClockTime,
+      matchDateTimeComponents: DateTimeComponents.time,
+      payload: jsonEncode({'userId': userId, 'title': 'MediCardia', 'body': 'Time to measure your glucose level!'}),
+    );
+  } else {
+    print('Notifications are disabled for this user.');
+  }
 }
+
 Future<void> _addReminderToDB(String userId, String title, String body, TimeOfDay time) async {
   try {
     final DatabaseReference ref = FirebaseDatabase.instance.ref('reminders').push();
@@ -225,7 +294,7 @@ Future<void> _addReminderToDB(String userId, String title, String body, TimeOfDa
       'userId': userId,
       'title': title,
       'body': body,
-      'time': time.format(DateTime.now() as BuildContext), // وقت التذكير
+      'time': time.format(DateTime.now() as BuildContext),  
       'timestamp': DateTime.now().toIso8601String(),
     });
 

@@ -1037,6 +1037,7 @@ void _sendNotification(String receiverId, String title, String message) async {
           title: title,
           body: message,
           userId: receiverId,
+          type: 'request',
         );
         print('Notification sent successfully');
       } catch (error) {

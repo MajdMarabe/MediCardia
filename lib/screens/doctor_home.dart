@@ -10,7 +10,7 @@ import 'constants.dart';
 import 'patient_view.dart';
 import 'blood_donation.dart';
 import 'package:flutter/foundation.dart';
-
+import 'notification_page.dart';
 const storage = FlutterSecureStorage();
 
 class DoctorHomePage extends StatefulWidget {
@@ -24,7 +24,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   final List<Widget> _pages = [
     HomePageContent(),
     DoctorCalendarPage(),
-    NotificationsPage(),
+    NotificationPage(),
     DoctorProfilePage(),
   ];
 
@@ -562,7 +562,7 @@ Widget build(BuildContext context) {
 
 ////////////////////////////////////////
 
-
+/*
 
 class NotificationsPage extends StatelessWidget {
   @override
@@ -715,3 +715,4 @@ class NotificationsPage extends StatelessWidget {
     );
   }
 }
+*/

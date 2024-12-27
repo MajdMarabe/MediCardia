@@ -2,9 +2,15 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_application_3/screens/constants.dart';
 import 'package:flutter_application_3/screens/user_profile.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_application_3/screens/welcome_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+const storage = FlutterSecureStorage();
 
 class DoctorProfilePage extends StatefulWidget {
   @override
@@ -41,6 +47,31 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
       ),
     );
   }
+
+
+
+
+// Function to handle log out
+  Future<void> _logOut() async {
+    // Add your logout logic here (e.g., clearing user session, etc.)
+    try {
+    await storage.deleteAll(); // Clears all stored keys and values
+    print('Storage cleared successfully.');
+  await FirebaseMessaging.instance.deleteToken();
+
+    // Navigate the user back to the welcome or login screen
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+    );
+  } catch (e) {
+    print('Error clearing storage: $e');
+  }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Logged out successfully!")),
+    );
+  }
+
+
 
 ///////////////////////////
 
@@ -89,6 +120,20 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
                       },
                     ),
                     const SizedBox(height: 10),
+                    
+                                _itemProfile(
+                      'Settings',
+                      'Go to set Settings',
+                      CupertinoIcons.settings,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => NotificationSettingsPage()),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 10),
                     _itemProfile(
                       'About Us',
                       'Learn more about us',
@@ -115,7 +160,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
                       },
                     ),
                     const SizedBox(height: 10),
-                    _itemProfile('Log Out', 'Exit your account', Icons.logout),
+                   _itemProfile('Log Out', 'Exit your account', Icons.logout, onTap: _logOut),
                   ],
                 ),
               ),
@@ -147,16 +192,19 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
   final _formProfileKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController(text: "Dr. John Smith");
   final _emailController = TextEditingController(text: "johnsmith@example.com");
+    final TextEditingController _passwordController = TextEditingController(text: "123456");
   final _phoneController = TextEditingController(text: "+1 234 567 8901");
   final _specializationController = TextEditingController(text: "Cardiologist");
   final _licenseNumberController = TextEditingController(text: "LIC12345678");
   final _workplaceNameController = TextEditingController(text: "City Hospital");
   final _workplaceAddressController =
       TextEditingController(text: "123 Main St, Springfield");
+      bool _isPasswordVisible = false;
   XFile? _imageFile;
 
   final fullNameFocusNode = FocusNode();
   final emailFocusNode = FocusNode();
+    final passwordFocusNode = FocusNode();
   final phoneFocusNode = FocusNode();
   final specializationFocusNode = FocusNode();
   final licenseFocusNode = FocusNode();
@@ -268,6 +316,14 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
           ),
         ),
         automaticallyImplyLeading: false,
+          leading: kIsWeb
+      ? null
+      : IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -372,6 +428,8 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
                             },
                           ),
                           const SizedBox(height: 15),
+                           _buildPasswordField(),
+                           const SizedBox(height: 15),
                           _buildEditableField(
                             controller: _phoneController,
                             label: "Phone",
@@ -437,6 +495,74 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
     );
   }
 
+
+
+ Widget _buildPasswordField() {
+  return Row(
+    children: [
+      Expanded(
+        child: TextFormField(
+          controller: _passwordController,
+          obscureText: !_isPasswordVisible,
+          focusNode: passwordFocusNode,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Password cannot be empty';
+            }
+            if (value.length < 6) {
+              return 'Password must be at least 6 characters long';
+            }
+            return null;
+          },
+          decoration: InputDecoration(
+            labelText: "Password",
+            labelStyle: const TextStyle(color: Color(0xff613089)),
+            hintText: 'Enter Password',
+            hintStyle: TextStyle(
+              color: Colors.grey.shade400,
+              fontSize: 14,
+              fontStyle: FontStyle.italic,
+            ),
+            prefixIcon: const Icon(Icons.lock, color: Color(0xff613089)),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: const BorderSide(
+                color: Color(0xffb41391),
+                width: 2.0,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                color: const Color(0xff613089),
+              ),
+              onPressed: () {
+                setState(() {
+                  _isPasswordVisible = !_isPasswordVisible;
+                });
+              },
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(width: 10),
+      IconButton(
+        icon: const Icon(Icons.edit, color: Color(0xff613089)),
+        onPressed: () {
+          setState(() {
+            _passwordController.clear();
+            passwordFocusNode.requestFocus();
+          });
+        },
+      ),
+    ],
+  );
+}
+
+
   void _saveProfile() {
     if (_formProfileKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -465,5 +591,185 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
     workplaceNameFocusNode.dispose();
     workplaceAddressFocusNode.dispose();
     super.dispose();
+  }
+}
+
+class NotificationSettingsPage extends StatefulWidget {
+  @override
+  _NotificationSettingsPageState createState() =>
+      _NotificationSettingsPageState();
+}
+
+class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
+  //bool remindersEnabled = true;
+  bool messagesEnabled = true;
+  bool requestsEnabled = true;
+  final storage = FlutterSecureStorage(); // For storing the user ID
+
+  // Method to fetch settings from the backend API
+  Future<void> fetchSettings() async {
+    final userId = await storage.read(key: 'userid');
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/doctors/$userId/setting'), // Replace with your API URL and user ID
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        setState(() {
+         // remindersEnabled = data['reminders'] ?? true;
+          messagesEnabled = data['messages'] ?? true;
+          requestsEnabled = data['requests'] ?? true;
+        });
+      } else {
+        print('Failed to load settings');
+      }
+    } catch (e) {
+      print('Error fetching settings: $e');
+    }
+  }
+
+  // Method to save the updated settings to the backend
+  Future<void> updateSettings() async {
+    final userId = await storage.read(key: 'userid');
+    try {
+      final response = await http.put(
+        Uri.parse('${ApiConstants.baseUrl}/doctors/$userId/setsetting'),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({
+          //'reminderNotifications': remindersEnabled,
+          'messageNotifications': messagesEnabled,
+          'requestNotifications': requestsEnabled,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        print('Settings updated successfully: ${data['notificationSettings']}');
+        // Optionally show a success message to the user
+      } else {
+        print('Failed to update settings');
+      }
+    } catch (e) {
+      print('Error updating settings: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchSettings(); // Fetch the settings when the page loads
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Notification settings'),
+        backgroundColor: Color(0xff613089),
+        elevation: 0,
+      ),
+      body: Container(
+        color: const Color.fromARGB(255, 194, 120, 211).withOpacity(0.2),
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            /*_buildNotificationCard(
+              icon: Icons.notifications_active,
+              title: 'إشعارات التذكيرات',
+              description: 'تحكم بإشعارات التذكيرات اليومية.',
+              value: remindersEnabled,
+              onChanged: (value) {
+                setState(() {
+                  remindersEnabled = value;
+                });
+                updateSettings(); // Update the settings when the user changes it
+              },
+            ),*/
+            _buildNotificationCard(
+              icon: Icons.message,
+              title: 'Notification Messages',
+              description: 'Activate or disable message notifications',
+              value: messagesEnabled,
+              onChanged: (value) {
+                setState(() {
+                  messagesEnabled = value;
+                });
+                updateSettings(); // Update the settings when the user changes it
+              },
+            ),
+            _buildNotificationCard(
+              icon: Icons.assignment_turned_in,
+              title: 'permission requests',
+              description: 'Enable or disable notifications for permission requests',
+              value: requestsEnabled,
+              onChanged: (value) {
+                setState(() {
+                  requestsEnabled = value;
+                });
+                updateSettings(); // Update the settings when the user changes it
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationCard({
+    required IconData icon,
+    required String title,
+    required String description,
+    required bool value,
+    required Function(bool) onChanged,
+  }) {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 40,
+              color: Color.fromARGB(255, 109, 8, 137),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: value,
+              onChanged: onChanged,
+              activeColor: Color.fromARGB(255, 137, 19, 180),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

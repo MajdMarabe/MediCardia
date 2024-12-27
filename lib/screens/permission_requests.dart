@@ -330,6 +330,11 @@ Future<void> _handlePermissionAction(String requestId, bool isAccepted) async {
                   Text(" is already your doctor.")),
         );
       }
+    //  _sendNotification();
+        final username  = await storage.read(key: 'username');
+
+      _sendNotification(doctorid, "Meidicardia", "$username accepts your permission request.");
+
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("An error occurred: $e")),
@@ -354,6 +359,7 @@ void _sendNotification(String receiverId, String title, String message) async {
           title: title,
           body: message,
           userId: receiverId,
+          type: 'request'
         );
         print('Notification sent successfully');
       } catch (error) {
