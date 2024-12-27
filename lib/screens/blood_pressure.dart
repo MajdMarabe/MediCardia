@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -9,8 +10,8 @@ class BloodPressureControlPage extends StatefulWidget {
 
 class _BloodPressureControlPageState extends State<BloodPressureControlPage> {
   final List<TimeOfDay> _reminderTimes = [];
-  final List<double> _systolicReadings = [120, 130, 125, 135, 128, 132, 129];
-  final List<double> _diastolicReadings = [80, 85, 82, 88, 83, 84, 86];
+  final List<double> _systolicReadings = [121, 138, 90, 120, 50, 139,150];
+  final List<double> _diastolicReadings = [84, 86, 60, 40, 100, 120, 130];
   final TextEditingController dateTimeController = TextEditingController();
 
   Future<void> _showReminderDialog(BuildContext context,
@@ -21,15 +22,12 @@ class _BloodPressureControlPageState extends State<BloodPressureControlPage> {
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.light().copyWith(
-            primaryColor: const Color(
-                0xff613089), // Apply primary color to the time picker
-            hintColor:
-                const Color(0xff9c27b0), // Accent color for time selection
+            primaryColor: const Color(0xff613089),
+            hintColor: const Color(0xff9c27b0),
             timePickerTheme: const TimePickerThemeData(
-              dialHandColor: Color(0xff613089), // Customize the dial hand
-              dialTextColor: Colors.black, // Text color inside the dial
-              backgroundColor:
-                  Colors.white, // Background color of the time picker
+              dialHandColor: Color(0xff613089),
+              dialTextColor: Colors.black,
+              backgroundColor: Colors.white,
               dayPeriodTextColor: Color(0xff613089),
             ),
           ),
@@ -58,132 +56,128 @@ class _BloodPressureControlPageState extends State<BloodPressureControlPage> {
     });
   }
 
-  Future<void> _showAddReadingDialog(BuildContext context) async {
-    final TextEditingController systolicController = TextEditingController();
-    final TextEditingController diastolicController = TextEditingController();
 
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Card(
-            color: Colors.white,
-            shape: RoundedRectangleBorder(
+
+Future<void> _showAddReadingDialog(BuildContext context) async {
+  final TextEditingController systolicController = TextEditingController();
+  final TextEditingController diastolicController = TextEditingController();
+
+  await showDialog(
+    context: context,
+    builder: (context) {
+      // تحديد العرض والارتفاع بناءً على حجم الشاشة
+      double dialogWidth = MediaQuery.of(context).size.width > 600
+          ? 600
+          : MediaQuery.of(context).size.width * 0.9;
+
+      double dialogHeight = MediaQuery.of(context).size.height >= 729.5999755859375
+          ? 300
+          : MediaQuery.of(context).size.height * 0.4;
+
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        child: Center(
+          child: Container(
+            width: dialogWidth,
+            height: dialogHeight,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
               borderRadius: BorderRadius.circular(20),
             ),
-            //elevation: 10,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxHeight:
-                    300, // Set the maximum height of the card (adjust as needed)
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Date & Time Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Date & Time',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            _selectDateTime(context, dateTimeController);
-                            print(dateTimeController.text);
-                          },
-                          child: Text(
-                            dateTimeController.text.isEmpty
-                                ? 'Select Date & Time'
-                                : dateTimeController.text,
-                            style: TextStyle(
-                                color: Colors.grey[600],
-                                fontStyle: FontStyle.italic),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Systolic Pressure Input Field
-                    _buildTextFormField(
-                      controller: systolicController,
-                      label: "Systolic Pressure",
-                      hint: "Enter Systolic Pressure",
-                      icon: Icons.favorite,
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Diastolic Pressure Input Field
-                    _buildTextFormField(
-                      controller: diastolicController,
-                      label: "Diastolic Pressure",
-                      hint: "Enter Diastolic Pressure",
-                      icon: Icons.favorite_border,
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Action Buttons inside the card
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text(
-                            'Cancel',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            final double? systolic =
-                                double.tryParse(systolicController.text);
-                            final double? diastolic =
-                                double.tryParse(diastolicController.text);
-
-                            if (systolic != null && diastolic != null) {
-                              setState(() {
-                                _systolicReadings.add(systolic);
-                                _diastolicReadings.add(diastolic);
-                              });
-                              Navigator.of(context).pop();
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF613089),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15)),
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 15, horizontal: 14),
-                          ),
-                          child: const Text(
-                            'Add Reading',
-                            style: TextStyle(fontSize: 14),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Add Blood Pressure Reading',
+                  style: TextStyle(
+                    color: Color(0xff613089),
+                    fontSize: 20,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        // Systolic Pressure Input Field
+                        _buildTextFormField(
+                          controller: systolicController,
+                          label: "Systolic Pressure",
+                          hint: "Enter Systolic Pressure",
+                          icon: Icons.favorite,
+                          keyboardType: TextInputType.number,
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Diastolic Pressure Input Field
+                        _buildTextFormField(
+                          controller: diastolicController,
+                          label: "Diastolic Pressure",
+                          hint: "Enter Diastolic Pressure",
+                          icon: Icons.favorite_border,
+                          keyboardType: TextInputType.number,
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Buttons Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text(
+                                'Cancel',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                final double? systolic =
+                                    double.tryParse(systolicController.text);
+                                final double? diastolic =
+                                    double.tryParse(diastolicController.text);
+
+                                if (systolic != null && diastolic != null) {
+                                  setState(() {
+                                    _systolicReadings.add(systolic);
+                                    _diastolicReadings.add(diastolic);
+                                  });
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF613089),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15)),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 15, horizontal: 14),
+                              ),
+                              child: const Text(
+                                'Add Reading',
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
+
+
 
   // Helper method to build text form fields
   Widget _buildTextFormField({
@@ -282,48 +276,83 @@ class _BloodPressureControlPageState extends State<BloodPressureControlPage> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF2F5FF),
-      appBar: AppBar(
+
+
+
+//////////////////////////////////////////
+
+
+@override
+Widget build(BuildContext context) {
+  int userAge = 55;
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      return Scaffold(
         backgroundColor: const Color(0xFFF2F5FF),
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: const Text(
-          'Blood Pressure Tracking',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xff613089),
-            letterSpacing: 1.5,
-          ),
-        ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
+        appBar: kIsWeb
+            ? AppBar(
+                backgroundColor: const Color(0xFFF2F5FF),
+                elevation: 0,
+                automaticallyImplyLeading: false,
+                centerTitle: true,
+                title: const Text(
+                  'Blood Pressure Tracking',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xff613089),
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              )
+            : AppBar(
+                backgroundColor: const Color(0xFFF2F5FF),
+                elevation: 0,
+                centerTitle: true,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                title: const Text(
+                  'Blood Pressure Tracking',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xff613089),
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ),
+        body: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildInfoSection(),
-                const SizedBox(height: 20),
-                _buildGraphSection(),
-                const SizedBox(height: 20),
-                _buildReminderSection(context),
-              ],
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 40.0),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: constraints.maxWidth > 600 ? 800 : double.infinity,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildInfoSection(),
+                    const SizedBox(height: 20),
+                    _buildGraphSectionWithBackground(userAge),
+                     const SizedBox(height: 20),
+                    _buildReminderSection(context),
+                   
+                  ],
+                ),
+              ),
             ),
           ),
         ),
-      ),
-    );
-  }
+      );
+    },
+  );
+}
+
+
+
 
   Widget _buildInfoSection() {
     return Container(
@@ -380,7 +409,7 @@ class _BloodPressureControlPageState extends State<BloodPressureControlPage> {
               'Add Reading',
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
+              
                 color: Colors.white,
               ),
             ),
@@ -390,112 +419,515 @@ class _BloodPressureControlPageState extends State<BloodPressureControlPage> {
     );
   }
 
-  Widget _buildGraphSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 8,
-            spreadRadius: 4,
+
+
+ Widget _buildGraphSectionWithBackground(int age) {
+  return Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.1),
+          blurRadius: 8,
+          spreadRadius: 4,
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Blood Pressure (Weekly Readings)',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Color(0xff613089),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Blood Pressure (Week Readings)',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Color(0xff613089),
-            ),
-          ),
-          const SizedBox(height: 10),
-          GestureDetector(
-            onTap: () {
+        ),
+        const SizedBox(height: 10),
+        _buildSystolicPressureChart(age),
+        const SizedBox(height: 16),
+        _buildDiastolicPressureChart(age),
+        const SizedBox(height: 20),
+        Center(
+          child: ElevatedButton(
+            onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => GraphDetailsPage()),
               );
             },
-            child: SizedBox(
-              height: 200,
-              child: LineChart(
-                LineChartData(
-                  gridData: const FlGridData(show: false),
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        interval: 20,
-                        reservedSize: 40,
-                        getTitlesWidget: (value, meta) => Text(
-                          '${value.toInt()}',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 30,
-                        getTitlesWidget: (value, meta) => Text(
-                          'Day ${value.toInt()}',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ),
-                  ),
-                  borderData: FlBorderData(
-                    show: true,
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: List.generate(
-                          _systolicReadings.length,
-                          (index) => FlSpot(
-                              index.toDouble(), _systolicReadings[index])),
-                      isCurved: true,
-                      color: const Color(0xFF9B4F96),
-                      barWidth: 4,
-                      isStrokeCapRound: true,
-                    ),
-                    LineChartBarData(
-                      spots: List.generate(
-                          _diastolicReadings.length,
-                          (index) => FlSpot(
-                              index.toDouble(), _diastolicReadings[index])),
-                      isCurved: true,
-                      color: const Color(0xFF536DFE),
-                      barWidth: 4,
-                      isStrokeCapRound: true,
-                    ),
-                  ],
-                ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff613089), 
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              textStyle: const TextStyle(
+                fontSize: 16, 
+              ),
+            ),
+            child: const Text(
+              'View Detailed Graphs',
+              style: TextStyle(
+                color: Colors.white,
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildLegendItem(
-                  color: const Color(0xFF9B4F96), label: 'Systolic Pressure'),
-              const SizedBox(width: 16),
-              _buildLegendItem(
-                  color: const Color(0xFF536DFE), label: 'Diastolic Pressure'),
-            ],
-          ),
-        ],
+        ),
+      ],
+    ),
+  );
+}
+
+
+
+
+
+
+Widget _buildSystolicPressureChart(int age) {
+  double chartHeight = 200;
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Systolic Pressure',
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Color(0xff613089),
+        ),
       ),
+      const SizedBox(height: 10),
+      GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => GraphDetailsPage()),
+          );
+        },
+        child: SizedBox(
+          height: chartHeight,
+          child: LineChart(
+            LineChartData(
+              gridData: FlGridData(
+                show: true,
+                drawHorizontalLine: true,
+                horizontalInterval: 10,
+                getDrawingHorizontalLine: (value) {
+                  Color lineColor;
+
+                  if (value == 90) {
+                    lineColor = Colors.blue.withOpacity(0.5); // ضغط منخفض
+                  } else if (age < 30) {
+                    if (value == 120) {
+                      lineColor = Colors.green.withOpacity(0.5); // طبيعي
+                    }  else {
+                      lineColor = Colors.transparent; // مرتفع
+                    }
+                  } else if (age >= 30 && age <= 50) {
+                    if (value == 130) {
+                      lineColor = Colors.green.withOpacity(0.5); // طبيعي
+                    }  else {
+                      lineColor = Colors.transparent; // مرتفع
+                    }
+                  } else {
+                    if (value == 140) {
+                      lineColor = Colors.green.withOpacity(0.5); // طبيعي
+                    }
+                     else {
+                      lineColor = Colors.transparent; // مرتفع
+                    }
+                  }
+
+                  return FlLine(
+                    color: lineColor,
+                    strokeWidth: 1.5,
+                  );
+                },
+              ),
+              titlesData: FlTitlesData(
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    interval: 10,
+                    reservedSize: 40,
+                    getTitlesWidget: (value, meta) {
+                      return Text(
+                        '${value.toInt()}',
+                        style: const TextStyle(fontSize: 12),
+                      );
+                    },
+                  ),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 30,
+                    getTitlesWidget: (value, meta) {
+                      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+                      final index = value.toInt();
+                      if (index >= 0 && index < days.length) {
+                        return Text(days[index], style: const TextStyle(fontSize: 12));
+                      }
+
+                      return const Text('');
+                    },
+                  ),
+                ),
+              ),
+              borderData: FlBorderData(
+                show: true,
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              lineBarsData: [
+                LineChartBarData(
+                  spots: List.generate(
+                    _systolicReadings.length,
+                    (index) => FlSpot(index.toDouble(), _systolicReadings[index]),
+                  ),
+                  isCurved: true,
+                  barWidth: 4,
+                  isStrokeCapRound: true,
+                  color: const Color(0xFF9B4F96), 
+                ),
+              ],
+              extraLinesData: ExtraLinesData(
+                horizontalLines: [
+                  HorizontalLine(
+                    y: 90,
+                    color: Colors.blue.withOpacity(0.2),
+                    strokeWidth: 1.5,
+                    label: HorizontalLineLabel(
+                      show: true,
+                      alignment: Alignment.center,
+                      style: const TextStyle(fontSize: 12, color: Colors.blue, fontWeight: FontWeight.bold),
+                      labelResolver: (line) => '\n\nLow', 
+                    ),
+                  ),
+                  if (age < 30) ...[
+                    HorizontalLine(
+                      y: 120,
+                      color: Colors.green.withOpacity(0.2),
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nNormal',
+                      ),
+                    ),
+                    HorizontalLine(
+                      y: 140,
+                      color: Colors.transparent,
+                      //strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\nHigh',
+                      ),
+                    ),
+                  ],
+                  if (age >= 30 && age <= 50) ...[
+                    HorizontalLine(
+                      y: 130,
+                      color: Colors.green.withOpacity(0.2),
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nNormal',
+                      ),
+                    ),
+                    HorizontalLine(
+                      y: 160,
+                      color: Colors.transparent,
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nHigh',
+                      ),
+                    ),
+                  ],
+                  if (age > 50) ...[
+                    HorizontalLine(
+                      y: 140,
+                      color: Colors.green.withOpacity(0.2),
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nNormal',
+                      ),
+                    ),
+                    HorizontalLine(
+                      y: 180,
+                      color: Colors.transparent,
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nHigh',
+                      ),
+                    ),
+                    HorizontalLine(
+                      y: 180,
+                      color: Colors.transparent,
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nHigh',
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+
+
+
+
+
+
+Widget _buildDiastolicPressureChart(int age) {
+  double chartHeight = 200;
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Diastolic Pressure',
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Color(0xff613089),
+        ),
+      ),
+      const SizedBox(height: 10),
+      GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => GraphDetailsPage()),
+          );
+        },
+        child: SizedBox(
+          height: chartHeight,
+          child: LineChart(
+            LineChartData(
+              gridData: FlGridData(
+                show: true,
+                drawHorizontalLine: true,
+                horizontalInterval: 5,
+                getDrawingHorizontalLine: (value) {
+                  Color lineColor;
+                  double lineWidth;
+
+                 
+                  if (value == 60) {
+                    lineColor = Colors.blue.withOpacity(0.5); // ضغط منخفض
+                    lineWidth = 1.5;
+                  } else if (age < 30) {
+                    if (value == 80) {
+                      lineColor = Colors.green.withOpacity(0.5); // طبيعي
+                      lineWidth = 1.5;
+                    }  else {
+                      lineColor = Colors.transparent; // مرتفع
+                      lineWidth = 1.5;
+                    }
+                  } else if (age >= 30 && age <= 50) {
+                    if (value == 85) {
+                      lineColor = Colors.green.withOpacity(0.5); // طبيعي
+                      lineWidth = 1.5;
+                    }  else {
+                      lineColor = Colors.transparent; // مرتفع
+                      lineWidth = 1.5;
+                    }
+                  } else {
+                    if (value == 90) {
+                      lineColor = Colors.green.withOpacity(0.5); // طبيعي
+                      lineWidth = 1.5;
+                    }  else {
+                      lineColor = Colors.transparent; // مرتفع
+                      lineWidth = 1.5;
+                    }
+                  }
+
+                  return FlLine(
+                    color: lineColor,
+                    strokeWidth: lineWidth,
+                  );
+                },
+              ),
+              titlesData: FlTitlesData(
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    interval: 10,
+                    reservedSize: 40,
+                    getTitlesWidget: (value, meta) {
+                      return Text(
+                        '${value.toInt()}',
+                        style: const TextStyle(fontSize: 12),
+                      );
+                    },
+                  ),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 30,
+                    getTitlesWidget: (value, meta) {
+                      const days = [
+                        'Mon',
+                        'Tue',
+                        'Wed',
+                        'Thu',
+                        'Fri',
+                        'Sat',
+                        'Sun'
+                      ];
+
+                      final index = value.toInt();
+                      if (index >= 0 && index < days.length) {
+                        return Text(
+                          days[index],
+                          style: const TextStyle(fontSize: 12),
+                        );
+                      }
+
+                      return const Text('');
+                    },
+                  ),
+                ),
+              ),
+              borderData: FlBorderData(
+                show: true,
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              lineBarsData: [
+                LineChartBarData(
+                  spots: List.generate(
+                    _diastolicReadings.length,
+                    (index) =>
+                        FlSpot(index.toDouble(), _diastolicReadings[index]),
+                  ),
+                  isCurved: true,
+                  barWidth: 4,
+                  isStrokeCapRound: true,
+                  color: const Color(0xFF536DFE),
+                ),
+              ],
+              extraLinesData: ExtraLinesData(
+                horizontalLines: [
+                  HorizontalLine(
+                    y: 60,
+                    color: Colors.blue.withOpacity(0.2),
+                    strokeWidth: 1.5,
+                    label: HorizontalLineLabel(
+                      show: true,
+                      alignment: Alignment.center,
+                      style: const TextStyle(fontSize: 12, color: Colors.blue, fontWeight: FontWeight.bold),
+                      labelResolver: (line) => '\n\nLow', 
+                    ),
+                  ),
+                  if (age < 30) ...[
+                    HorizontalLine(
+                      y: 80,
+                      color: Colors.green.withOpacity(0.2),
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nNormal',
+                      ),
+                    ),
+                    HorizontalLine(
+                      y: 100,
+                      color: Colors.transparent,
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\nHigh',
+                      ),
+                    ),
+                  ],
+                  if (age >= 30 && age <= 50) ...[
+                    HorizontalLine(
+                      y: 85,
+                      color: Colors.green.withOpacity(0.2),
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nNormal',
+                      ),
+                    ),
+                    HorizontalLine(
+                      y: 105,
+                      color: Colors.transparent,
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\nHigh',
+                      ),
+                    ),
+                  ],
+                  if (age > 50) ...[
+                    HorizontalLine(
+                      y: 90,
+                      color: Colors.green.withOpacity(0.2),
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nNormal',
+                      ),
+                    ),
+                    HorizontalLine(
+                      y: 110,
+                      color: Colors.transparent,
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\nHigh',
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      )
+      ],
     );
   }
+
+
 
   Widget _buildMeasurementCard(String label, String value, Color color) {
     return Column(
@@ -525,25 +957,26 @@ class _BloodPressureControlPageState extends State<BloodPressureControlPage> {
     );
   }
 
-  Widget _buildLegendItem({required Color color, required String label}) {
-    return Row(
-      children: [
-        Container(
-          width: 16,
-          height: 16,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        ),
-      ],
-    );
-  }
+  // Widget _buildLegendItem({required Color color, required String label}) {
+  //   return Row(
+  //     children: [
+  //       Container(
+  //         width: 16,
+  //         height: 16,
+  //         decoration: BoxDecoration(
+  //           color: color,
+  //           borderRadius: BorderRadius.circular(4),
+  //         ),
+  //       ),
+  //       const SizedBox(width: 8),
+  //       Text(
+  //         label,
+  //         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+  //       ),
+  //     ],
+  //   );
+  // }
+
 
   Widget _buildReminderSection(BuildContext context) {
     return Container(
@@ -634,7 +1067,15 @@ class _BloodPressureControlPageState extends State<BloodPressureControlPage> {
   }
 }
 
+
+
+
+
 ////////////////////////////////////////////////////
+
+
+
+
 
 class GraphDetailsPage extends StatefulWidget {
   @override
@@ -654,22 +1095,31 @@ class _GraphDetailsPageState extends State<GraphDetailsPage> {
     setState(() {
       pressureData = {
         'today': {
-          'avgSystolic': 120.0,
-          'avgDiastolic': 80.0,
-          'systolicLevels': [120.0, 125.0, 130.0, 115.0, 110.0, 118.0],
-          'diastolicLevels': [80.0, 82.0, 78.0, 76.0, 79.0, 81.0],
+         
+          'systolicLevels': [
+            120.0,
+            125.0,
+            130.0,
+            115.0,
+            110.0,
+            118.0,
+            140.0,
+            150.0,
+            40.0,
+            60.0,
+            170.0
+          ],
+          'diastolicLevels': [80.0, 82.0, 78.0, 76.0, 79.0, 81.0,60.5,90.0,70.0,50.0,40.0],
           'labels': ['8 AM', '10 AM', '12 PM', '2 PM', '4 PM', '6 PM'],
         },
         'week': {
-          'avgSystolic': 118.0,
-          'avgDiastolic': 79.0,
-          'systolicLevels': [120.0, 122.0, 118.0, 115.0, 121.0, 119.0, 123.0],
-          'diastolicLevels': [80.0, 81.0, 78.0, 79.0, 77.0, 76.0, 80.0],
+          
+          'systolicLevels': [120.0, 122.0, 118.0, 115.0, 121.0, 119.0, 123.0,99.0,95.0,100.0,140.0,80.0],
+          'diastolicLevels': [80.0, 81.0, 78.0, 79.0, 77.0, 76.0, 80.0,90.0,100.0,110.0,120.0,100.0,40.0,20.0],
           'labels': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         },
         'month': {
-          'avgSystolic': 119.0,
-          'avgDiastolic': 78.0,
+       
           'systolicLevels': [120.0, 122.0, 119.0, 118.0],
           'diastolicLevels': [80.0, 81.0, 79.0, 78.0],
           'labels': ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
@@ -678,89 +1128,134 @@ class _GraphDetailsPageState extends State<GraphDetailsPage> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
+@override
+Widget build(BuildContext context) {
+  int age = 22;
+
+  return DefaultTabController(
+    length: 3,
+    child: Scaffold(
+      backgroundColor: const Color(0xFFF2F5FF),
+           appBar: kIsWeb
+    ? AppBar(
         backgroundColor: const Color(0xFFF2F5FF),
-        appBar: AppBar(
-          backgroundColor: const Color(0xFFF2F5FF),
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          centerTitle: true,
-          title: const Text(
-            'Your Blood Pressure',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Color(0xff613089),
-              letterSpacing: 1.5,
-            ),
-          ),
-          bottom: const TabBar(
-            indicatorColor: Color(0xff613089),
-            labelColor: Color(0xff613089),
-            unselectedLabelColor: Colors.black54,
-            labelStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            indicatorWeight: 3,
-            tabs: [
-              Tab(text: 'Today'),
-              Tab(text: 'Week'),
-              Tab(text: 'Month'),
-            ],
+        elevation: 0,
+        automaticallyImplyLeading: false, 
+        centerTitle: true,
+        title: const Text(
+          'Your Blood Pressure Reading',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xff613089),
+            letterSpacing: 1.5,
           ),
         ),
-        body: pressureData == null
-            ? const Center(child: CircularProgressIndicator())
-            : Builder(
-                builder: (context) {
-                  return TabBarView(
-                    children: [
-                      _buildGraphSection(
-                        systolicLevels: List<double>.from(
-                            pressureData!['today']['systolicLevels']),
-                        diastolicLevels: List<double>.from(
-                            pressureData!['today']['diastolicLevels']),
-                        labels:
-                            List<String>.from(pressureData!['today']['labels']),
-                        period: 'Today',
-                      ),
-                      _buildGraphSection(
-                        systolicLevels: List<double>.from(
-                            pressureData!['week']['systolicLevels']),
-                        diastolicLevels: List<double>.from(
-                            pressureData!['week']['diastolicLevels']),
-                        labels:
-                            List<String>.from(pressureData!['week']['labels']),
-                        period: 'Week',
-                      ),
-                      _buildGraphSection(
-                        systolicLevels: List<double>.from(
-                            pressureData!['month']['systolicLevels']),
-                        diastolicLevels: List<double>.from(
-                            pressureData!['month']['diastolicLevels']),
-                        labels:
-                            List<String>.from(pressureData!['month']['labels']),
-                        period: 'Month',
-                      ),
-                    ],
-                  );
-                },
-              ),
+      
+        bottom: const TabBar(
+          indicatorColor: Color(0xff613089),
+          labelColor: Color(0xff613089),
+          unselectedLabelColor: Colors.black54,
+          labelStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          indicatorWeight: 3,
+          tabs: [
+            Tab(text: 'Today'),
+            Tab(text: 'Week'),
+            Tab(text: 'Month'),
+          ],
+        ),
+      )
+    : AppBar(
+        backgroundColor: const Color(0xFFF2F5FF),
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: const Text(
+          'Your Blood Pressure',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xff613089),
+            letterSpacing: 1.5,
+          ),
+        ),
+      
+        bottom: const TabBar(
+          indicatorColor: Color(0xff613089),
+          labelColor: Color(0xff613089),
+          unselectedLabelColor: Colors.black54,
+          labelStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          indicatorWeight: 3,
+          tabs: [
+            Tab(text: 'Today'),
+            Tab(text: 'Week'),
+            Tab(text: 'Month'),
+          ],
+        ),
       ),
-    );
-  }
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return pressureData == null
+              ? const Center(child: CircularProgressIndicator())
+              : Builder(
+                  builder: (context) {
+                    return Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: constraints.maxWidth > 600 ? 900 : double.infinity,
+                        ),
+                        child: TabBarView(
+                          children: [
+                            _buildGraphSection(
+                              age: age,
+                              systolicLevels: List<double>.from(
+                                  pressureData!['today']['systolicLevels']),
+                              diastolicLevels: List<double>.from(
+                                  pressureData!['today']['diastolicLevels']),
+                              labels: List<String>.from(pressureData!['today']['labels']),
+                              period: 'Today',
+                            ),
+                            _buildGraphSection(
+                              age: age,
+                              systolicLevels: List<double>.from(
+                                  pressureData!['week']['systolicLevels']),
+                              diastolicLevels: List<double>.from(
+                                  pressureData!['week']['diastolicLevels']),
+                              labels: List<String>.from(pressureData!['week']['labels']),
+                              period: 'Week',
+                            ),
+                            _buildGraphSection(
+                              age: age,
+                              systolicLevels: List<double>.from(
+                                  pressureData!['month']['systolicLevels']),
+                              diastolicLevels: List<double>.from(
+                                  pressureData!['month']['diastolicLevels']),
+                              labels: List<String>.from(pressureData!['month']['labels']),
+                              period: 'Month',
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+        },
+      ),
+    ),
+  );
+}
+
+
 
   Widget _buildGraphSection({
     required List<double> systolicLevels,
     required List<double> diastolicLevels,
     required List<String> labels,
     required String period,
+    required int age,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -787,104 +1282,437 @@ class _GraphDetailsPageState extends State<GraphDetailsPage> {
             ),
           ),
           const SizedBox(height: 10),
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => GraphDetailsPage()),
-              );
-            },
-            child: SizedBox(
-              height: 200,
-              child: LineChart(
-                LineChartData(
-                  gridData: const FlGridData(show: false),
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        interval: 20,
-                        reservedSize: 40,
-                        getTitlesWidget: (value, meta) => Text(
-                          '${value.toInt()}',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 30,
-                        getTitlesWidget: (value, meta) => Text(
-                          labels[value.toInt() % labels.length],
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ),
-                  ),
-                  borderData: FlBorderData(
-                    show: true,
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: List.generate(
-                          systolicLevels.length,
-                          (index) =>
-                              FlSpot(index.toDouble(), systolicLevels[index])),
-                      isCurved: true,
-                      color: const Color(0xFF9B4F96),
-                      barWidth: 4,
-                      isStrokeCapRound: true,
-                    ),
-                    LineChartBarData(
-                      spots: List.generate(
-                          diastolicLevels.length,
-                          (index) =>
-                              FlSpot(index.toDouble(), diastolicLevels[index])),
-                      isCurved: true,
-                      color: const Color(0xFF536DFE),
-                      barWidth: 4,
-                      isStrokeCapRound: true,
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          _buildSystolicPressureChart(
+            age: age,
+            systolicLevels: systolicLevels,
+            labels: labels,
           ),
           const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildLegendItem(
-                  color: const Color(0xFF9B4F96), label: 'Systolic Pressure'),
-              const SizedBox(width: 16),
-              _buildLegendItem(
-                  color: const Color(0xFF536DFE), label: 'Diastolic Pressure'),
-            ],
+          _buildDiastolicPressureChart(
+            age: age,
+            diastolicLevels: diastolicLevels,
+            labels: labels,
           ),
         ],
       ),
     );
   }
-}
 
-Widget _buildLegendItem({required Color color, required String label}) {
-  return Row(
-    children: [
-      Container(
-        width: 16,
-        height: 16,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(4),
+  Widget _buildSystolicPressureChart({
+    required int age,
+    required List<double> systolicLevels,
+    required List<String> labels,
+  }) {
+    double chartHeight = 200;
+
+   
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Systolic Pressure',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Color(0xff613089),
+          ),
         ),
-      ),
-      const SizedBox(width: 8),
-      Text(
-        label,
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-      ),
-    ],
-  );
+        const SizedBox(height: 10),
+        SizedBox(
+          height: chartHeight,
+          child: LineChart(
+            LineChartData(
+              gridData: FlGridData(
+                show: true,
+                drawHorizontalLine: true,
+                horizontalInterval: 10,
+                getDrawingHorizontalLine: (value) {
+                  Color lineColor;
+
+                  if (value == 90) {
+                    lineColor = Colors.blue.withOpacity(0.5); // ضغط منخفض
+                  } else if (age < 30) {
+                    if (value == 120) {
+                      lineColor = Colors.green.withOpacity(0.5); // طبيعي
+                    }  else {
+                      lineColor = Colors.transparent; // مرتفع
+                    }
+                  } else if (age >= 30 && age <= 50) {
+                    if (value == 130) {
+                      lineColor = Colors.green.withOpacity(0.5); // طبيعي
+                    }  else {
+                      lineColor = Colors.transparent; // مرتفع
+                    }
+                  } else {
+                    if (value == 140) {
+                      lineColor = Colors.green.withOpacity(0.5); // طبيعي
+                    }
+                     else {
+                      lineColor = Colors.transparent; // مرتفع
+                    }
+                  }
+
+                  return FlLine(
+                    color: lineColor,
+                    strokeWidth: 1.5,
+                  );
+                },
+              ),
+              titlesData: FlTitlesData(
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    interval: 10,
+                    reservedSize: 40,
+                    getTitlesWidget: (value, meta) {
+                      return Text(
+                        '${value.toInt()}',
+                        style: const TextStyle(fontSize: 12),
+                      );
+                    },
+                  ),
+                ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (double value, TitleMeta meta) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            labels[value.toInt() % labels.length],
+                            style: const TextStyle(color: Colors.black54, fontSize: 12),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+              ),
+              borderData: FlBorderData(
+                show: true,
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              lineBarsData: [
+                LineChartBarData(
+                  spots: List.generate(
+                    systolicLevels.length,
+                    (index) => FlSpot(index.toDouble(), systolicLevels[index]),
+                  ),
+                  isCurved: true,
+                  barWidth: 4,
+                  isStrokeCapRound: true,
+                  color: const Color(0xFF9B4F96),
+                ),
+              ],
+                            extraLinesData: ExtraLinesData(
+                horizontalLines: [
+                  HorizontalLine(
+                    y: 90,
+                    color: Colors.blue.withOpacity(0.2),
+                    strokeWidth: 1.5,
+                    label: HorizontalLineLabel(
+                      show: true,
+                      alignment: Alignment.center,
+                      style: const TextStyle(fontSize: 12, color: Colors.blue, fontWeight: FontWeight.bold),
+                      labelResolver: (line) => '\n\nLow', 
+                    ),
+                  ),
+                  if (age < 30) ...[
+                    HorizontalLine(
+                      y: 120,
+                      color: Colors.green.withOpacity(0.2),
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nNormal',
+                      ),
+                    ),
+                    HorizontalLine(
+                      y: 140,
+                      color: Colors.transparent,
+                      //strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\nHigh',
+                      ),
+                    ),
+                  ],
+                  if (age >= 30 && age <= 50) ...[
+                    HorizontalLine(
+                      y: 130,
+                      color: Colors.green.withOpacity(0.2),
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nNormal',
+                      ),
+                    ),
+                    HorizontalLine(
+                      y: 160,
+                      color: Colors.transparent,
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nHigh',
+                      ),
+                    ),
+                  ],
+                  if (age > 50) ...[
+                    HorizontalLine(
+                      y: 140,
+                      color: Colors.green.withOpacity(0.2),
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nNormal',
+                      ),
+                    ),
+                    HorizontalLine(
+                      y: 180,
+                      color: Colors.transparent,
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nHigh',
+                      ),
+                    ),
+                    HorizontalLine(
+                      y: 180,
+                      color: Colors.transparent,
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nHigh',
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _buildDiastolicPressureChart({
+    required int age,
+    required List<double> diastolicLevels,
+    required List<String> labels,
+  }) {
+    double chartHeight = 200;
+
+  
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Diastolic Pressure',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Color(0xff613089),
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: chartHeight,
+           child: LineChart(
+            LineChartData(
+              gridData: FlGridData(
+                show: true,
+                drawHorizontalLine: true,
+                horizontalInterval: 5,
+                getDrawingHorizontalLine: (value) {
+                  Color lineColor;
+                  double lineWidth;
+
+                  
+                  if (value == 60) {
+                    lineColor = Colors.blue.withOpacity(0.5); // ضغط منخفض
+                    lineWidth = 1.5;
+                  } else if (age < 30) {
+                    if (value == 80) {
+                      lineColor = Colors.green.withOpacity(0.5); // طبيعي
+                      lineWidth = 1.5;
+                    }  else {
+                      lineColor = Colors.transparent; // مرتفع
+                      lineWidth = 1.5;
+                    }
+                  } else if (age >= 30 && age <= 50) {
+                    if (value == 85) {
+                      lineColor = Colors.green.withOpacity(0.5); // طبيعي
+                      lineWidth = 1.5;
+                    }  else {
+                      lineColor = Colors.transparent; // مرتفع
+                      lineWidth = 1.5;
+                    }
+                  } else {
+                    if (value == 90) {
+                      lineColor = Colors.green.withOpacity(0.5); // طبيعي
+                      lineWidth = 1.5;
+                    }  else {
+                      lineColor = Colors.transparent; // مرتفع
+                      lineWidth = 1.5;
+                    }
+                  }
+
+                  return FlLine(
+                    color: lineColor,
+                    strokeWidth: lineWidth,
+                  );
+                },
+              ),
+              titlesData: FlTitlesData(
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    interval: 10,
+                    reservedSize: 40,
+                    getTitlesWidget: (value, meta) {
+                      return Text(
+                        '${value.toInt()}',
+                        style: const TextStyle(fontSize: 12),
+                      );
+                    },
+                  ),
+                ),
+                bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (double value, TitleMeta meta) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            labels[value.toInt() % labels.length],
+                            style: const TextStyle(color: Colors.black54, fontSize: 12),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+              ),
+              borderData: FlBorderData(
+                show: true,
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              lineBarsData: [
+                LineChartBarData(
+                  spots: List.generate(
+                    diastolicLevels.length,
+                    (index) => FlSpot(index.toDouble(), diastolicLevels[index]),
+                  ),
+                  isCurved: true,
+                  barWidth: 4,
+                  isStrokeCapRound: true,
+                  color: const Color(0xFF536DFE),
+                ),
+              ],
+                            extraLinesData: ExtraLinesData(
+                horizontalLines: [
+                  HorizontalLine(
+                    y: 60,
+                    color: Colors.blue.withOpacity(0.2),
+                    strokeWidth: 1.5,
+                    label: HorizontalLineLabel(
+                      show: true,
+                      alignment: Alignment.center,
+                      style: const TextStyle(fontSize: 12, color: Colors.blue, fontWeight: FontWeight.bold),
+                      labelResolver: (line) => '\n\nLow', 
+                    ),
+                  ),
+                  if (age < 30) ...[
+                    HorizontalLine(
+                      y: 80,
+                      color: Colors.green.withOpacity(0.2),
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nNormal',
+                      ),
+                    ),
+                    HorizontalLine(
+                      y: 100,
+                      color: Colors.transparent,
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\nHigh',
+                      ),
+                    ),
+                  ],
+                  if (age >= 30 && age <= 50) ...[
+                    HorizontalLine(
+                      y: 85,
+                      color: Colors.green.withOpacity(0.2),
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nNormal',
+                      ),
+                    ),
+                    HorizontalLine(
+                      y: 105,
+                      color: Colors.transparent,
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\nHigh',
+                      ),
+                    ),
+                  ],
+                  if (age > 50) ...[
+                    HorizontalLine(
+                      y: 90,
+                      color: Colors.green.withOpacity(0.2),
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\n\nNormal',
+                      ),
+                    ),
+                    HorizontalLine(
+                      y: 110,
+                      color: Colors.transparent,
+                      strokeWidth: 1.5,
+                      label: HorizontalLineLabel(
+                        show: true,
+                        alignment: Alignment.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                        labelResolver: (line) => '\nHigh',
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }

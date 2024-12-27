@@ -214,7 +214,7 @@ Widget build(BuildContext context) {
                                   color: Colors.black87,
                                 ),
                               ),
-                              const SizedBox(height: 12.0),
+                              //const SizedBox(height: 12.0),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [

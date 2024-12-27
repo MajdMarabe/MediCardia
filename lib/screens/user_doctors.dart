@@ -45,7 +45,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
               'specialty': doctor['specialization'] ?? 'Unknown',
               'price': doctor['price'] ?? 0,
               'rating': doctor['rating'] ?? 0.0,
-              'image': doctor['image'] ?? 'assets/images/a.jpg',
+              'image': doctor['image'] ?? 'assets/images/doctor1.jpg',
             };
           }).toList();
           filteredDoctors = doctors;
@@ -242,7 +242,7 @@ class DoctorCard extends StatelessWidget {
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child: Image.network(
-             'assets/images/a.jpg',
+              doctor["image"],
               height: 170,
               width: double.infinity,
               fit: BoxFit.cover,

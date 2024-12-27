@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_3/screens/donation_requests';
+import 'package:flutter_application_3/screens/donation_requests.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
@@ -1079,19 +1079,6 @@ Widget build(BuildContext context) {
                             },
                           ),
                           const SizedBox(width: 20),
-                                   buildCircleButton(
-                            icon: Icons.favorite,
-                            label: 'Blood Donation',
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => DonationRequestsPage(),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 20),
                           buildCircleButton(
                             icon: Icons.science,
                             label: 'Lab Tests',
@@ -1130,7 +1117,56 @@ Widget build(BuildContext context) {
                               );
                             },
                           ),
-                          const SizedBox(width: 20),
+                               const SizedBox(width: 20),                       
+                            GestureDetector(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DonationRequestsPage(),
+      ),
+    );
+  },
+  child: Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              spreadRadius: 2,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Image.asset(
+            'assets/images/blood-donation.png', 
+            width: 40, 
+            height: 40, 
+            color:const Color(0xff613089) ,
+          ),
+        ),
+      ),
+      const SizedBox(height: 8),
+      const Text(
+        'Blood Donation',
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.black54,
+        ),
+      ),
+    ],
+  ),
+),
+ const SizedBox(width: 20),
                           buildCircleButton(
                             icon: FontAwesomeIcons.userMd,
                             label: 'Find Doctor',
