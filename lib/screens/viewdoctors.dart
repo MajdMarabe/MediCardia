@@ -143,20 +143,27 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
               backgroundColor: const Color(0xFFF2F5FF),
               elevation: 0,
               automaticallyImplyLeading: false,
-                actions: [
-                IconButton(
-                  icon: const Icon(Icons.notifications,
-                      color: Color(0xFF613089), size: 40),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const PermissionRequestsPage(),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                     actions: [
+  GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const PermissionRequestsPage(),
+        ),
+      );
+    },
+    child: Padding(
+      padding: const EdgeInsets.only(right: 12.0), 
+      child: Image.asset(
+        'assets/images/subsidiary.png', 
+        width: 42, 
+        height: 42,
+        color: const Color(0xFF613089),
+      ),
+    ),
+  ),
+],
             )
           : AppBar(
               backgroundColor: const Color(0xFFF2F5FF),
