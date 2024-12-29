@@ -54,9 +54,14 @@ class _SignInScreenState extends State<SignInScreen> {
           final userid = responseData['_id'];
           final token = responseData['token'];
           final role = responseData['role'];
+        if(role == 'patient') {
+  final age = responseData['medicalCard']['publicData']['age'];
+  await storage.write(key: 'age', value: age.toString());  // تحويل age إلى String
+}
 
           await storage.write(key: 'userid', value: userid);
           await storage.write(key: 'token', value: token);
+
           final userJson = jsonEncode(responseData);
           await storage.write(key: 'user', value: userJson);
         if (!kIsWeb) { 
@@ -67,6 +72,7 @@ if (Token != null) {
 });
 }
 }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Login Successful! User ID: $userid')),
           );

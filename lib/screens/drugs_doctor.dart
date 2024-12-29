@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -10,7 +11,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 const storage = FlutterSecureStorage();
 
 class MedicineListPage extends StatefulWidget {
-  
+  final String patientId;
+  const MedicineListPage({Key? key, required this.patientId}) : super(key: key);
   @override
   _MedicineListPageState createState() => _MedicineListPageState();
 }
@@ -36,7 +38,7 @@ class _MedicineListPageState extends State<MedicineListPage> {
   }
 
   Future<void> _getUserId() async {
-    userId = await storage.read(key: 'userid');
+    userId =widget.patientId;
     if (userId != null) {
       _fetchDrugs();
     }
@@ -68,9 +70,16 @@ class _MedicineListPageState extends State<MedicineListPage> {
 
             final details = drugDetails.isNotEmpty ? drugDetails[0] : null;
 
-            final endDateStr = drug['usageEndDate'];
+            var endDateStr = drug['usageEndDate'];
+          final startDateStr = drug['usageStartDate'];
+          DateTime? startDate = startDateStr != null
+              ? DateTime.tryParse(startDateStr)
+              : null;
 
-            DateTime? endDate;
+           endDateStr = drug['usageEndDate'];
+          DateTime? endDate = endDateStr != null
+              ? DateTime.tryParse(endDateStr)
+              : null;
             bool isExpired = false;
 
             if (endDateStr != null) {
@@ -88,8 +97,9 @@ class _MedicineListPageState extends State<MedicineListPage> {
               'time': details?['Time'] ?? 'No timing information',
               'notes': details?['Notes'] ?? 'No additional notes',
               'isPermanent': drug['isPermanent'],
-              'usageStartDate': drug['usageStartDate'],
-              'usageEndDate': drug['usageEndDate'],
+              'startDate': startDate,
+              'endDate': endDate,
+            
               'isExpired': isExpired,
             });
           } else {
@@ -168,7 +178,6 @@ class _MedicineListPageState extends State<MedicineListPage> {
   Future<void> _addDrug(String drugName, bool isTemporary, String? startDate,
       String? endDate) async {
     try {
-      // Prepare the request body with additional fields
       final requestBody = {
         'drugName': drugName,
         'isPermanent': !isTemporary,
@@ -176,7 +185,6 @@ class _MedicineListPageState extends State<MedicineListPage> {
         'usageEndDate': isTemporary ? endDate : null,
       };
 
-      // Make the POST request to the API
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}/users/$userId/adddrugs'),
         headers: {'Content-Type': 'application/json'},
@@ -185,7 +193,7 @@ class _MedicineListPageState extends State<MedicineListPage> {
 
       if (response.statusCode == 200) {
         _showMessage('Drug added successfully');
-        _fetchDrugs(); // Refresh the drug list
+        _fetchDrugs(); 
       } else {
         _showMessage('Failed to add drug: ${response.body}');
       }
@@ -194,7 +202,6 @@ class _MedicineListPageState extends State<MedicineListPage> {
     }
   }
 
-  // Delete Drug for the User
   Future<void> _deleteDrug(String drugName) async {
     try {
       final response = await http.delete(
@@ -218,9 +225,7 @@ class _MedicineListPageState extends State<MedicineListPage> {
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
-// Show the Add Drug Dialog with a more creative design and form fields
   void _showAddDrugDialog() {
-    // Reset the form fields before showing the dialog
     _drugNameController.clear();
     _startDateController.clear();
     _endDateController.clear();
@@ -233,11 +238,9 @@ class _MedicineListPageState extends State<MedicineListPage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            // Use MediaQuery to adjust dialog size
             double width = MediaQuery.of(context).size.width;
             double height = MediaQuery.of(context).size.height;
 
-            // Set dialog width and height dynamically for mobile/desktop
             double dialogWidth = width > 600 ? 400 : width * 0.85;
             double dialogHeight = height > 600 ? 420 : height * 40;
 
@@ -276,7 +279,6 @@ class _MedicineListPageState extends State<MedicineListPage> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Drug Name Text Field with Custom Styling
                       TextFormField(
                         controller: _drugNameController,
                         decoration: InputDecoration(
@@ -307,7 +309,6 @@ class _MedicineListPageState extends State<MedicineListPage> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Drug Type Dropdown
                       DropdownButtonFormField<String>(
                         value: _selectedDrugType,
                         items: ['Permanent', 'Temporary']
@@ -371,7 +372,6 @@ class _MedicineListPageState extends State<MedicineListPage> {
                                 ),
                               ),
                               onTap: () async {
-                                // Pass the controller and true for Start Date
                                 await _selectDateTime(
                                     context, _startDateController, true);
                               },
@@ -402,7 +402,6 @@ class _MedicineListPageState extends State<MedicineListPage> {
                                 ),
                               ),
                               onTap: () async {
-                                // Pass the controller and false for End Date
                                 await _selectDateTime(
                                     context, _endDateController, false);
                               },
@@ -412,13 +411,11 @@ class _MedicineListPageState extends State<MedicineListPage> {
 
                       const SizedBox(height: 16.0),
 
-                      // Action Buttons
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           ElevatedButton(
                             onPressed: () {
-                              // Reset the fields when canceled
                               _drugNameController.clear();
                               _startDateController.clear();
                               _endDateController.clear();
@@ -441,7 +438,6 @@ class _MedicineListPageState extends State<MedicineListPage> {
                               ),
                             ),
                           ),
-                          // Add Drug Button
                           ElevatedButton(
                             onPressed: () {
                               if (_drugNameController.text.isNotEmpty) {
@@ -488,7 +484,6 @@ class _MedicineListPageState extends State<MedicineListPage> {
     );
   }
 
-  // Show Drug Details in a Dialog
   void _showDrugDetailsDialog(Map<String, dynamic> drug) {
     showDialog(
       context: context,
@@ -582,7 +577,6 @@ class _MedicineListPageState extends State<MedicineListPage> {
     );
   }
 
-// Function to build search section (full width)
 Widget buildSearchSection() {
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -652,180 +646,229 @@ Widget buildSearchSection() {
 
 
 //////////////////////////////
+@override
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFF2F5FF),
+    appBar: AppBar(
       backgroundColor: const Color(0xFFF2F5FF),
-      appBar: kIsWeb
-          ? AppBar(
-              backgroundColor: const Color(0xFFF2F5FF),
-              elevation: 0,
-              centerTitle: true,
-              title: const Text(
-                'Medicines',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xff613089),
-                  letterSpacing: 1.5,
-                ),
-              ),
-              automaticallyImplyLeading: false,
-            )
-          : AppBar(
-              backgroundColor: const Color(0xFFF2F5FF),
-              elevation: 0,
-              centerTitle: true,
-              title: const Text(
-                'Medicines',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xff613089),
-                  letterSpacing: 1.5,
-                ),
-              ),
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
-            ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final double maxWidth =
-              constraints.maxWidth > 600 ? 1000 : constraints.maxWidth;
+      elevation: 0,
+      centerTitle: true,
+      title: const Text(
+        'Patient Medicines',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Color(0xff613089),
+          fontSize: 24,
+          letterSpacing: 1.5,
+        ),
+      ),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+    ),
+    body: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          buildSearchSection(),
 
-          return Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    buildSearchSection(),
-                    const SizedBox(height: 16),
-                    // Drugs Grid Section
-                    Expanded(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          // Adjust grid layout and aspect ratio based on screen width
-                          final bool isWeb = constraints.maxWidth > 600;
-                          final int crossAxisCount =
-                              isWeb ? 3 : 2; // More items in a row for web
-                          final double childAspectRatio = isWeb
-                              ? 1.1
-                              : 0.7; // Higher ratio for shorter items
+          const SizedBox(height: 16), 
 
-                          return drugs.isNotEmpty
-                              ? GridView.builder(
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: crossAxisCount,
-                                    crossAxisSpacing: 16,
-                                    mainAxisSpacing: 16,
-                                    childAspectRatio: childAspectRatio,
-                                  ),
-                                  itemCount: drugs.length,
-                                  itemBuilder: (context, index) {
-                                    final drug = drugs[index];
-                                    return Card(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
+          drugs.isNotEmpty
+              ? Expanded(
+                  child: ListView.builder(
+                    itemCount: drugs.length,
+                    itemBuilder: (context, index) {
+                      final drug = drugs[index];
+
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 5,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CircleAvatar(
+                                radius: 40,
+                                backgroundColor: const Color(0xff613089),
+                                child: const Icon(
+                                  Icons.medication,
+                                  size: 40,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      drug['name'] ?? 'Unknown Drug',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xff613089),
                                       ),
-                                      elevation: 5,
-                                      color: Colors.purple.shade50,
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(12.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.stretch,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Dose: ${drug['dose']}',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    if (drug['startDate'] != null)
+                                      Text(
+                                        'Start Date: ${DateFormat('dd/MM/yyyy').format(drug['startDate'])}',
+                                        style: const TextStyle(
+                                            fontSize: 14, color: Colors.black87),
+                                      ),
+                                    if (drug['endDate'] != null)
+                                      GestureDetector(
+                                        onTap: () => _editDrugEndDate(drug, index),
+                                        child: Row(
                                           children: [
-                                            Container(
-                                              alignment: Alignment.center,
-                                              child: const Icon(
-                                                Icons.medical_services,
-                                                size: 48,
-                                                color: Color(0xff613089),
-                                              ),
-                                            ),
-                                            const SizedBox(height: 12),
                                             Text(
-                                              drug['name'] ?? 'Unknown Drug',
-                                              textAlign: TextAlign.center,
+                                              'End Date: ${DateFormat('dd/MM/yyyy').format(drug['endDate'])}',
                                               style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                                  fontSize: 14,
+                                                  color: Colors.black87),
                                             ),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              '${drug['dose']}',
-                                              textAlign: TextAlign.center,
-                                              style:
-                                                  const TextStyle(fontSize: 14),
-                                            ),
-                                            const SizedBox(height: 12),
-                                            if (drug['isExpired'])
-                                              const Text(
-                                                'Not Used',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  color: Colors.red,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            const Spacer(),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                GestureDetector(
-                                                  onTap: () =>
-                                                      _showDrugDetailsDialog(
-                                                          drug),
-                                                  child: const Text(
-                                                    'View Details',
-                                                    style: TextStyle(
-                                                      color: Color(0xff613089),
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ),
-                                                IconButton(
-                                                  icon: const Icon(Icons.delete,
-                                                      color: Color(0xff613089)),
-                                                  onPressed: () {
-                                                    _deleteDrug(
-                                                        drug['name'] ?? '');
-                                                  },
-                                                ),
-                                              ],
-                                            ),
+                                            const SizedBox(width: 8),
+                                            const Icon(Icons.edit, color: Colors.blue, size: 16),
                                           ],
                                         ),
                                       ),
-                                    );
-                                  },
-                                )
-                              : const Center(child: Text('No drugs available'));
-                        },
-                      ),
+                                    if (drug['endDate'] == null && drug['startDate'] == null)
+                                      const Text(
+                                        'Its a permanent drug',
+                                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                                      ),
+                                    const SizedBox(height: 8),
+                                   if (drug['endDate'] != null && drug['startDate'] != null)
+
+                                    const Text(
+                                      'Tap on the date to change it.',
+                                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      drug['isExpired'] ? 'Expired' : 'Active',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: drug['isExpired']
+                                            ? Colors.red
+                                            : Colors.green,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.info,
+                                      color: Color(0xff613089),
+                                    ),
+                                    onPressed: () =>
+                                        _showDrugDetailsDialog(drug), 
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () =>
+                                        _deleteDrug(drug['name'] ?? ''), 
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                )
+              : const Center(
+                  child: Text(
+                    'No medicines available.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Color(0xff613089),
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          );
-        },
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddDrugDialog,
-        backgroundColor: const Color(0xff613089),
-        child: const Icon(Icons.add),
-      ),
+    ),
+    floatingActionButton: FloatingActionButton(
+      onPressed: _showAddDrugDialog,
+      backgroundColor: const Color(0xff613089),
+      child: const Icon(Icons.add),
+    ),
+  );
+}
+
+
+void _editDrugEndDate(Map<String, dynamic> drug, int index) {
+  showDatePicker(
+    context: context,
+    initialDate: drug['endDate'] ?? DateTime.now(),
+    firstDate: DateTime.now().subtract(const Duration(days: 365)),
+    lastDate: DateTime.now().add(const Duration(days: 365)),
+  ).then((selectedDate) {
+    if (selectedDate != null) {
+      setState(() {
+        drugs[index]['endDate'] = selectedDate;
+        drugs[index]['isExpired'] = selectedDate.isBefore(DateTime.now());
+      });
+      _updateDrugInDatabase(widget.patientId,drug['name'], selectedDate); 
+    }
+  });
+}
+
+
+Future<void> _updateDrugInDatabase(String userId, String drugName, DateTime newEndDate) async {
+  final url = '${ApiConstants.baseUrl}/users/$userId/updateDrugEndDate'; 
+print('innnnnnnnnnnnnnn');
+  try {
+    final formattedDate = '${newEndDate.year}-${newEndDate.month.toString().padLeft(2, '0')}-${newEndDate.day.toString().padLeft(2, '0')}';
+
+    final response = await http.put(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'drugName': drugName,
+        'newEndDate': formattedDate,
+      }),
     );
+
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+      print('Drug end date updated successfully: ${responseData['message']}');
+    } else {
+      final responseData = json.decode(response.body);
+      print('Error: ${responseData['message']}');
+    }
+  } catch (error) {
+    print('Error: $error');
   }
+}
 }

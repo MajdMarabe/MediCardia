@@ -9,6 +9,8 @@ const storage = FlutterSecureStorage();
 
 class TreatmentPlansPage extends StatefulWidget {
   @override
+  final String patientId;
+  const TreatmentPlansPage({Key? key, required this.patientId}) : super(key: key);
   _TreatmentPlansPageState createState() => _TreatmentPlansPageState();
 }
 
@@ -28,7 +30,7 @@ class _TreatmentPlansPageState extends State<TreatmentPlansPage> {
 
   Future<void> fetchTreatmentPlans() async {
     try {
-      final userId = await storage.read(key: 'userid');
+      final userId = widget.patientId;
       if (userId != null) {
         final response = await http.get(
           Uri.parse('${ApiConstants.baseUrl}/users/Gettreatmentplans/$userId'),
@@ -54,7 +56,7 @@ class _TreatmentPlansPageState extends State<TreatmentPlansPage> {
 
 
 Future<void> addTreatmentPlan(List<Map<String, dynamic>> newTreatmentPlans) async {
-  final userId = await storage.read(key: 'userid');
+  final userId = widget.patientId;
 
   if (userId != null) {
     try {
@@ -84,7 +86,7 @@ Future<void> addTreatmentPlan(List<Map<String, dynamic>> newTreatmentPlans) asyn
 
 
 Future<void> editTreatmentPlan(Map<String, dynamic> updatedPlan, int index) async {
-  final userId = await storage.read(key: 'userid'); // Get the user ID from secure storage
+  final userId = widget.patientId;// Get the user ID from secure storage
   final planId = treatmentPlans[index]['_id']; // Assuming each plan has a unique '_id'
 
   if (userId != null && planId != null) {
@@ -123,7 +125,7 @@ Future<void> deleteTreatmentPlan(int index) async {
   });
 
   // Retrieve the user ID from secure storage
-  final userId = await storage.read(key: 'userid'); 
+  final userId = widget.patientId;
   final itemId = {
     'entryId': item['_id'], // Payload containing the treatment plan ID
   };

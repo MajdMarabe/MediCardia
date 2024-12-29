@@ -10,6 +10,8 @@ const storage = FlutterSecureStorage();
 
 class MedicalHistoryPage extends StatefulWidget {
   @override
+      final String patientId;
+  const MedicalHistoryPage({Key? key, required this.patientId}) : super(key: key);
   _MedicalHistoryPageState createState() => _MedicalHistoryPageState();
 }
 
@@ -27,7 +29,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage> {
 
   Future<void> fetchMedicalHistory() async {
     try {
-      final userId = await storage.read(key: 'userid');
+      final userId = widget.patientId;
       if (userId != null) {
         final response = await http.get(
           Uri.parse('${ApiConstants.baseUrl}/users/$userId'),
@@ -53,7 +55,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage> {
 
   Future<void> updateMedicalHistory(
       int index, Map<String, dynamic> updatedItem) async {
-    final userId = await storage.read(key: 'userid');
+    final userId = widget.patientId;
     if (userId != null) {
       try {
         final response = await http.put(
@@ -90,7 +92,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage> {
     });
 
     final userId =
-        await storage.read(key: 'userid'); // Read user ID from storage
+        widget.patientId;
     final itemId = {
       'entryId': item['_id'], // Create a payload with the item ID
     };
@@ -116,7 +118,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage> {
 
   Future<void> addMedicalHistory(
       List<Map<String, dynamic>> newMedicalHistory) async {
-    final userId = await storage.read(key: 'userid');
+    final userId = widget.patientId;
 
     if (userId != null) {
       try {

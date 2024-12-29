@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter_application_3/screens/glucose_log.dart';
+import 'package:flutter_application_3/screens/glucose_log_doctor.dart';
 import 'package:flutter_application_3/services/notification_service.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -11,6 +11,8 @@ import 'package:flutter/foundation.dart';
 
 class DiabetesControlPage extends StatefulWidget {
   @override
+  final String patientId;
+  const DiabetesControlPage({Key? key, required this.patientId}) : super(key: key);
   _DiabetesControlPageState createState() => _DiabetesControlPageState();
 }
 
@@ -34,12 +36,12 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
 
   // Fetch glucose readings for the week from the API
   Future<void> fetchGlucoseReadings() async {
+     final userid=widget.patientId;
     final headers = {
       'Content-Type': 'application/json',
-      'token': await storage.read(key: 'token') ?? '',
     };
     final response = await http.get(
-      Uri.parse('${ApiConstants.baseUrl}/bloodSugar/glucoseCard'),
+      Uri.parse('${ApiConstants.baseUrl}/bloodSugar/$userid/glucoseCard'),
       headers: headers,
     );
 
@@ -80,19 +82,19 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
       },
     );
     if (time != null) {
-      final userId = await storage.read(key: 'userid');
+      final userId = widget.patientId;
       if (userId != null) {
         setState(() {
           if (existingTime == null) {
             _reminderTimes.add(time);
 
-            scheduleReminder(time, userId);
+            scheduleReminder(time, userId,'glucose');
           } else {
             int index = _reminderTimes.indexOf(existingTime);
             if (index != -1) {
               _reminderTimes[index] = time;
 
-              scheduleReminder(time, userId);
+              scheduleReminder(time, userId,'glucose');
             }
           }
         });
@@ -167,21 +169,11 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildInfoSection(),
-                      const SizedBox(height: 20),
-                      _buildQuickAddOption(
-                        icon: Icons.bloodtype,
-                        title: 'Add Glucose Reading',
-                        gradientColors: [
-                          const Color(0xff613089),
-                          const Color(0xff9c27b0)
-                        ],
-                        onTap: () => _showAddGlucoseModal(context),
-                      ),
+                   _buildHeaderText(),
                       const SizedBox(height: 25),
                       _buildGraphSection(),
                       const SizedBox(height: 32),
-                      _buildReminderSection(context),
+                      _buildInfoSection(),
                     ],
                   ),
                 ),
@@ -203,12 +195,12 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => GlucoseLogScreen()),
+                MaterialPageRoute(builder: (context) => GlucoseLogScreen(patientId:  widget.patientId)),
               );
             },
             child: _buildInfoCard(
               icon: Icons.bloodtype,
-              title: 'Glucose Log',
+              title: 'Detailed Glucose Readings',
               gradientColors: [
                 const Color(0xff613089),
                 const Color(0xff9c27b0)
@@ -269,290 +261,10 @@ Widget _buildQuickAddOption({
 
 
 
-  void _showAddGlucoseModal(BuildContext context) async {
-    const storage = FlutterSecureStorage();
-    final token = await storage.read(key: 'token');
-
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      backgroundColor: Colors.white,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Align(
-                alignment: Alignment.topRight,
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Color(0xff613089)),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ),
-              const Center(
-                child: Text(
-                  'GLUCOSE',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xff613089),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Date & Time Section
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Date & time',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        _selectDateTime(context, _dateTimeClucoseController);
-                      },
-                      child: Text(
-                        _dateTimeClucoseController.text.isEmpty
-                            ? 'Select Date & Time'
-                            : _dateTimeClucoseController.text,
-                        style: TextStyle(
-                            color: Colors.grey[600],
-                            fontStyle: FontStyle.italic),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Glucose Level Section
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xfff4e6ff),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Glucose Level',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xff613089),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      keyboardType: TextInputType.number,
-                      controller: _glucoseLevelController,
-                      decoration: InputDecoration(
-                        hintText: 'Value',
-                        hintStyle: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 14,
-                            fontStyle: FontStyle.italic),
-                        fillColor: Colors.white,
-                        filled: true,
-                        suffixText: 'mg/dl',
-                        suffixStyle: const TextStyle(color: Color(0xff613089)),
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 16.0, horizontal: 12.0),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
-                        errorText: _glucoseErrorText.isEmpty
-                            ? null
-                            : _glucoseErrorText,
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _glucoseErrorText = '';
-                        });
-
-                        final glucoseLevel = int.tryParse(value);
-                        if (glucoseLevel == null ||
-                            glucoseLevel < 50 ||
-                            glucoseLevel > 450) {
-                          setState(() {
-                            _glucoseErrorText =
-                                'Please enter a value between 50 and 450';
-                          });
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              const MealOptionButtons(primaryColor: Color(0xff613089)),
-              const SizedBox(height: 24),
-              // Save Button
-              ElevatedButton(
-                onPressed: () async {
-                  // Validate input
-                  if (_glucoseLevelController.text.isEmpty ||
-                      _dateTimeClucoseController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text("Please fill in all fields")),
-                    );
-                    return;
-                  }
-
-                  // Get glucose level and check if it's within the valid range
-                  final glucoseLevel =
-                      int.tryParse(_glucoseLevelController.text);
-                  if (glucoseLevel == null ||
-                      glucoseLevel < 50 ||
-                      glucoseLevel > 450) {
-                    setState(() {
-                      _glucoseErrorText =
-                          "Please enter a value between 50 and 450";
-                    });
-                    return;
-                  }
-
-                  const measurementType = "before_meal";
-
-                  // Call API to save the glucose level
-                  final response = await _addGlucoseReading(
-                      glucoseLevel, measurementType, token);
-                  //final data = jsonDecode(response.body);
-
-                  // Handle the response
-                  if (response != null && response.statusCode == 201) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text("Reading added successfully!")),
-                    );
-                    // Retain the date and glucose level after successful save
-                    setState(() {
-                      _dateTimeClucoseController.text = '';
-                      _glucoseLevelController.text = '';
-                    });
-
-                    Navigator.of(context).pop();
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Failed to add reading")),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
-                  backgroundColor: const Color(0xff613089),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Save',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
 ///////////////////////////////////////
 
-  Future<http.Response> _addGlucoseReading(
-      int glucoseLevel, String measurementType, String? token) async {
-    final url = Uri.parse('${ApiConstants.baseUrl}/bloodSugar/add');
 
-    final headers = {
-      'Content-Type': 'application/json',
-      'token': token ?? '',
-    };
-
-    final body = jsonEncode({
-      'glucoseLevel': glucoseLevel,
-      'measurementType': measurementType,
-      'date': _dateTimeClucoseController.text
-    });
-
-    final response = await http.post(url, headers: headers, body: body);
-
-    return response;
-  }
-
-  Future<void> _selectDateTime(
-      BuildContext context, TextEditingController controller) async {
-    DateTime selectedDate = await showDatePicker(
-          context: context,
-          initialDate: DateTime.now(),
-          firstDate: DateTime(2000),
-          lastDate: DateTime(2101),
-          builder: (BuildContext context, Widget? child) {
-            return Theme(
-              data: ThemeData.light().copyWith(
-                primaryColor: const Color(0xff613089),
-                hintColor: const Color(0xffb41391),
-                buttonTheme:
-                    const ButtonThemeData(textTheme: ButtonTextTheme.primary),
-              ),
-              child: child!,
-            );
-          },
-        ) ??
-        DateTime.now();
-
-    TimeOfDay selectedTime = await showTimePicker(
-          context: context,
-          initialTime: TimeOfDay.now(),
-          builder: (BuildContext context, Widget? child) {
-            return Theme(
-              data: ThemeData.light().copyWith(
-                primaryColor: const Color(0xff613089),
-                hintColor: const Color(0xffb41391),
-                timePickerTheme: const TimePickerThemeData(
-                  dialHandColor: Color(0xff613089),
-                  dialTextColor: Colors.black,
-                  backgroundColor: Colors.white,
-                  dayPeriodTextColor: Color(0xff613089),
-                ),
-              ),
-              child: child!,
-            );
-          },
-        ) ??
-        TimeOfDay.now();
-
-    final selectedDateTime = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      selectedTime.hour,
-      selectedTime.minute,
-    );
-
-    if (mounted) {
-      controller.text =
-          "${selectedDateTime.toLocal().toString().split(' ')[0]}, ${selectedTime.format(context)}";
-    }
-  }
 
 
 
@@ -769,6 +481,62 @@ Widget _buildQuickAddOption({
       ),
     );
   }
+  Widget _buildHeaderText() {
+  return Container(
+    padding: EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [Color.fromARGB(255, 71, 1, 74), Color.fromARGB(255, 218, 59, 246)], 
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black12,
+          blurRadius: 8,
+          offset: Offset(2, 2),
+        ),
+      ],
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.bar_chart_rounded,
+          color: Colors.white,
+          size: 40,
+        ),
+        SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Diabetes Tracking Insights',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Monitor your diabetic patients glucose control by tracking their daily, weekly, and monthly readings.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 }
 
 
@@ -776,64 +544,6 @@ Widget _buildQuickAddOption({
 /////////////////////////////////////////////
 
 
-class MealOptionButtons extends StatefulWidget {
-  final Color primaryColor;
-  const MealOptionButtons({required this.primaryColor});
-
-  @override
-  _MealOptionButtonsState createState() => _MealOptionButtonsState();
-}
-
-class _MealOptionButtonsState extends State<MealOptionButtons> {
-  String selectedMeal = '';
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildMealButton('Before Meal', Icons.fastfood, widget.primaryColor),
-        _buildMealButton(
-            'After Meal', Icons.dinner_dining, widget.primaryColor),
-      ],
-    );
-  }
-
-  Widget _buildMealButton(String text, IconData icon, Color primaryColor) {
-    bool isSelected = selectedMeal == text;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedMeal = isSelected ? '' : text;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-        decoration: BoxDecoration(
-          color:
-              isSelected ? primaryColor.withOpacity(0.15) : Colors.transparent,
-          border: isSelected
-              ? Border.all(color: primaryColor, width: 2)
-              : Border.all(color: primaryColor.withOpacity(0.3)),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: isSelected ? primaryColor : Colors.grey),
-            const SizedBox(height: 5),
-            Text(
-              text,
-              style: TextStyle(
-                color: isSelected ? primaryColor : Colors.grey,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 
 

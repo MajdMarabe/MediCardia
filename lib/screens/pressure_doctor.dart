@@ -7,10 +7,12 @@ import 'package:flutter_application_3/services/notification_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
-import 'blood_pressure_detailed.dart';
+import 'pressure_detailed_doctor.dart';
 const storage = FlutterSecureStorage();
-
+//widget.patientId;
 class BloodPressureControlPage extends StatefulWidget {
+    final String patientId;
+  const BloodPressureControlPage({Key? key, required this.patientId}) : super(key: key);
   @override
   _BloodPressureControlPageState createState() =>
       _BloodPressureControlPageState();
@@ -34,7 +36,7 @@ int age =0;
 
 Future<void> fetchPressureData() async {
     print('Fetching pressure data...'); // للتحقق
-final userid=await storage.read(key: 'userid') ?? '';
+final userid=widget.patientId;
   final  apiUrl = '${ApiConstants.baseUrl}/pressure/$userid/data'; // ضع رابط الـ API هنا
 
   try {
@@ -121,184 +123,9 @@ final userid=await storage.read(key: 'userid') ?? '';
     flutterLocalNotificationsPlugin.cancel(time.hashCode);
   }
 
-Future<void> _showAddReadingDialog(BuildContext context) async {
-  final TextEditingController systolicController = TextEditingController();
-  final TextEditingController diastolicController = TextEditingController();
-await showDialog(
-  context: context,
-  builder: (context) {
-    double dialogWidth = MediaQuery.of(context).size.width > 600
-        ? 600
-        : MediaQuery.of(context).size.width * 0.9;
-
-    double dialogHeight = MediaQuery.of(context).size.height >= 729.5999755859375
-        ? 300
-        : MediaQuery.of(context).size.height * 0.4;
-
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      child: Center(
-        child: Container(
-          width: dialogWidth,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Add Blood Pressure Reading',
-                style: TextStyle(
-                  color: Color(0xff613089),
-                  fontSize: 20,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      // Systolic Pressure Input Field
-                      _buildTextFormField(
-                        controller: systolicController,
-                        label: "Systolic Pressure",
-                        hint: "Enter Systolic Pressure",
-                        icon: Icons.favorite,
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Diastolic Pressure Input Field
-                      _buildTextFormField(
-                        controller: diastolicController,
-                        label: "Diastolic Pressure",
-                        hint: "Enter Diastolic Pressure",
-                        icon: Icons.favorite_border,
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Date & Time Row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Date & time',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              _selectDateTime(context, _dateTimeClucoseController);
-                            },
-                            child: Text(
-                              _dateTimeClucoseController.text.isEmpty
-                                  ? 'Select Date & Time'
-                                  : _dateTimeClucoseController.text,
-                              style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontStyle: FontStyle.italic),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Buttons Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-  onPressed: () async {
-    final double? systolic = double.tryParse(systolicController.text);
-    final double? diastolic = double.tryParse(diastolicController.text);
-    final String date = _dateTimeClucoseController.text;
-
-    if (systolic != null && diastolic != null && date.isNotEmpty) {
-      await addBloodPressureReading(
-        systolic: systolic,
-        diastolic: diastolic,
-        date: date,
-      );
-      Navigator.of(context).pop();
-    }
-  },
-  style: ElevatedButton.styleFrom(
-    backgroundColor: const Color(0xFF613089),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(15),
-    ),
-    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 14),
-  ),
-  child: const Text(
-    'Add Reading',
-    style: TextStyle(fontSize: 14),
-  ),
-),
-
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  },
-);
-
-}
 
 
-Future<void> addBloodPressureReading({
-  required double systolic,
-  required double diastolic,
-  required String date,
-}) async {
-    print('hiiiiiii');
 
-  final apiUrl = '${ApiConstants.baseUrl}/pressure/add';
-
-  try {
-    final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {
-      'Content-Type': 'application/json',
-      'token': await storage.read(key: 'token') ?? '',
-      },
-      body: jsonEncode({
-        'Systolic': systolic,
-        'Diastolic': diastolic,
-        'date': date,
-      }),
-    );
-
-    if (response.statusCode == 201) {
-      final responseData = jsonDecode(response.body);
-      print("Reading added successfully: ${responseData['message']}");
-    } else {
-      print("Failed to add reading: ${response.body}");
-    }
-  } catch (error) {
-    print("Error: $error");
-  }
-}
   // Helper method to build text form fields
   Widget _buildTextFormField({
     required TextEditingController controller,
@@ -458,12 +285,12 @@ Widget build(BuildContext context) {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildInfoSection(),
+                    _buildHeaderText(),
                     const SizedBox(height: 20),
                     _buildGraphSectionWithBackground(userAge),
                      const SizedBox(height: 20),
-                    _buildReminderSection(context),
-                   
+                     _buildInfoSection(),
+
                   ],
                 ),
               ),
@@ -520,28 +347,7 @@ Widget build(BuildContext context) {
 
           ),
           const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              _showAddReadingDialog(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xff613089),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 30),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              shadowColor: Colors.purple.withOpacity(0.5),
-              elevation: 5,
-            ),
-            child: const Text(
-              'Add Reading',
-              style: TextStyle(
-                fontSize: 16,
-              
-                color: Colors.white,
-              ),
-            ),
-          ),
+     
         ],
       ),
     );
@@ -584,7 +390,7 @@ Widget build(BuildContext context) {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => GraphDetailsPage()),
+                MaterialPageRoute(builder: (context) => GraphDetailsPage(patientId:widget.patientId)),
               );
             },
             style: ElevatedButton.styleFrom(
@@ -630,7 +436,7 @@ Widget _buildSystolicPressureChart(int age) {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => GraphDetailsPage()),
+            MaterialPageRoute(builder: (context) => GraphDetailsPage(patientId:widget.patientId)),
           );
         },
         child: SizedBox(
@@ -876,7 +682,7 @@ Widget _buildDiastolicPressureChart(int age) {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => GraphDetailsPage()),
+            MaterialPageRoute(builder: (context) => GraphDetailsPage(patientId:widget.patientId)),
           );
         },
         child: SizedBox(
@@ -1146,94 +952,6 @@ Widget _buildDiastolicPressureChart(int age) {
   //   );
   // }
 
-
-  Widget _buildReminderSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      width: _reminderTimes.isEmpty
-          ? MediaQuery.of(context).size.width * 0.9
-          : null,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 8,
-            spreadRadius: 4,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Set reminder(s) to measure your systolic & diastolic pressure',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xff613089),
-            ),
-          ),
-          const SizedBox(height: 20),
-          _reminderTimes.isEmpty
-              ? Text(
-                  'No reminders set.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
-                )
-              : Column(
-                  children: _reminderTimes.map((time) {
-                    return ListTile(
-                      leading: const Icon(Icons.notifications_active,
-                          color: Color(0xff613089)),
-                      title: Text(
-                        'Reminder at: ${time.format(context)}',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit,
-                                color: Color(0xff613089)),
-                            onPressed: () {
-                              _showReminderDialog(context, existingTime: time);
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete,
-                                color: Color(0xff613089)),
-                            onPressed: () {
-                              _removeReminder(time);
-                            },
-                          ),
-                        ],
-                      ),
-                      onLongPress: () {
-                        _removeReminder(time);
-                      },
-                    );
-                  }).toList(),
-                ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              _showReminderDialog(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xff613089),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 30),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-            ),
-            child: const Text('Add Reminder'),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 
@@ -1241,5 +959,62 @@ Widget _buildDiastolicPressureChart(int age) {
 
 
 ////////////////////////////////////////////////////
+
+
+Widget _buildHeaderText() {
+  return Container(
+    padding: EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [Color.fromARGB(255, 71, 1, 74), Color.fromARGB(255, 218, 59, 246)], 
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black12,
+          blurRadius: 8,
+          offset: Offset(2, 2),
+        ),
+      ],
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.bar_chart_rounded,
+          color: Colors.white,
+          size: 40,
+        ),
+        SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Diabetes Tracking Insights',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Monitor your Blood pressure patients by tracking their daily, weekly, and monthly readings.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
 

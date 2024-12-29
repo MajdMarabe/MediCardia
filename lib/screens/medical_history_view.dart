@@ -9,6 +9,7 @@ import 'package:table_calendar/table_calendar.dart';
 const storage = FlutterSecureStorage();
 
 class MedicalHistoryPage extends StatefulWidget {
+  
   @override
   _MedicalHistoryPageState createState() => _MedicalHistoryPageState();
 }

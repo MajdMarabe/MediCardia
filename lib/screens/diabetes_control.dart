@@ -34,12 +34,12 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
 
   // Fetch glucose readings for the week from the API
   Future<void> fetchGlucoseReadings() async {
+    final userid=await storage.read(key: 'userid') ?? '';
     final headers = {
       'Content-Type': 'application/json',
-      'token': await storage.read(key: 'token') ?? '',
     };
     final response = await http.get(
-      Uri.parse('${ApiConstants.baseUrl}/bloodSugar/glucoseCard'),
+      Uri.parse('${ApiConstants.baseUrl}/bloodSugar/$userid/glucoseCard'),
       headers: headers,
     );
 
@@ -86,13 +86,13 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
           if (existingTime == null) {
             _reminderTimes.add(time);
 
-            scheduleReminder(time, userId);
+            scheduleReminder(time, userId,'glucose');
           } else {
             int index = _reminderTimes.indexOf(existingTime);
             if (index != -1) {
               _reminderTimes[index] = time;
 
-              scheduleReminder(time, userId);
+              scheduleReminder(time, userId,'glucose');
             }
           }
         });

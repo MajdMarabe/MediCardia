@@ -14,6 +14,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
+import 'pressure_doctor.dart';
 
 
 const storage = FlutterSecureStorage();
@@ -23,6 +24,7 @@ class PatientViewPage extends StatefulWidget {
     final String patientId;
   const PatientViewPage({Key? key, required this.patientId}) : super(key: key);
   @override
+  
   _PatientViewPageState createState() => _PatientViewPageState();
 }
 
@@ -613,7 +615,7 @@ Widget _buildPermissionOrContent() {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => MedicineListPage()),
+                        MaterialPageRoute(builder: (context) => MedicineListPage(patientId:widget.patientId,)),
                       );
                     },
                   ),
@@ -623,7 +625,17 @@ Widget _buildPermissionOrContent() {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => DiabetesControlPage()),
+                        MaterialPageRoute(builder: (context) => DiabetesControlPage(patientId:widget.patientId)),
+                      );
+                    },
+                  ),
+                   buildSquareButton(
+                              icon: Icons.monitor_heart,
+                    label: 'Blood pressure',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => BloodPressureControlPage(patientId:widget.patientId)),
                       );
                     },
                   ),
@@ -633,7 +645,7 @@ Widget _buildPermissionOrContent() {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => LabTestsPage(patientId: userid)),
+                        MaterialPageRoute(builder: (context) => LabTestsPage(patientId: widget.patientId)),
                       );
                     },
                   ),
@@ -643,7 +655,7 @@ Widget _buildPermissionOrContent() {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => MedicalNotesPage()),
+                        MaterialPageRoute(builder: (context) => MedicalNotesPage(patientId: widget.patientId)),
                       );
                     },
                   ),
@@ -653,7 +665,7 @@ Widget _buildPermissionOrContent() {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => MedicalHistoryPage()),
+                        MaterialPageRoute(builder: (context) => MedicalHistoryPage(patientId: widget.patientId)),
                       );
                     },
                   ),
@@ -663,7 +675,7 @@ Widget _buildPermissionOrContent() {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => TreatmentPlansPage()),
+                        MaterialPageRoute(builder: (context) => TreatmentPlansPage(patientId: widget.patientId)),
                       );
                     },
                   ),

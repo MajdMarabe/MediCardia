@@ -8,19 +8,13 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 
-class GlucoseApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: GlucoseLogScreen(),
-    );
-  }
-}
+
 
 
 
 class GlucoseLogScreen extends StatefulWidget {
+  final String patientId;
+  const GlucoseLogScreen({Key? key, required this.patientId}) : super(key: key);
   @override
   _GlucoseLogScreenState createState() => _GlucoseLogScreenState();
 }
@@ -37,7 +31,7 @@ class _GlucoseLogScreenState extends State<GlucoseLogScreen> {
 
   Future<void> fetchGlucoseData() async {
     try {
-    final userid=await storage.read(key: 'userid') ?? '';
+     final userid=widget.patientId;
     final headers = {
       'Content-Type': 'application/json',
     };
@@ -83,12 +77,12 @@ class _GlucoseLogScreenState extends State<GlucoseLogScreen> {
           ),
         ),
         actions: [
-          IconButton(
+         /* IconButton(
             icon: const Icon(Icons.share, color: Color(0xff613089)),
             onPressed: () {
               _showShareDialog(context);
             },
-          ),
+          ),*/
         ],
         bottom: const TabBar(
           indicatorColor: Color(0xff613089),
@@ -114,7 +108,7 @@ class _GlucoseLogScreenState extends State<GlucoseLogScreen> {
           },
         ),
         title: const Text(
-          'Your Glucose',
+          ' Glucose Tracking',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: Color(0xff613089),
@@ -122,12 +116,12 @@ class _GlucoseLogScreenState extends State<GlucoseLogScreen> {
           ),
         ),
         actions: [
-          IconButton(
+         /* IconButton(
             icon: const Icon(Icons.share, color: Color(0xff613089)),
             onPressed: () {
               _showShareDialog(context);
             },
-          ),
+          ),*/
         ],
         bottom: const TabBar(
           indicatorColor: Color(0xff613089),

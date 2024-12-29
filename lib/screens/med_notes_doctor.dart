@@ -9,6 +9,9 @@ const storage = FlutterSecureStorage();
 
 class MedicalNotesPage extends StatefulWidget {
   @override
+   final String patientId;
+  const MedicalNotesPage({Key? key, required this.patientId}) : super(key: key);
+  @override
   _MedicalNotesPageState createState() => _MedicalNotesPageState();
 }
 
@@ -28,7 +31,7 @@ class _MedicalNotesPageState extends State<MedicalNotesPage> {
   
   Future<void> fetchMedicalNotes() async {
     try {
-      final userId = await storage.read(key: 'userid');
+      final userId = widget.patientId;
       if (userId != null) {
         final response = await http.get(
           Uri.parse('${ApiConstants.baseUrl}/users/$userId'),
@@ -54,7 +57,7 @@ class _MedicalNotesPageState extends State<MedicalNotesPage> {
 
 
 Future<void> updateMedicalNote(Map<String, dynamic> updatedItem) async {
-    final userid = await storage.read(key: 'userid');
+    final userid = widget.patientId;
 
  // final url =   Uri.parse('${ApiConstants.baseUrl}/users/$userid/medicalNotes');  // Replace with your API URL
       
@@ -82,7 +85,7 @@ Future<void> updateMedicalNote(Map<String, dynamic> updatedItem) async {
 
 
 Future<void> addMedicalNotes(String note) async {
-  final userid = await storage.read(key: 'userid');
+  final userid =widget.patientId;
   if (userid == null) {
     throw Exception('no userid');
   }
@@ -123,7 +126,7 @@ Future<void> deleteMedicalNote(int index) async {
     medicalNotes.removeAt(index);
   });
 
-  final userId = await storage.read(key: 'userid');
+  final userId = widget.patientId;
   final itemId = {
     'entryId': item['_id'],
   };

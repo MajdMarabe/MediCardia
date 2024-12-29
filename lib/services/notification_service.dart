@@ -243,7 +243,7 @@ Future<void> addNotificationToDB(String userId, String title, String body) async
     print('Error adding notification to Firebase: $error');
   }
 }
-Future<void> scheduleReminder(TimeOfDay time, String userId) async {
+Future<void> scheduleReminder(TimeOfDay time, String userId, String type) async {
   final userPreferences = await fetchUserPreferences(userId);
   
   if (userPreferences != null && userPreferences['reminders'] == true) {
@@ -263,7 +263,7 @@ Future<void> scheduleReminder(TimeOfDay time, String userId) async {
     );
 
     const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
-    
+    if(type=='glucose'){
     await addNotificationToDB(
       userId,
       'Reminder: Time to measure your glucose level!',
@@ -281,6 +281,30 @@ Future<void> scheduleReminder(TimeOfDay time, String userId) async {
       matchDateTimeComponents: DateTimeComponents.time,
       payload: jsonEncode({'userId': userId, 'title': 'MediCardia', 'body': 'Time to measure your glucose level!'}),
     );
+    }else if(type =='pressure'){
+  await addNotificationToDB(
+      userId,
+      'Reminder: Time to measure your blood pressure!',
+      'You set a reminder to measure your blood pressure at ${scheduledTime.toLocal()}',
+    );
+
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      time.hashCode,
+      'MediCardia',
+      'Time to measure your blood pressure!',
+      scheduledTime,
+      notificationDetails,
+      androidAllowWhileIdle: true,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.wallClockTime,
+      matchDateTimeComponents: DateTimeComponents.time,
+      payload: jsonEncode({'userId': userId, 'title': 'MediCardia', 'body': 'Time to measure your blood pressure!'}),
+    );
+
+
+
+
+
+    }
   } else {
     print('Notifications are disabled for this user.');
   }
