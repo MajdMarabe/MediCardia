@@ -5,6 +5,6 @@ const { verifyToken } = require("../middlewares/verifyToken");
 
 // Define the route
 router.post("/add",verifyToken, addReading);
-router.get("/glucoseCard",verifyToken, getGlucoseCardReadings);
+router.get("/:id/glucoseCard", getGlucoseCardReadings);
 
 module.exports = router;

@@ -38,11 +38,13 @@ module.exports.addReading =  asyncHandler(async (req, res) => {
 });
 /**
  * @desc Get glucose readings for GlucoseCard
- * @route /api/bloodSugar/glucoseCard
+ * @route /api/bloodSugar/:id/glucoseCard
  * @method GET
- * @access Private
+ * @access public
  */
 module.exports.getGlucoseCardReadings = asyncHandler(async (req, res) => {
+        const { id } = req.params; // User ID
+
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
@@ -52,8 +54,7 @@ module.exports.getGlucoseCardReadings = asyncHandler(async (req, res) => {
     const monthStart = new Date();
     monthStart.setDate(todayStart.getDate() - 30);
 
-    // Fetch user-specific glucose data
-    const bloodSugarData = await BloodSugar.findOne({ userId: req.user.id });
+    const bloodSugarData = await BloodSugar.findOne({ userId: id });
 
     if (!bloodSugarData) {
         return res.status(200).json({
@@ -65,7 +66,6 @@ module.exports.getGlucoseCardReadings = asyncHandler(async (req, res) => {
 
     const { readings } = bloodSugarData;
 
-    // Helper to group readings by date or week
     const groupByDate = (filteredReadings) => {
         const grouped = {};
         filteredReadings.forEach(({ glucoseLevel, date }) => {
@@ -97,7 +97,6 @@ module.exports.getGlucoseCardReadings = asyncHandler(async (req, res) => {
         }));
     };
 
-    // Filter readings by date range
     const filterByDateRange = (startDate) => {
         return readings
             .filter((reading) => new Date(reading.date) >= startDate)

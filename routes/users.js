@@ -24,6 +24,7 @@ const {
     DeleteTreatmentPlan,
     verifyEmail,
     addDrugToUser,
+    updateDrugEndDate,
     deleteDrugFromUser,
     getUserDrugs,
     addMedicalNotes,
@@ -39,6 +40,7 @@ const {
 router.post('/:id/adddrugs', addDrugToUser);
 router.delete('/:id/deletedrugs', deleteDrugFromUser);
 router.get('/:id/getUserDrugs', getUserDrugs);
+router.put("/:id/updateDrugEndDate", updateDrugEndDate);
 
 // User routes
 router.get("/", getAllUsers);

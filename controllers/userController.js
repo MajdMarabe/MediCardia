@@ -792,6 +792,61 @@ module.exports.addDrugToUser = asyncHandler(async (req, res) => {
     res.status(200).json({ message: 'Drug added to user successfully', user });
 });
 
+
+
+
+
+
+
+
+/**
+ * @desc Update Drug End Date for a User
+ * @route PUT /api/users/:id/updateDrugEndDate
+ * @method PUT
+ * @access Public
+ */
+module.exports.updateDrugEndDate = asyncHandler(async (req, res) => {
+    const { id } = req.params; 
+    const { drugName, newEndDate } = req.body; 
+    const user = await User.findById(id);
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    const drug = await Drug.findOne({ Drugname: drugName });
+    if (!drug) {
+        return res.status(404).json({ message: 'Drug not found' });
+    }
+
+    const drugEntry = user.medicalCard.publicData.Drugs.find(
+        (entry) => entry.drug.toString() === drug._id.toString()
+    );
+    
+    if (!drugEntry) {
+        return res.status(404).json({ message: 'Drug not found in user\'s medical card' });
+    }
+
+    drugEntry.usageEndDate = newEndDate;
+
+    if (newEndDate && new Date(newEndDate) < new Date()) {
+        drugEntry.isExpired = true;
+    } else {
+        drugEntry.isExpired = false;
+    }
+
+    await user.save();
+
+    res.status(200).json({ message: 'Drug end date updated successfully', user });
+});
+
+
+
+
+
+
+
+
+
    /**
  * @desc Add Drug to a User
  * @route POST /api/users/:id/adddrugs
@@ -836,21 +891,18 @@ module.exports.addDrugToUser = asyncHandler(async (req, res) => {
  */
 module.exports.deleteDrugFromUser = asyncHandler(async (req, res) => {
     const { id } = req.params; // User ID
-    const { drugName } = req.body; // Drug name sent in the request body
+    const { drugName } = req.body; 
 
-    // Find the user
     const user = await User.findById(id);
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
     }
 
-    // Find the drug by name
     const drug = await Drug.findOne({ Drugname: drugName });
     if (!drug) {
         return res.status(404).json({ message: 'Drug not found' });
     }
 
-    // Find the drug entry in the user's Drugs array
     const drugEntryIndex = user.medicalCard.publicData.Drugs.findIndex(
         (entry) => entry.drug.toString() === drug._id.toString()
     );
@@ -859,10 +911,8 @@ module.exports.deleteDrugFromUser = asyncHandler(async (req, res) => {
         return res.status(404).json({ message: 'Drug not found in user\'s records' });
     }
 
-    // Remove the drug from the user's Drugs array
     user.medicalCard.publicData.Drugs.splice(drugEntryIndex, 1);
 
-    // Save the updated user document
     await user.save();
 
     res.status(200).json({ message: 'Drug removed from user successfully', user });
@@ -900,18 +950,15 @@ module.exports.getUserDrugs = asyncHandler(async (req, res) => {
 module.exports.DeleteMedicalHistory = asyncHandler(async (req, res) => {
     const { entryId } = req.body;
 
-    // Find the user by ID
     const user = await User.findById(req.params.id);
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
     }
 
-    // Filter out the entry to delete
     user.medicalCard.privateData.medicalHistory = user.medicalCard.privateData.medicalHistory.filter(
         (entry) => entry._id.toString() !== entryId
     );
 
-    // Save the updated user document
     await user.save();
 
     res.status(200).json({ message: 'Medical history entry deleted successfully' });
@@ -926,18 +973,15 @@ module.exports.DeleteMedicalHistory = asyncHandler(async (req, res) => {
 module.exports.DeleteLabTest = asyncHandler(async (req, res) => {
     const { entryId } = req.body;
 
-    // Find the user by ID
     const user = await User.findById(req.params.id);
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
     }
 
-    // Filter out the entry to delete
     user.medicalCard.privateData.labTests = user.medicalCard.privateData.labTests.filter(
         (entry) => entry._id.toString() !== entryId
     );
 
-    // Save the updated user document
     await user.save();
 
     res.status(200).json({ message: 'Lab test entry deleted successfully' });
@@ -952,18 +996,15 @@ module.exports.DeleteLabTest = asyncHandler(async (req, res) => {
 module.exports.DeleteMedicalNote = asyncHandler(async (req, res) => {
     const { entryId } = req.body;
 
-    // Find the user by ID
     const user = await User.findById(req.params.id);
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
     }
 
-    // Filter out the entry to delete
     user.medicalCard.privateData.medicalNotes = user.medicalCard.privateData.medicalNotes.filter(
         (entry) => entry._id.toString() !== entryId
     );
 
-    // Save the updated user document
     await user.save();
 
     res.status(200).json({ message: 'Medical note entry deleted successfully' });
