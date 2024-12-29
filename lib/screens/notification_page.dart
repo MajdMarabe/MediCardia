@@ -1,13 +1,14 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'constants.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 
-final storage = FlutterSecureStorage();
+const storage = FlutterSecureStorage();
+
 class NotificationPage extends StatefulWidget {
   const NotificationPage({Key? key}) : super(key: key);
 
@@ -16,18 +17,17 @@ class NotificationPage extends StatefulWidget {
 }
 
 class _NotificationPageState extends State<NotificationPage> {
-  final storage = FlutterSecureStorage();
   List<Map<String, dynamic>> notifications = [];
-  final DatabaseReference databaseRef = FirebaseDatabase.instance.ref('notifications');
+  final DatabaseReference databaseRef =
+      FirebaseDatabase.instance.ref('notifications');
 
   @override
   void initState() {
     super.initState();
-   // _fetchNotifications();
     _fetchFirebaseNotifications();
   }
 
-  // Fetch notifications from the backend
+ // Fetch notifications from the backend
   Future<void> _fetchNotifications() async {
     try {
       final token = await storage.read(key: 'token');
@@ -134,35 +134,116 @@ class _NotificationPageState extends State<NotificationPage> {
   }
   }
 
+
+  String formatTimestamp(String timestamp) {
+    DateTime dateTime = DateTime.parse(timestamp);
+
+    //final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm');
+    //String formattedDate = formatter.format(dateTime);
+
+    final Duration difference = DateTime.now().difference(dateTime);
+    if (difference.inDays > 0) {
+      return '${difference.inDays} days ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} hours ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} minutes ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
+///////////////////////////////////
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF2F5FF),
       appBar: AppBar(
-        title: const Text("Notifications"),
-        backgroundColor: const Color(0xff613089),
+        elevation: 0,
+        centerTitle: true,
+        backgroundColor: const Color(0xFFF2F5FF),
+        title: const Text(
+          'Notifications',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xff613089),
+            letterSpacing: 1.5,
+          ),
+        ),
+        leading: kIsWeb
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
       ),
       body: notifications.isEmpty
           ? const Center(
-              child: Text(
-                "No notifications yet.",
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.notifications_off, size: 80, color: Colors.grey),
+                  SizedBox(height: 10),
+                  Text(
+                    "No notifications yet.",
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                ],
               ),
             )
           : ListView.builder(
               itemCount: notifications.length,
               itemBuilder: (context, index) {
                 final notification = notifications[index];
-                return Card(
-                  margin: const EdgeInsets.all(8),
-                  child: ListTile(
-                    title: Text(notification['title'] ?? 'No Title'),
-                    subtitle: Text(notification['body'] ?? 'No Body'),
-                    leading: const Icon(Icons.notification_important, color: Color(0xff613089)),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.close, color: Colors.red),
-                      onPressed: () {
-    _deleteNotification(notification['id']);
-                      },
+
+                return Dismissible(
+                  key: Key(notification['id']),
+                  direction: DismissDirection.endToStart,
+                  onDismissed: (direction) {
+                    _deleteNotification(notification['id']);
+                  },
+                  background: Container(
+                    color: const Color(0xFF613089),
+                    child:
+                        const Icon(Icons.delete, color: Colors.white, size: 40),
+                  ),
+                  child: Card(
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    elevation: 4,
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16),
+                      title: Text(
+                        notification['title'] ?? 'No Title',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 5),
+                          Text(notification['body'] ?? 'No Body'),
+                          const SizedBox(height: 10),
+                          Text(
+                            formatTimestamp(notification['timestamp'] ?? ''),
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                      leading: const CircleAvatar(
+                        backgroundColor: Color(0xff613089),
+                        child: Icon(Icons.notifications, color: Colors.white),
+                      ),
                     ),
                   ),
                 );

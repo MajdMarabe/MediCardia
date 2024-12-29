@@ -8,10 +8,9 @@ import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_application_3/screens/welcome_screen.dart';
 import 'constants.dart';
-
 import 'package:http/http.dart' as http;
-const storage = FlutterSecureStorage();
 
+const storage = FlutterSecureStorage();
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -41,7 +40,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-
   // Widget to create profile items
   Widget _itemProfile(String title, String subtitle, IconData iconData,
       {VoidCallback? onTap}) {
@@ -70,11 +68,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-
-
-
   //////////////////////////////////////////
-
 
   @override
   Widget build(BuildContext context) {
@@ -120,9 +114,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         );
                       },
                     ),
-                                        const SizedBox(height: 10),
-
-                                _itemProfile(
+                    const SizedBox(height: 10),
+                    _itemProfile(
                       'Settings',
                       'Go to set Settings',
                       CupertinoIcons.settings,
@@ -174,13 +167,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
-
-
-
-
 //////////////////////////// Edit Profile Page ///////////////////////////
-
-
 
 class EditProfilePage extends StatefulWidget {
   @override
@@ -188,10 +175,14 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  final TextEditingController _nameController = TextEditingController(text: "John Smith");
-  final TextEditingController _emailController = TextEditingController(text: "JohSmith@gmail.com");
-  final TextEditingController _passwordController = TextEditingController(text: "123456");
-  final TextEditingController _locationController = TextEditingController(text: "Kanada");
+  final TextEditingController _nameController =
+      TextEditingController(text: "John Smith");
+  final TextEditingController _emailController =
+      TextEditingController(text: "JohSmith@gmail.com");
+  final TextEditingController _passwordController =
+      TextEditingController(text: "123456");
+  final TextEditingController _locationController =
+      TextEditingController(text: "Kanada");
 
   final _formProfileKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
@@ -201,7 +192,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final emailFocusNode = FocusNode();
   final passwordFocusNode = FocusNode();
   final locationFocusNode = FocusNode();
-
 
   Future<String?> encodeImageToBase64(XFile? imageFile) async {
     if (imageFile == null) return null;
@@ -218,7 +208,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-
   Future<void> _selectImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? pickedFile = await picker.pickImage(
@@ -233,7 +222,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-
   @override
   void dispose() {
     _nameController.dispose();
@@ -243,11 +231,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.dispose();
   }
 
-
-
 /////////////////////////////////////////////////
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -386,7 +370,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             keyboardType: TextInputType.phone,
                           ),
                           const SizedBox(height: 15),
-            
                           _buildPasswordField(),
                         ],
                       ),
@@ -418,73 +401,70 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-
-
- Widget _buildPasswordField() {
-  return Row(
-    children: [
-      Expanded(
-        child: TextFormField(
-          controller: _passwordController,
-          obscureText: !_isPasswordVisible,
-          focusNode: passwordFocusNode,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Password cannot be empty';
-            }
-            if (value.length < 6) {
-              return 'Password must be at least 6 characters long';
-            }
-            return null;
-          },
-          decoration: InputDecoration(
-            labelText: "Password",
-            labelStyle: const TextStyle(color: Color(0xff613089)),
-            hintText: 'Enter Password',
-            hintStyle: TextStyle(
-              color: Colors.grey.shade400,
-              fontSize: 14,
-              fontStyle: FontStyle.italic,
-            ),
-            prefixIcon: const Icon(Icons.lock, color: Color(0xff613089)),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(
-                color: Color(0xffb41391),
-                width: 2.0,
+  Widget _buildPasswordField() {
+    return Row(
+      children: [
+        Expanded(
+          child: TextFormField(
+            controller: _passwordController,
+            obscureText: !_isPasswordVisible,
+            focusNode: passwordFocusNode,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Password cannot be empty';
+              }
+              if (value.length < 6) {
+                return 'Password must be at least 6 characters long';
+              }
+              return null;
+            },
+            decoration: InputDecoration(
+              labelText: "Password",
+              labelStyle: const TextStyle(color: Color(0xff613089)),
+              hintText: 'Enter Password',
+              hintStyle: TextStyle(
+                color: Colors.grey.shade400,
+                fontSize: 14,
+                fontStyle: FontStyle.italic,
               ),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                color: const Color(0xff613089),
+              prefixIcon: const Icon(Icons.lock, color: Color(0xff613089)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
               ),
-              onPressed: () {
-                setState(() {
-                  _isPasswordVisible = !_isPasswordVisible;
-                });
-              },
+              focusedBorder: OutlineInputBorder(
+                borderSide: const BorderSide(
+                  color: Color(0xffb41391),
+                  width: 2.0,
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  color: const Color(0xff613089),
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isPasswordVisible = !_isPasswordVisible;
+                  });
+                },
+              ),
             ),
           ),
         ),
-      ),
-      const SizedBox(width: 10),
-      IconButton(
-        icon: const Icon(Icons.edit, color: Color(0xff613089)),
-        onPressed: () {
-          setState(() {
-            _passwordController.clear();
-            passwordFocusNode.requestFocus();
-          });
-        },
-      ),
-    ],
-  );
-}
-
+        const SizedBox(width: 10),
+        IconButton(
+          icon: const Icon(Icons.edit, color: Color(0xff613089)),
+          onPressed: () {
+            setState(() {
+              _passwordController.clear();
+              passwordFocusNode.requestFocus();
+            });
+          },
+        ),
+      ],
+    );
+  }
 
   void _saveProfile() {
     if (_formProfileKey.currentState!.validate()) {
@@ -496,7 +476,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
       );
     }
   }
-
 
   Widget _buildEditableField({
     required TextEditingController controller,
@@ -513,9 +492,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
             controller: controller,
             focusNode: focusNode,
             keyboardType: keyboardType,
-            validator: validator ?? (value) => value == null || value.isEmpty
-                ? 'Please enter $label'
-                : null,
+            validator: validator ??
+                (value) => value == null || value.isEmpty
+                    ? 'Please enter $label'
+                    : null,
             decoration: InputDecoration(
               labelText: label,
               labelStyle: const TextStyle(color: Color(0xff613089)),
@@ -554,21 +534,92 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 }
 
-
-
 ////////////////////////////////////////////////////////////
+
+
 
 
 class AboutUsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('About Us')),
-      body: const Center(child: Text('About Us Content')),
+      backgroundColor: const Color(0xFFF2F5FF),
+      appBar: AppBar(
+        elevation: 2,
+        centerTitle: true,
+        backgroundColor: const Color(0xFFF2F5FF),
+        title: const Text(
+          'About Us',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xff613089),
+            letterSpacing: 1.5,
+          ),
+        ),
+        automaticallyImplyLeading: false,
+        leading: kIsWeb
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionTitle('Our Mission'),
+              const SizedBox(height: 10),
+              const Text(
+                'At MediCardia, our mission is to empower individuals to take control of their health through innovative technology. We aim to provide a comprehensive platform that helps users track and manage their health data, while ensuring privacy and security at all times.',
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+
+              _buildSectionTitle('Our Vision'),
+              const SizedBox(height: 10),
+              const Text(
+                'We envision a world where everyone has easy access to their health data, enabling them to make informed decisions about their well-being. Our goal is to become a trusted partner for users, doctors, and healthcare providers in managing personal health information.',
+                style: TextStyle(fontSize: 16),
+              ),
+               const SizedBox(height: 20),
+              _buildSectionTitle('Our Team'),
+              const SizedBox(height: 10),
+              const Text(
+                'We are a team of dedicated  software developers. Our team includes Anwar Aqraa and Majd Marabe. Together, we have combined our expertise to build a secure and user-friendly platform tailored to your healthcare needs.',
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+
+              _buildSectionTitle('Contact Us'),
+              const SizedBox(height: 10),
+              const Text(
+                'For any inquiries, suggestions, or feedback, feel free to contact us at support@medicardia.com. We value your input and are committed to improving our services.',
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Color(0xff613089),
+      ),
     );
   }
 }
-
 
 
 
@@ -576,15 +627,117 @@ class AboutUsPage extends StatelessWidget {
 
 
 
+
+
 class InformationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Information')),
-      body: const Center(child: Text('Information Content')),
+      backgroundColor: const Color(0xFFF2F5FF),
+      appBar: AppBar(
+        elevation: 2,
+        centerTitle: true,
+        backgroundColor: const Color(0xFFF2F5FF),
+        title: const Text(
+          'Information about MediCardia',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xff613089),
+          ),
+        ),
+        automaticallyImplyLeading: false,
+        leading: kIsWeb
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16.0),
+        children: [
+          const Text(
+            'What is MediCardia?',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xff613089),
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'MediCardia is a health management app designed to make it easier for you to track and manage your personal health information. With MediCardia, you can:',
+            style: TextStyle(fontSize: 16),
+          ),
+          const SizedBox(height: 15),
+          _buildFeature('💳 Digital Health Card', 'Store essential health details like blood type and allergies.'),
+          _buildFeature('💊 Medication Management', 'Add medications and check for drug interactions.'),
+          _buildFeature('🩸 Blood Donation Alerts', 'Get notifications when hospitals need your blood type.'),
+        
+          
+          // New Sections
+          const SizedBox(height: 20),
+          const Text(
+            'Additional Features',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xff613089),
+            ),
+          ),
+          const SizedBox(height: 10),
+          _buildFeature('🩺 Health Device Integration', 
+            'MediCardia integrates with health devices like blood pressure monitors and glucose meters, allowing you to track your health data continuously.'),
+          _buildFeature('🔒 Privacy & Security', 
+            'MediCardia respects your privacy. All private health data is encrypted, and access is only granted with your permission.'),
+          _buildFeature('👩‍⚕️ Doctor Interaction', 
+            'Doctors can access your public health data in case of emergencies, ensuring timely and appropriate care.'),
+          
+          const SizedBox(height: 20),
+          const Text(
+            'Stay in control of your health, securely and easily!',
+            style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeature(String title, String description) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.check_circle_outline, color: Color(0xff613089)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  description,
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
+
+
+
+
+/////////////////////////////////////////////////////
 
 class NotificationSettingsPage extends StatefulWidget {
   @override
@@ -598,14 +751,15 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
   bool requestsEnabled = true;
   bool donationEnabled = true;
 
-  final storage = FlutterSecureStorage(); // For storing the user ID
+  final storage = const FlutterSecureStorage();
 
   // Method to fetch settings from the backend API
   Future<void> fetchSettings() async {
     final userId = await storage.read(key: 'userid');
     try {
       final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/users/$userId/setting'), // Replace with your API URL and user ID
+        Uri.parse(
+            '${ApiConstants.baseUrl}/users/$userId/setting'), // Replace with your API URL and user ID
       );
 
       if (response.statusCode == 200) {
@@ -614,7 +768,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
           remindersEnabled = data['reminders'] ?? true;
           messagesEnabled = data['messages'] ?? true;
           requestsEnabled = data['requests'] ?? true;
-          donationEnabled =  data['donation'] ?? true;
+          donationEnabled = data['donation'] ?? true;
         });
       } else {
         print('Failed to load settings');
@@ -635,8 +789,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
           'reminderNotifications': remindersEnabled,
           'messageNotifications': messagesEnabled,
           'requestNotifications': requestsEnabled,
-           'donationNotifications': donationEnabled,
-
+          'donationNotifications': donationEnabled,
         }),
       );
 
@@ -655,84 +808,138 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
   @override
   void initState() {
     super.initState();
-    fetchSettings(); // Fetch the settings when the page loads
+    fetchSettings();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Notification settings'),
-        backgroundColor: Color(0xff613089),
-        elevation: 0,
-      ),
-      body: Container(
-        color: const Color.fromARGB(255, 194, 120, 211).withOpacity(0.2),
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _buildNotificationCard(
-              icon: Icons.notifications_active,
-              title: 'reminders ',
-              description: 'Enable or disable notifications for reminders',
-              value: remindersEnabled,
-              onChanged: (value) {
-                setState(() {
-                  remindersEnabled = value;
-                });
-                updateSettings(); // Update the settings when the user changes it
-              },
-            ),
-            _buildNotificationCard(
-              icon: Icons.message,
-              title: 'Messages',
-              description: 'Enable or disable notifications for Messages ',
-              value: messagesEnabled,
-              onChanged: (value) {
-                setState(() {
-                  messagesEnabled = value;
-                });
-                updateSettings(); // Update the settings when the user changes it
-              },
-            ),
-            _buildNotificationCard(
-              icon: Icons.assignment_turned_in,
-              title: 'permission requests',
-              description: 'Enable or disable notifications for permission requests',
-              value: requestsEnabled,
-              onChanged: (value) {
-                setState(() {
-                  requestsEnabled = value;
-                });
-                updateSettings(); // Update the settings when the user changes it
-              },
-            ),
-             _buildNotificationCard(
-              icon: Icons.assignment_turned_in,
-              title: 'blood donation requests ',
-              description: 'Enable or disable notifications for blood donation requests',
-              value: donationEnabled,
-              onChanged: (value) {
-                setState(() {
-                  donationEnabled = value;
-                });
-                updateSettings(); // Update the settings when the user changes it
-              },
-            ),
-          ],
+  //////////////////////
+
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFF2F5FF),
+    appBar: AppBar(
+      elevation: 0,
+      centerTitle: true,
+      backgroundColor: const Color(0xFFF2F5FF),
+      title: const Text(
+        'Notification Settings',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Color(0xff613089),
+          letterSpacing: 1.5,
         ),
       ),
-    );
-  }
+      automaticallyImplyLeading: false,
+      leading: kIsWeb
+          ? null
+          : IconButton(
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+    ),
+    body: LayoutBuilder(
+      builder: (context, constraints) {
+        final double pageWidth = constraints.maxWidth > 600 ? 900 : double.infinity;
+
+        return SingleChildScrollView(
+          child: Center(
+            child: Container(
+              width: pageWidth,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  _buildNotificationCard(
+                    leadingWidget: const Icon(
+                      Icons.notifications_active,
+                      size: 40,
+                      color: Color.fromARGB(255, 109, 8, 137),
+                    ),
+                    title: 'Reminders',
+                    description: 'Enable or disable notifications for reminders',
+                    value: remindersEnabled,
+                    onChanged: (value) {
+                      setState(() {
+                        remindersEnabled = value;
+                      });
+                      updateSettings();
+                    },
+                  ),
+                  _buildNotificationCard(
+                    leadingWidget: const Icon(
+                      Icons.message,
+                      size: 40,
+                      color: Color.fromARGB(255, 109, 8, 137),
+                    ),
+                    title: 'Messages',
+                    description: 'Enable or disable notifications for messages',
+                    value: messagesEnabled,
+                    onChanged: (value) {
+                      setState(() {
+                        messagesEnabled = value;
+                      });
+                      updateSettings();
+                    },
+                  ),
+                  _buildNotificationCard(
+                    leadingWidget: Image.asset(
+                      'assets/images/subsidiary.png',
+                      width: 40,
+                      height: 50,
+                      color: const Color.fromARGB(255, 109, 8, 137),
+                    ),
+                    title: 'Permission requests',
+                    description:
+                        'Enable or disable notifications for permission requests',
+                    value: requestsEnabled,
+                    onChanged: (value) {
+                      setState(() {
+                        requestsEnabled = value;
+                      });
+                      updateSettings();
+                    },
+                  ),
+                  _buildNotificationCard(
+                    leadingWidget: Image.asset(
+                      'assets/images/blood-donation.png',
+                      width: 40,
+                      height: 35,
+                      color: const Color.fromARGB(255, 109, 8, 137),
+                    ),
+                    title: 'Blood donation requests',
+                    description:
+                        'Enable or disable notifications for blood donation requests',
+                    value: donationEnabled,
+                    onChanged: (value) {
+                      setState(() {
+                        donationEnabled = value;
+                      });
+                      updateSettings();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    ),
+  );
+}
+
+
+
 
   Widget _buildNotificationCard({
-    required IconData icon,
+    required Widget leadingWidget,
     required String title,
     required String description,
     required bool value,
     required Function(bool) onChanged,
   }) {
     return Card(
+      color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -742,11 +949,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            Icon(
-              icon,
-              size: 40,
-              color: Color.fromARGB(255, 109, 8, 137),
-            ),
+            leadingWidget,
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -754,8 +957,8 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
-                      fontSize: 18,
+                    style: const TextStyle(
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
@@ -763,7 +966,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                   const SizedBox(height: 4),
                   Text(
                     description,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Colors.black54,
                     ),
@@ -774,7 +977,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
             Switch(
               value: value,
               onChanged: onChanged,
-              activeColor: Color.fromARGB(255, 137, 19, 180),
+              activeColor: const Color.fromARGB(255, 137, 19, 180),
             ),
           ],
         ),

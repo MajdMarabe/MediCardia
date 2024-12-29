@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -6,47 +7,30 @@ import 'package:flutter_application_3/services/notification_service.dart';
 
 const storage = FlutterSecureStorage();
 
-/*
-class ChatApp extends StatelessWidget {
-   final String receiverId;
-  const ChatApp({Key? key,required this.receiverId}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.purple),
-      home: const ChatPage(),
-    );
-  }
-}*/
-
 class ChatPage extends StatefulWidget {
   final String receiverId;
   final String name;
   const ChatPage({Key? key, required this.receiverId, required this.name})
       : super(key: key);
+
   @override
   _ChatPageState createState() => _ChatPageState();
 }
 
 class _ChatPageState extends State<ChatPage> {
   final DatabaseReference _messagesRef =
-      FirebaseDatabase.instance.ref().child('messages'); //;ref('messages')
+      FirebaseDatabase.instance.ref().child('messages');
   final TextEditingController _controller = TextEditingController();
   final List<Map<String, dynamic>> _messages = [];
   String? senderid = '';
   String recname = '';
-  // =   storage.read(key: 'userid') as String;// معرف المستخدم الحالي (تحديث حسب السياق)
- 
+  String? base64Image;
+
   @override
   void initState() {
     super.initState();
     _initializeSenderId();
-
-    //_listenForMessages();
   }
-
 
   Future<void> _initializeSenderId() async {
     recname = widget.name;
@@ -55,15 +39,62 @@ class _ChatPageState extends State<ChatPage> {
       print('User ID not found');
       return;
     }
+    
+    _loadReceiverProfileImage();
+
     print('Sender ID: $senderid');
     _listenForMessages();
   }
 
+  Future<void> _loadReceiverProfileImage() async {
+    final usersRef = FirebaseDatabase.instance.ref('users/${widget.receiverId}');
+    final snapshot = await usersRef.get();
+
+    if (snapshot.exists) {
+      final medicalCard = snapshot.child('medicalCard/publicData');
+      setState(() {
+        base64Image = medicalCard.child('image').value as String?;
+        print("Base64 image: $base64Image");
+
+      });
+    }
+  }
+
+
+  Image buildImageFromBase64(String? base64Image) {
+    try {
+      if (base64Image == null || base64Image.isEmpty) {
+        return Image.asset('assets/images/default_person.jpg');
+      }
+
+      final bytes = base64Decode(base64Image);
+      print("Decoded bytes length: ${bytes.length}");
+
+      return Image.memory(bytes);
+    } catch (e) {
+      print("Error decoding image: $e");
+      return Image.asset('assets/images/default_person.jpg');
+    }
+  }
+
+
+  Widget _buildUserAvatar() {
+    ImageProvider backgroundImage;
+    try {
+      backgroundImage = buildImageFromBase64(base64Image).image;
+    } catch (e) {
+      backgroundImage = const AssetImage('assets/images/default_person.jpg');
+    }
+    return CircleAvatar(
+      radius: 20,
+      backgroundColor: Colors.white,
+      backgroundImage: backgroundImage,
+    );
+  }
+
   void _listenForMessages() {
- 
     final chatId = getChatId();
 
-    
     _messagesRef.child(chatId).onChildAdded.listen((event) {
       final messageData = event.snapshot.value as Map<dynamic, dynamic>;
       setState(() {
@@ -77,15 +108,9 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
   String getChatId() {
     final ids = [senderid, widget.receiverId];
-    ids.sort(); 
+    ids.sort();
     return ids.join('_');
   }
 
@@ -111,12 +136,11 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-
-
-////////////////////////////////////
-
-
-
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,11 +151,8 @@ class _ChatPageState extends State<ChatPage> {
         leading: const BackButton(color: Colors.white),
         title: Row(
           children: [
-            const CircleAvatar(
-              backgroundImage: NetworkImage(
-                'https://via.placeholder.com/150', // صورة افتراضية للطبيب
-              ),
-            ),
+            // عرض صورة المستخدم الـ receiver
+            _buildUserAvatar(),
             const SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,19 +169,10 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ],
         ),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.phone, color: Colors.white),
-        //     onPressed: () {},
-        //   ),
-        // ],
       ),
       body: kIsWeb ? _buildWebChatUI() : _buildMobileChatUI(),
     );
   }
-
-
-
 
   Widget _buildMobileChatUI() {
     return Column(
@@ -183,16 +195,13 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-
-
-
   Widget _buildWebChatUI() {
     return Container(
-      color: Colors.grey.shade200, 
+      color: Colors.grey.shade200,
       child: Center(
         child: Container(
-          width: 600, 
-          height: MediaQuery.of(context).size.height * 0.8, 
+          width: 600,
+          height: MediaQuery.of(context).size.height * 0.8,
           margin: const EdgeInsets.symmetric(vertical: 20),
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
@@ -222,7 +231,6 @@ class _ChatPageState extends State<ChatPage> {
                   },
                 ),
               ),
-              //const Divider(height: 1, color: Colors.grey),
               _buildMessageInput(),
             ],
           ),
@@ -230,8 +238,6 @@ class _ChatPageState extends State<ChatPage> {
       ),
     );
   }
-
-
 
   Widget _buildMessageInput() {
     return Container(
@@ -253,8 +259,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
           IconButton(
-            icon:
-                const Icon(Icons.send, color: Color.fromARGB(255, 118, 6, 137)),
+            icon: const Icon(Icons.send, color: Color.fromARGB(255, 118, 6, 137)),
             onPressed: _sendMessage,
           ),
         ],
@@ -262,12 +267,6 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 }
-
-
-
-////////////////////////////////
-
-
 
 class ChatBubble extends StatelessWidget {
   final String text;
@@ -323,8 +322,6 @@ class ChatBubble extends StatelessWidget {
   }
 }
 
-
-
 void _sendNotification(String receiverId, String title, String message) async {
   final DatabaseReference usersRef =
       FirebaseDatabase.instance.ref('users/$receiverId');
@@ -340,7 +337,7 @@ void _sendNotification(String receiverId, String title, String message) async {
           title: title,
           body: message,
           userId: receiverId,
-          type: 'message'
+          type: 'message',
         );
         print('Notification sent successfully');
       } catch (error) {
@@ -352,5 +349,4 @@ void _sendNotification(String receiverId, String title, String message) async {
   } else {
     print('User not found in the database.');
   }
-
 }

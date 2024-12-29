@@ -9,7 +9,6 @@ import 'user_doctors.dart';
 import 'chat_screen.dart';
 import 'permission_requests.dart';
 
-
 const storage = FlutterSecureStorage();
 
 class FindDoctorPage extends StatefulWidget {
@@ -40,8 +39,6 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
     super.dispose();
   }
 
-
-
   // Fetch all doctors from the API
   Future<void> fetchDoctors() async {
     try {
@@ -64,10 +61,10 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
               'workplace': {
                 'name': doc['workplace']?['name'] ?? 'No workplace name',
                 'address': doc['workplace']?['address'] ?? 'No address',
-                     'notificationSettings': {
-        'messages': doc['notificationSettings']?['messages'] ?? true,
-        'requests': doc['notificationSettings']?['requests'] ?? true,
-      },
+                'notificationSettings': {
+                  'messages': doc['notificationSettings']?['messages'] ?? true,
+                  'requests': doc['notificationSettings']?['requests'] ?? true,
+                },
               },
             };
           }).toList();
@@ -114,25 +111,23 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
     filterDoctors();
   }
 
-
-
   ///////////////////////////////////////
 
-
-
-  final Map<String, IconData> specialtiesWithIcons = {
-    "All": Icons.local_hospital,
-    "Eye": Icons.visibility,
-    "Nose": Icons.emoji_emotions,
-    "General": Icons.person,
-    "Pediatrics": Icons.child_friendly,
-    // ignore: deprecated_member_use
-    "Cardiology": FontAwesomeIcons.heartbeat,
-    "Dentistry": FontAwesomeIcons.tooth,
-    "Orthopedics": Icons.accessibility_new,
+  final Map<String, Widget> specialtiesWithIcons = {
+    "All": const Icon(Icons.clear_all, color: Color(0xFF613089), size: 18),
+    "Eye": const Icon(Icons.visibility, color: Color(0xFF613089), size: 18),
+    "Nose": Image.asset('assets/images/nose.png',
+        width: 15, height: 15, color:const Color(0xFF613089) ,), 
+    "General": const Icon(Icons.person, color: Color(0xFF613089), size: 18),
+    "Pediatrics":
+        const Icon(Icons.child_friendly, color: Color(0xFF613089), size: 18),
+    "Cardiology": const Icon(FontAwesomeIcons.heartbeat,
+        color: Color(0xFF613089), size: 18),
+    "Dentistry":
+        const Icon(FontAwesomeIcons.tooth, color: Color(0xFF613089), size: 18),
+    "Orthopedics":
+        const Icon(Icons.accessibility_new, color: Color(0xFF613089), size: 18),
   };
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -143,27 +138,27 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
               backgroundColor: const Color(0xFFF2F5FF),
               elevation: 0,
               automaticallyImplyLeading: false,
-                     actions: [
-  GestureDetector(
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const PermissionRequestsPage(),
-        ),
-      );
-    },
-    child: Padding(
-      padding: const EdgeInsets.only(right: 12.0), 
-      child: Image.asset(
-        'assets/images/subsidiary.png', 
-        width: 42, 
-        height: 42,
-        color: const Color(0xFF613089),
-      ),
-    ),
-  ),
-],
+              actions: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PermissionRequestsPage(),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 12.0),
+                    child: Image.asset(
+                      'assets/images/subsidiary.png',
+                      width: 42,
+                      height: 42,
+                      color: const Color(0xFF613089),
+                    ),
+                  ),
+                ),
+              ],
             )
           : AppBar(
               backgroundColor: const Color(0xFFF2F5FF),
@@ -175,27 +170,27 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
                 },
               ),
               centerTitle: true,
-           actions: [
-  GestureDetector(
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const PermissionRequestsPage(),
-        ),
-      );
-    },
-    child: Padding(
-      padding: const EdgeInsets.only(right: 12.0), 
-      child: Image.asset(
-        'assets/images/subsidiary.png', 
-        width: 42, 
-        height: 42,
-        color: const Color(0xFF613089),
-      ),
-    ),
-  ),
-],
+              actions: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PermissionRequestsPage(),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 12.0),
+                    child: Image.asset(
+                      'assets/images/subsidiary.png',
+                      width: 42,
+                      height: 42,
+                      color: const Color(0xFF613089),
+                    ),
+                  ),
+                ),
+              ],
             ),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -373,9 +368,9 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
 
   Widget buildDropdownSection() {
     return Align(
-      alignment: Alignment.centerRight, // Align dropdown to the right
+      alignment: Alignment.centerRight,
       child: SizedBox(
-        width: 150, // Adjust width to make it smaller
+        width: 150,
         child: DropdownButtonFormField<String>(
           value: selectedSpecialty,
           items: specialtiesWithIcons.entries.map((entry) {
@@ -383,14 +378,13 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
               value: entry.key,
               child: Row(
                 children: [
-                  Icon(entry.value,
-                      color: const Color(0xFF613089), size: 18), // Smaller icon
+                  entry.value, 
                   const SizedBox(width: 3),
                   Text(
                     entry.key,
                     style: const TextStyle(
                       color: Color(0xFF613089),
-                      fontSize: 12, // Smaller text
+                      fontSize: 12,
                     ),
                   ),
                 ],
@@ -407,13 +401,13 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
           },
           dropdownColor: Colors.white,
           style: const TextStyle(
-            fontSize: 12, // Smaller text
+            fontSize: 12,
             color: Color(0xFF613089),
           ),
           icon: const Icon(
             Icons.arrow_drop_down,
             color: Color(0xFF613089),
-            size: 18, // Smaller icon
+            size: 18,
           ),
           decoration: const InputDecoration(
             border: InputBorder.none,

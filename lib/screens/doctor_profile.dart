@@ -10,6 +10,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+
 const storage = FlutterSecureStorage();
 
 class DoctorProfilePage extends StatefulWidget {
@@ -594,6 +596,13 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
   }
 }
 
+
+
+
+////////////////////////////////////////////////////////
+
+
+
 class NotificationSettingsPage extends StatefulWidget {
   @override
   _NotificationSettingsPageState createState() =>
@@ -604,14 +613,16 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
   //bool remindersEnabled = true;
   bool messagesEnabled = true;
   bool requestsEnabled = true;
-  final storage = FlutterSecureStorage(); // For storing the user ID
+
+
+  final storage = const FlutterSecureStorage(); 
 
   // Method to fetch settings from the backend API
   Future<void> fetchSettings() async {
     final userId = await storage.read(key: 'userid');
     try {
       final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/doctors/$userId/setting'), // Replace with your API URL and user ID
+        Uri.parse('${ApiConstants.baseUrl}/doctors/$userId/setting'), 
       );
 
       if (response.statusCode == 200) {
@@ -655,25 +666,54 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
     }
   }
 
+
   @override
   void initState() {
     super.initState();
     fetchSettings(); // Fetch the settings when the page loads
   }
+  
+
+///////////////////////////////////////////
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Notification settings'),
-        backgroundColor: Color(0xff613089),
-        elevation: 0,
+     backgroundColor: const Color(0xFFF2F5FF),
+    appBar: AppBar(
+      elevation: 0,
+      centerTitle: true,
+      backgroundColor: const Color(0xFFF2F5FF),
+      title: const Text(
+        'Notification Settings',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Color(0xff613089),
+          letterSpacing: 1.5,
+        ),
       ),
-      body: Container(
-        color: const Color.fromARGB(255, 194, 120, 211).withOpacity(0.2),
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
+      automaticallyImplyLeading: false,
+      leading: kIsWeb
+          ? null
+          : IconButton(
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+    ),
+      body: LayoutBuilder(
+      builder: (context, constraints) {
+        final double pageWidth = constraints.maxWidth > 600 ? 900 : double.infinity;
+
+        return SingleChildScrollView(
+          child: Center(
+            child: Container(
+              width: pageWidth,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
             /*_buildNotificationCard(
               icon: Icons.notifications_active,
               title: 'إشعارات التذكيرات',
@@ -686,44 +726,59 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                 updateSettings(); // Update the settings when the user changes it
               },
             ),*/
-            _buildNotificationCard(
-              icon: Icons.message,
-              title: 'Notification Messages',
-              description: 'Activate or disable message notifications',
-              value: messagesEnabled,
-              onChanged: (value) {
-                setState(() {
-                  messagesEnabled = value;
-                });
-                updateSettings(); // Update the settings when the user changes it
-              },
+           _buildNotificationCard(
+                    leadingWidget: const Icon(
+                      Icons.message,
+                      size: 40,
+                      color: Color.fromARGB(255, 109, 8, 137),
+                    ),
+                    title: 'Messages',
+                    description: 'Enable or disable notifications for messages',
+                    value: messagesEnabled,
+                    onChanged: (value) {
+                      setState(() {
+                        messagesEnabled = value;
+                      });
+                      updateSettings();
+                    },
+                  ),
+              _buildNotificationCard(
+                    leadingWidget: Image.asset(
+                      'assets/images/permission_request.png',
+                      width: 40,
+                      height: 50,
+                      color: const Color.fromARGB(255, 109, 8, 137),
+                    ),
+                    title: 'Permission requests',
+                    description:
+                        'Enable or disable notifications for permission requests',
+                    value: requestsEnabled,
+                    onChanged: (value) {
+                      setState(() {
+                        requestsEnabled = value;
+                      });
+                      updateSettings();
+                                },
+                  ),
+                ],
+              ),
             ),
-            _buildNotificationCard(
-              icon: Icons.assignment_turned_in,
-              title: 'permission requests',
-              description: 'Enable or disable notifications for permission requests',
-              value: requestsEnabled,
-              onChanged: (value) {
-                setState(() {
-                  requestsEnabled = value;
-                });
-                updateSettings(); // Update the settings when the user changes it
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+          ),
+        );
+      },
+    ),
+  );
+}
 
   Widget _buildNotificationCard({
-    required IconData icon,
+    required Widget leadingWidget,
     required String title,
     required String description,
     required bool value,
     required Function(bool) onChanged,
   }) {
     return Card(
+      color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -733,11 +788,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            Icon(
-              icon,
-              size: 40,
-              color: Color.fromARGB(255, 109, 8, 137),
-            ),
+            leadingWidget,
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -745,8 +796,8 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
-                      fontSize: 18,
+                    style: const TextStyle(
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
@@ -754,7 +805,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                   const SizedBox(height: 4),
                   Text(
                     description,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Colors.black54,
                     ),
@@ -765,7 +816,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
             Switch(
               value: value,
               onChanged: onChanged,
-              activeColor: Color.fromARGB(255, 137, 19, 180),
+              activeColor: const Color.fromARGB(255, 137, 19, 180),
             ),
           ],
         ),
