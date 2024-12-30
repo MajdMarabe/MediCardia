@@ -11,6 +11,7 @@ import 'patient_view.dart';
 import 'blood_donation.dart';
 import 'package:flutter/foundation.dart';
 import 'notification_page.dart';
+
 const storage = FlutterSecureStorage();
 
 class DoctorHomePage extends StatefulWidget {
@@ -41,96 +42,90 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     });
   }
 
-
-
 ////////////////////////////////
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       appBar: kIsWeb
-        ? AppBar(
-            backgroundColor: const Color(0xFFF2F5FF),
-            elevation: 0,
-            automaticallyImplyLeading: false,
-            title: Row(
-              children: [
-                   Image.asset(
-      'assets/images/appLogo.png',
-      height: 35,
-      width: 35,
-      color: const Color(0xff613089),
-    ),
-    // const SizedBox(width: 4),
-                const Text(
-                  'MediCardia',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'BAUHS93',
-                    color: Color(0xff613089),
+      appBar: kIsWeb
+          ? AppBar(
+              backgroundColor: const Color(0xFFF2F5FF),
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              title: Row(
+                children: [
+                  Image.asset(
+                    'assets/images/appLogo.png',
+                    height: 35,
+                    width: 35,
+                    color: const Color(0xff613089),
                   ),
+                  // const SizedBox(width: 4),
+                  const Text(
+                    'MediCardia',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'BAUHS93',
+                      color: Color(0xff613089),
+                    ),
+                  ),
+                ],
+              ),
+              centerTitle: true,
+              toolbarHeight: 60,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(20),
                 ),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.home,
+                      color: Color(0xff613089), size: 20),
+                  tooltip: 'Home',
+                  onPressed: () => _onItemTapped(0),
+                ),
+                IconButton(
+                  icon: const Icon(FontAwesomeIcons.search,
+                      color: Color(0xff613089), size: 20),
+                  tooltip: 'Search',
+                  onPressed: () => _onItemTapped(1),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.notifications,
+                      color: Color(0xff613089), size: 20),
+                  tooltip: 'Notifications',
+                  onPressed: () => _onItemTapped(2),
+                ),
+                IconButton(
+                  icon: const Icon(FontAwesomeIcons.userCircle,
+                      color: Color(0xff613089), size: 20),
+                  tooltip: 'Profile',
+                  onPressed: () => _onItemTapped(3),
+                ),
+                const SizedBox(width: 15),
               ],
-            ),
-            centerTitle: true,
-            
-            toolbarHeight: 60,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(
-                bottom: Radius.circular(20),
-              ),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.home, color: Color(0xff613089), size: 20),
-                tooltip: 'Home',
-                onPressed: () => _onItemTapped(0),
-              ),
-              IconButton(
-                icon: const Icon(FontAwesomeIcons.search, color: Color(0xff613089), size: 20),
-                tooltip: 'Search',
-                onPressed: () => _onItemTapped(1),
-              ),
-              IconButton(
-                icon: const Icon(Icons.notifications, color: Color(0xff613089), size: 20),
-                tooltip: 'Notifications',
-                onPressed: () => _onItemTapped(2),
-              ),
-              IconButton(
-                icon: const Icon(FontAwesomeIcons.userCircle, color: Color(0xff613089), size: 20),
-                tooltip: 'Profile',
-                onPressed: () => _onItemTapped(3),
-              ),
-              const SizedBox(width: 15),
-            ],
-          )
-        : null,
+            )
+          : null,
       body: _pages[_selectedIndex],
       bottomNavigationBar: kIsWeb
-        ? null
-        : CurvedNavigationBar(
-            items: items,
-            index: _selectedIndex,
-            onTap: _onItemTapped,
-            backgroundColor: Colors.transparent,
-            color: const Color(0xff613089),
-            buttonBackgroundColor: const Color(0xff613089),
-            animationDuration: const Duration(milliseconds: 300),
-            height: 60,
-          ),
+          ? null
+          : CurvedNavigationBar(
+              items: items,
+              index: _selectedIndex,
+              onTap: _onItemTapped,
+              backgroundColor: Colors.transparent,
+              color: const Color(0xff613089),
+              buttonBackgroundColor: const Color(0xff613089),
+              animationDuration: const Duration(milliseconds: 300),
+              height: 60,
+            ),
     );
   }
 }
 
-
-
-
 //////////////////////////////////////
-
-
-
 
 class HomePageContent extends StatefulWidget {
   @override
@@ -146,15 +141,11 @@ class _HomePageContentState extends State<HomePageContent> {
   //List<dynamic> _allPatients = [];
   List<dynamic> _filteredPatients = [];
 
-
-
   @override
   void initState() {
     super.initState();
     _fetchPatients();
   }
-
-
 
   Future<void> _fetchAllPatients() async {
     try {
@@ -168,7 +159,7 @@ class _HomePageContentState extends State<HomePageContent> {
         final data = json.decode(response.body);
         setState(() {
           _Allpatients = data;
-          _filteredPatients = data; 
+          _filteredPatients = data;
           _isLoading = false;
         });
       } else {
@@ -211,54 +202,64 @@ class _HomePageContentState extends State<HomePageContent> {
 
 
 
+ Image buildImageFromBase64(String? base64Image) {
+  try {
+    if (base64Image == null || base64Image.isEmpty) {
+      return Image.asset('assets/images/default_person.jpg');
+    }
+
+    final bytes = base64Decode(base64Image);
+    print("Decoded bytes length: ${bytes.length}");
+
+    return Image.memory(bytes); 
+  } catch (e) {
+    print("Error decoding image: $e");
+    return Image.asset('assets/images/default_person.jpg'); 
+  }
+}
 
 /////////////////////////////////
 
-
-
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFFF2F5FF),
-    body: Center(
-      child: Container(
-        width: kIsWeb
-            ? MediaQuery.of(context).size.width * 0.75
-            : MediaQuery.of(context).size.width,
-        child: Stack(
-          children: [
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 20),
-                    _buildDoctorProfile(),
-                    const SizedBox(height: 20),
-                    buildSearchSection(),
-                    const SizedBox(height: 20),
-                    buildBloodDonationTile(context),
-                    const SizedBox(height: 20),
-                    _buildToggleButtons(),
-                    Expanded(
-                      child: _isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : _buildPatientList(),
-                    ),
-                  ],
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF2F5FF),
+      body: Center(
+        child: Container(
+          width: kIsWeb
+              ? MediaQuery.of(context).size.width * 0.75
+              : MediaQuery.of(context).size.width,
+          child: Stack(
+            children: [
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8.0),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      _buildDoctorProfile(),
+                      const SizedBox(height: 20),
+                      buildSearchSection(),
+                      const SizedBox(height: 20),
+                      buildBloodDonationTile(context),
+                      const SizedBox(height: 20),
+                      _buildToggleButtons(),
+                      Expanded(
+                        child: _isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : _buildPatientList(),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
-
-
-
-
+    );
+  }
 
   Widget buildBloodDonationTile(BuildContext context) {
     return GestureDetector(
@@ -317,7 +318,6 @@ Widget build(BuildContext context) {
     );
   }
 
-
   Widget buildSearchSection() {
     return Container(
       padding: const EdgeInsets.all(15),
@@ -369,8 +369,6 @@ Widget build(BuildContext context) {
     );
   }
 
-
-
   Widget _buildDoctorProfile() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -408,7 +406,6 @@ Widget build(BuildContext context) {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _buildProfileStat("250", "Total Patients"),
-                   
                   ],
                 ),
               ],
@@ -418,7 +415,6 @@ Widget build(BuildContext context) {
       ),
     );
   }
-
 
   Widget _buildProfileStat(String value, String label) {
     return Column(
@@ -431,7 +427,6 @@ Widget build(BuildContext context) {
       ],
     );
   }
-
 
   Widget _buildToggleButtons() {
     return Container(
@@ -454,11 +449,11 @@ Widget build(BuildContext context) {
         onPressed: (int index) {
           setState(() {
             _showMyPatients = index == 0;
-         
+
             if (_showMyPatients) {
               _fetchPatients();
             } else {
-              _fetchAllPatients(); 
+              _fetchAllPatients();
             }
           });
         },
@@ -485,77 +480,86 @@ Widget build(BuildContext context) {
   }
 
 
-  Widget _buildPatientList() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: ListView.builder(
-        padding: const EdgeInsets.all(0),
-        itemCount: _filteredPatients.length,
-        itemBuilder: (context, index) {
-          final patientData = _filteredPatients[index];
+Widget _buildPatientList() {
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(15),
+    ),
+    child: ListView.builder(
+      padding: const EdgeInsets.all(0),
+      itemCount: _filteredPatients.length,
+      itemBuilder: (context, index) {
+        final patientData = _filteredPatients[index];
+        if (_showMyPatients) {
+          final name = patientData['patientId']?['username'] ?? 'Unknown';
+          final details =
+              "ID Number: ${patientData['patientId']?['medicalCard']?['publicData']?['idNumber'] ?? 'N/A'} Location: ${patientData['patientId']?['location'] ?? 'N/A'}";
+          final patientId = patientData['patientId']?['_id'] ?? '';
+          final base64Image = patientData['patientId']?['image'] ?? '';
 
-          if (_showMyPatients) {
-            final name = patientData['patientId']?['username'] ?? 'Unknown';
-            final details =
-                "ID Number: ${patientData['patientId']?['medicalCard']?['publicData']?['idNumber'] ?? 'N/A'} Location: ${patientData['patientId']?['location'] ?? 'N/A'}";
-            final patientId = patientData['patientId']?['_id'] ?? '';
+          return _buildPatientInfoTile(
+            name,
+            details,
+            base64Image, 
+            patientId,
+          );
+        } else {
+          final name = patientData['username'] ?? 'Unknown';
+          final details =
+              "ID Number: ${patientData['medicalCard']?['publicData']?['idNumber'] ?? 'N/A'} Location: ${patientData['location'] ?? 'N/A'}";
+          final patientId = patientData['_id'] ?? '';
+          final base64Image = patientData['medicalCard']?['publicData']?['image'] ?? '';
 
-            return _buildPatientInfoTile(
-              name,
-              details,
-              const Color(0xff613089),
-              Icons.account_circle,
-              patientId,
-            );
-          } else {
-            final name = patientData['username'] ?? 'Unknown';
-            final details =
-                "ID Number: ${patientData['medicalCard']?['publicData']?['idNumber'] ?? 'N/A'} Location: ${patientData['location'] ?? 'N/A'}";
-            final patientId = patientData['_id'] ?? '';
-
-            return _buildPatientInfoTile(
-              name,
-              details,
-              const Color(0xff613089),
-              Icons.account_circle,
-              patientId,
-            );
-          }
-        },
-      ),
-    );
-  }
-
-
-  Widget _buildPatientInfoTile(
-    String name,
-    String details,
-    Color iconColor,
-    IconData actionIcon,
-    String patientId, 
-  ) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: iconColor.withOpacity(0.2),
-        child: Icon(actionIcon, color: iconColor),
-      ),
-      title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(details),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PatientViewPage(patientId: patientId),
-          ),
-        );
+          return _buildPatientInfoTile(
+            name,
+            details,
+            base64Image,
+            patientId,
+          );
+        }
       },
-    );
-  }
+    ),
+  );
 }
 
+
+Widget _buildUserAvatar(String base64Image) {
+  ImageProvider backgroundImage;
+  try {
+    backgroundImage = buildImageFromBase64(base64Image).image; 
+  } catch (e) {
+    backgroundImage = const AssetImage('assets/images/default_person.jpg'); 
+  }
+  return CircleAvatar(
+    radius: 20,
+    backgroundColor: Colors.white,
+    backgroundImage: backgroundImage, 
+  );
+}
+
+
+Widget _buildPatientInfoTile(
+  String name,
+  String details,
+  String base64Image, 
+  String patientId,
+) {
+  return ListTile(
+    leading: _buildUserAvatar(base64Image), 
+    title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+    subtitle: Text(details),
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PatientViewPage(patientId: patientId),
+        ),
+      );
+    },
+  );
+}
+}
 
 
 

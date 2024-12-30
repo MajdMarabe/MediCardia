@@ -1,32 +1,35 @@
 import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter_application_3/services/notification_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
 import 'pressure_detailed_doctor.dart';
+
+
 const storage = FlutterSecureStorage();
 //widget.patientId;
+
 class BloodPressureControlPage extends StatefulWidget {
-    final String patientId;
+
+  final String patientId;
   const BloodPressureControlPage({Key? key, required this.patientId}) : super(key: key);
   @override
   _BloodPressureControlPageState createState() =>
       _BloodPressureControlPageState();
 }
 
+
+
 class _BloodPressureControlPageState extends State<BloodPressureControlPage> {
-  final List<TimeOfDay> _reminderTimes = [];
   
   int userAge = 0;
-    final TextEditingController dateTimeController = TextEditingController();
- final TextEditingController _dateTimeClucoseController =
-      TextEditingController();
- Map<String, dynamic>? pressureData;
-int age =0;
+  final TextEditingController dateTimeController = TextEditingController();
+  Map<String, dynamic>? pressureData;
+  int age =0;
+
+
   @override
   void initState() {
     super.initState();
@@ -35,12 +38,11 @@ int age =0;
 
 
 Future<void> fetchPressureData() async {
-    print('Fetching pressure data...'); // للتحقق
+    print('Fetching pressure data...'); 
 final userid=widget.patientId;
-  final  apiUrl = '${ApiConstants.baseUrl}/pressure/$userid/data'; // ضع رابط الـ API هنا
+  final  apiUrl = '${ApiConstants.baseUrl}/pressure/$userid/data'; 
 
   try {
-    // إرسال طلب GET للحصول على بيانات ضغط الدم
     final response = await http.get(
       Uri.parse(apiUrl),
       headers: {
@@ -48,9 +50,7 @@ final userid=widget.patientId;
       },
     );
 
-    // إذا كانت الاستجابة ناجحة
     if (response.statusCode == 200) {
-      // تحويل الاستجابة إلى JSON
       final Map<String, dynamic> data = jsonDecode(response.body);
 
       setState(() {
@@ -61,178 +61,28 @@ final userid=widget.patientId;
         };
       });
     } else {
-      // في حالة حدوث خطأ في الاستجابة
       print('Failed to fetch pressure data: ${response.statusCode}');
     }
   } catch (error) {
-    // التعامل مع الأخطاء المحتملة أثناء الطلب
     print('Error fetching pressure data: $error');
   }
 }
   
-  Future<void> _showReminderDialog(BuildContext context,
-      {TimeOfDay? existingTime}) async {
-    final TimeOfDay? time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-      builder: (BuildContext context, Widget? child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            primaryColor: const Color(0xff613089),
-            hintColor: const Color(0xff9c27b0),
-            timePickerTheme: const TimePickerThemeData(
-              dialHandColor: Color(0xff613089),
-              dialTextColor: Colors.black,
-              backgroundColor: Colors.white,
-              dayPeriodTextColor: Color(0xff613089),
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (time != null) {
-      final userId = await storage.read(key: 'userid');
-      if (userId != null) {
-        setState(() {
-          if (existingTime == null) {
-            _reminderTimes.add(time);
-
-            scheduleReminder(time, userId,'pressure');
-          } else {
-            int index = _reminderTimes.indexOf(existingTime);
-            if (index != -1) {
-              _reminderTimes[index] = time;
-
-              scheduleReminder(time, userId,'pressure');
-            }
-          }
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User ID not found!')),
-        );
-      }
-    }
-  }
-
-  void _removeReminder(TimeOfDay time) {
-    setState(() {
-      _reminderTimes.remove(time);
-    });
-    flutterLocalNotificationsPlugin.cancel(time.hashCode);
-  }
-
-
-
-
-  // Helper method to build text form fields
-  Widget _buildTextFormField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    int maxLines = 1,
-    String? Function(String?)? validator,
-    Widget? suffixIcon,
-    TextInputType? keyboardType,
-  }) {
-    return TextFormField(
-      controller: controller,
-      maxLines: maxLines,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        hintStyle: TextStyle(
-          color: Colors.grey.shade400,
-          fontSize: 14,
-          fontStyle: FontStyle.italic,
-        ),
-        labelStyle: const TextStyle(color: Color(0xff613089)),
-        prefixIcon: Icon(icon, color: const Color(0xff613089)),
-        suffixIcon: suffixIcon,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: Colors.grey),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: Color(0xffb41391)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: Colors.grey),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-      ),
-      validator: validator,
-    );
-  }
-
-  Future<void> _selectDateTime(
-      BuildContext context, TextEditingController controller) async {
-    DateTime selectedDate = await showDatePicker(
-          context: context,
-          initialDate: DateTime.now(),
-          firstDate: DateTime(2000),
-          lastDate: DateTime(2101),
-          builder: (BuildContext context, Widget? child) {
-            return Theme(
-              data: ThemeData.light().copyWith(
-                primaryColor: const Color(0xff613089),
-                buttonTheme:
-                    const ButtonThemeData(textTheme: ButtonTextTheme.primary),
-              ),
-              child: child!,
-            );
-          },
-        ) ??
-        DateTime.now();
-
-    TimeOfDay selectedTime = await showTimePicker(
-          context: context,
-          initialTime: TimeOfDay.now(),
-          builder: (BuildContext context, Widget? child) {
-            return Theme(
-              data: ThemeData.light().copyWith(
-                primaryColor: const Color(0xff613089),
-                timePickerTheme: const TimePickerThemeData(
-                  dialHandColor: Color(0xff613089),
-                  backgroundColor: Colors.white,
-                ),
-              ),
-              child: child!,
-            );
-          },
-        ) ??
-        TimeOfDay.now();
-
-    final selectedDateTime = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      selectedTime.hour,
-      selectedTime.minute,
-    );
-
-    setState(() {
-      controller.text =
-          "${selectedDateTime.toLocal().toString().split(' ')[0]}, ${selectedTime.format(context)}";
-    });
-  }
-
 
 
 
 //////////////////////////////////////////
+
+
 
 Future<void> fetchAge() async {
   String? storedAge = await storage.read(key: 'age');
   userAge = int.tryParse(storedAge ?? '0') ?? 0;
   print("Age: $age");
 }
+
+
+
 @override
 Widget build(BuildContext context) {
  fetchAge();
@@ -301,7 +151,6 @@ Widget build(BuildContext context) {
     },
   );
 }
-
 
 
 
@@ -931,29 +780,7 @@ Widget _buildDiastolicPressureChart(int age) {
       ],
     );
   }
-
-  // Widget _buildLegendItem({required Color color, required String label}) {
-  //   return Row(
-  //     children: [
-  //       Container(
-  //         width: 16,
-  //         height: 16,
-  //         decoration: BoxDecoration(
-  //           color: color,
-  //           borderRadius: BorderRadius.circular(4),
-  //         ),
-  //       ),
-  //       const SizedBox(width: 8),
-  //       Text(
-  //         label,
-  //         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-  //       ),
-  //     ],
-  //   );
-  // }
-
 }
-
 
 
 
@@ -961,17 +788,18 @@ Widget _buildDiastolicPressureChart(int age) {
 ////////////////////////////////////////////////////
 
 
+
 Widget _buildHeaderText() {
   return Container(
-    padding: EdgeInsets.all(16),
+    padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      gradient: LinearGradient(
+      gradient: const LinearGradient(
         colors: [Color.fromARGB(255, 71, 1, 74), Color.fromARGB(255, 218, 59, 246)], 
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
       borderRadius: BorderRadius.circular(12),
-      boxShadow: [
+      boxShadow: const [
         BoxShadow(
           color: Colors.black12,
           blurRadius: 8,
@@ -979,7 +807,7 @@ Widget _buildHeaderText() {
         ),
       ],
     ),
-    child: Row(
+    child: const Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Icon(
@@ -993,7 +821,7 @@ Widget _buildHeaderText() {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Diabetes Tracking Insights',
+                'Blood Pressure Tracking Insights',
                 style: TextStyle(
                   fontSize: 18,
                   color: Colors.white,

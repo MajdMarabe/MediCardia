@@ -159,27 +159,29 @@ class _NotificationPageState extends State<NotificationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F5FF),
-      appBar: AppBar(
-        elevation: 0,
-        centerTitle: true,
-        backgroundColor: const Color(0xFFF2F5FF),
-        title: const Text(
-          'Notifications',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xff613089),
-            letterSpacing: 1.5,
-          ),
-        ),
-        leading: kIsWeb
-            ? null
-            : IconButton(
-                icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
-      ),
+   appBar: AppBar(
+  elevation: 0,
+  centerTitle: true,
+  backgroundColor: const Color(0xFFF2F5FF),
+  title: const Text(
+    'Notifications',
+    style: TextStyle(
+      fontWeight: FontWeight.bold,
+      color: Color(0xff613089),
+      letterSpacing: 1.5,
+    ),
+  ),
+  leading: Visibility(
+    visible: !kIsWeb, 
+    child: IconButton(
+      icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    ),
+  ),
+),
+
       body: notifications.isEmpty
           ? const Center(
               child: Column(

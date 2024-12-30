@@ -1,10 +1,8 @@
 
 import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter_application_3/services/notification_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
@@ -59,11 +57,19 @@ final userid=await storage.read(key: 'userid') ?? '';
     print('Error fetching pressure data: $error');
   }
 }
+
+
+
 Future<void> fetchAge() async {
   String? storedAge = await storage.read(key: 'age');
   age = int.tryParse(storedAge ?? '0') ?? 0;
   print("Age: $age");
 }
+
+
+/////////////////////////////////////////
+
+
 @override
 Widget build(BuildContext context) {
  fetchAge();
@@ -252,6 +258,8 @@ _buildGraphSection(
       ),
     );
   }
+
+
 
   Widget _buildSystolicPressureChart({
     required int age,
@@ -463,6 +471,8 @@ _buildGraphSection(
       ],
     );
   }
+
+
 
   Widget _buildDiastolicPressureChart({
     required int age,

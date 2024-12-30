@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -8,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
 import 'blood_pressure_detailed.dart';
+
+
 const storage = FlutterSecureStorage();
 
 class BloodPressureControlPage extends StatefulWidget {
@@ -18,11 +19,10 @@ class BloodPressureControlPage extends StatefulWidget {
 
 class _BloodPressureControlPageState extends State<BloodPressureControlPage> {
   final List<TimeOfDay> _reminderTimes = [];
-  
   int userAge = 0;
-    final TextEditingController dateTimeController = TextEditingController();
- final TextEditingController _dateTimeClucoseController =
-      TextEditingController();
+  final TextEditingController dateTimeController = TextEditingController();
+  final TextEditingController _dateTimeClucoseController =
+  TextEditingController();
  Map<String, dynamic>? pressureData;
 int age =0;
   @override
@@ -33,12 +33,12 @@ int age =0;
 
 
 Future<void> fetchPressureData() async {
-    print('Fetching pressure data...'); // للتحقق
+    print('Fetching pressure data...'); 
 final userid=await storage.read(key: 'userid') ?? '';
-  final  apiUrl = '${ApiConstants.baseUrl}/pressure/$userid/data'; // ضع رابط الـ API هنا
+  final  apiUrl = '${ApiConstants.baseUrl}/pressure/$userid/data'; 
 
   try {
-    // إرسال طلب GET للحصول على بيانات ضغط الدم
+ 
     final response = await http.get(
       Uri.parse(apiUrl),
       headers: {
@@ -68,6 +68,8 @@ final userid=await storage.read(key: 'userid') ?? '';
   }
 }
   
+
+
   Future<void> _showReminderDialog(BuildContext context,
       {TimeOfDay? existingTime}) async {
     final TimeOfDay? time = await showTimePicker(
@@ -114,12 +116,15 @@ final userid=await storage.read(key: 'userid') ?? '';
     }
   }
 
+
   void _removeReminder(TimeOfDay time) {
     setState(() {
       _reminderTimes.remove(time);
     });
     flutterLocalNotificationsPlugin.cancel(time.hashCode);
   }
+
+
 
 Future<void> _showAddReadingDialog(BuildContext context) async {
   final TextEditingController systolicController = TextEditingController();
@@ -131,9 +136,6 @@ await showDialog(
         ? 600
         : MediaQuery.of(context).size.width * 0.9;
 
-    double dialogHeight = MediaQuery.of(context).size.height >= 729.5999755859375
-        ? 300
-        : MediaQuery.of(context).size.height * 0.4;
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -406,6 +408,13 @@ Future<void> fetchAge() async {
   userAge = int.tryParse(storedAge ?? '0') ?? 0;
   print("Age: $age");
 }
+
+
+
+
+///////////////////////////////////////////
+
+
 @override
 Widget build(BuildContext context) {
  fetchAge();

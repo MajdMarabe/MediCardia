@@ -10,34 +10,41 @@ import 'constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 const storage = FlutterSecureStorage();
+
+
 class BloodDonationPage extends StatefulWidget {
   @override
   _BloodDonationPageState createState() => _BloodDonationPageState();
 }
 
 class _BloodDonationPageState extends State<BloodDonationPage> {
-  final List<String> bloodTypes = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
+  final List<String> bloodTypes = [
+    'A+',
+    'A-',
+    'B+',
+    'B-',
+    'O+',
+    'O-',
+    'AB+',
+    'AB-'
+  ];
   String? selectedBloodType;
-String?_hospitalArabicName='';
-String?_hospitalId='';
-String?_hospitalCity='';
-
+  String? _hospitalArabicName = '';
+  String? _hospitalId = '';
+  String? _hospitalCity = '';
   final List<int> availableUnits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   int? selectedUnit;
-
-  // 
   TextEditingController _hospitalController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-List<String> _suggestions = []; 
+  List<String> _suggestions = [];
   String? hospitalCity;
-  double latitude = 31.9466; 
-  double longitude = 35.3027; 
-  final MapController mapController = MapController(); 
-
+  double latitude = 31.9466;
+  double longitude = 35.3027;
+  final MapController mapController = MapController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
- Future<void> _getHospitalCoordinates(String hospitalName) async {
+
+
+  Future<void> _getHospitalCoordinates(String hospitalName) async {
     try {
       List<Location> locations = await locationFromAddress(hospitalName);
       if (locations.isNotEmpty) {
@@ -66,101 +73,113 @@ List<String> _suggestions = [];
       );
     }
   }
-Future<void> _getHospitalArabicName(String query) async {
-  try {
-    final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/hospital/gethospital?name=$query'));
-print(response.body);
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
 
-      // تحقق إذا كانت البيانات تحتوي على الاسم العربي للمستشفى
-   if (response.statusCode == 200) {
-  final Map<String, dynamic> responseData = jsonDecode(response.body);
 
-  // تحقق إذا كانت البيانات تحتوي على المستشفيات
-  if (responseData.containsKey('hospitals') && responseData['hospitals'] is List && responseData['hospitals'].isNotEmpty) {
-    // الحصول على الاسم العربي من أول مستشفى في القائمة
-    final String hospitalArabicName = responseData['hospitals'][0]['nameArabic'];
-  final String Id =responseData['hospitals'][0]['_id'];
- final String city =responseData['hospitals'][0]['city'];
-    // هنا يمكنك التعامل مع الاسم العربي كما ترغب، مثلاً تخزينه أو عرضه
-    setState(() {
-      _hospitalArabicName = hospitalArabicName; 
-_hospitalId =Id;
-_hospitalCity = city;
-    });
 
-    print("Arabic Hospital Name: $_hospitalArabicName");
-  } else {
-    setState(() {
-      _hospitalArabicName = '';  // إذا لم يكن هناك مستشفيات أو البيانات غير صحيحة
-    });
-  }
-} else {
-  setState(() {
-    _hospitalArabicName = '';  // إذا كانت الاستجابة غير ناجحة
-  });
-}
-    } else {
+  Future<void> _getHospitalArabicName(String query) async {
+    try {
+      final response = await http.get(Uri.parse(
+          '${ApiConstants.baseUrl}/hospital/gethospital?name=$query'));
+      print(response.body);
+      if (response.statusCode == 200) {
+        //final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+        // تحقق إذا كانت البيانات تحتوي على الاسم العربي للمستشفى
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+          // تحقق إذا كانت البيانات تحتوي على المستشفيات
+          if (responseData.containsKey('hospitals') &&
+              responseData['hospitals'] is List &&
+              responseData['hospitals'].isNotEmpty) {
+            // الحصول على الاسم العربي من أول مستشفى في القائمة
+            final String hospitalArabicName =
+                responseData['hospitals'][0]['nameArabic'];
+            final String id = responseData['hospitals'][0]['_id'];
+            final String city = responseData['hospitals'][0]['city'];
+            // هنا يمكنك التعامل مع الاسم العربي كما ترغب، مثلاً تخزينه أو عرضه
+            setState(() {
+              _hospitalArabicName = hospitalArabicName;
+              _hospitalId = id;
+              _hospitalCity = city;
+            });
+
+            print("Arabic Hospital Name: $_hospitalArabicName");
+          } else {
+            setState(() {
+              _hospitalArabicName =
+                  ''; // إذا لم يكن هناك مستشفيات أو البيانات غير صحيحة
+            });
+          }
+        } else {
+          setState(() {
+            _hospitalArabicName = ''; // إذا كانت الاستجابة غير ناجحة
+          });
+        }
+      } else {
+        setState(() {
+          _hospitalArabicName = '';
+        });
+      }
+    } catch (e) {
+      print("Error fetching hospital name: $e");
       setState(() {
         _hospitalArabicName = '';
       });
     }
-  } catch (e) {
-    print("Error fetching hospital name: $e");
-    setState(() {
-      _hospitalArabicName = '';
-    });
   }
-}
 
- Future<void> _getHospitalSuggestions(String query) async {
-  try {
-    final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/hospital/gethospital?name=$query'));
+
+
+  Future<void> _getHospitalSuggestions(String query) async {
+    try {
+      final response = await http.get(Uri.parse(
+          '${ApiConstants.baseUrl}/hospital/gethospital?name=$query'));
 //print(response.body);
-  
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
 
-      // Check if 'hospitals' key exists and is a list
-      if (responseData.containsKey('hospitals') && responseData['hospitals'] is List) {
-        final List<dynamic> hospitals = responseData['hospitals'];
-        setState(() {
-          _suggestions = hospitals.map((h) => h['name'] as String).toList();
-        });
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+        // Check if 'hospitals' key exists and is a list
+        if (responseData.containsKey('hospitals') &&
+            responseData['hospitals'] is List) {
+          final List<dynamic> hospitals = responseData['hospitals'];
+          setState(() {
+            _suggestions = hospitals.map((h) => h['name'] as String).toList();
+          });
+        } else {
+          setState(() {
+            _suggestions = [];
+          });
+        }
       } else {
         setState(() {
           _suggestions = [];
         });
       }
-    } else {
+    } catch (e) {
+      print("Error fetching hospital suggestions: $e");
       setState(() {
         _suggestions = [];
       });
     }
-  } catch (e) {
-    print("Error fetching hospital suggestions: $e");
-    setState(() {
-      _suggestions = [];
-    });
   }
-}
+
+
+
+///////////////////////////////////////////
 
 
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
-
     double dialogWidth = width > 600 ? width * 0.4 : width * 0.85;
-    double dialogHeight = height > 600 ? 750 : height * 0.85;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F5FF),
       body: Center(
         child: Container(
           width: dialogWidth,
-          height: dialogHeight,
           margin: const EdgeInsets.all(20),
           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
           decoration: BoxDecoration(
@@ -209,12 +228,17 @@ _hospitalCity = city;
                           },
                           child: Container(
                             margin: const EdgeInsets.symmetric(horizontal: 8),
-                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 15),
                             decoration: BoxDecoration(
-                              color: selectedBloodType == group ? const Color(0xff613089) : Colors.grey.shade200,
+                              color: selectedBloodType == group
+                                  ? const Color(0xff613089)
+                                  : Colors.grey.shade200,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: selectedBloodType == group ? const Color(0xff613089) : Colors.grey.shade300,
+                                color: selectedBloodType == group
+                                    ? const Color(0xff613089)
+                                    : Colors.grey.shade300,
                                 width: 2,
                               ),
                               boxShadow: const [
@@ -229,7 +253,9 @@ _hospitalCity = city;
                               child: Text(
                                 group,
                                 style: TextStyle(
-                                  color: selectedBloodType == group ? Colors.white : Colors.black54,
+                                  color: selectedBloodType == group
+                                      ? Colors.white
+                                      : Colors.black54,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                 ),
@@ -257,7 +283,35 @@ _hospitalCity = city;
                         selectedUnit = newValue;
                       });
                     },
-                    decoration: _inputDecoration("Select unit(s)", Icons.water_drop),
+                    decoration: InputDecoration(
+                      hintText: "Select unit(s)",
+                      hintStyle: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      labelStyle: const TextStyle(color: Color(0xff613089)),
+                      prefixIcon: const Icon(Icons.water_drop,
+                          color: Color(0xff613089)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: const BorderSide(color: Color(0xffb41391)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                    ),
+                    icon: const Icon(Icons.arrow_drop_down,
+                        color: Color(0xff613089)),
                     validator: (value) {
                       if (value == null || value == 0) {
                         return 'Please select a unit';
@@ -266,7 +320,7 @@ _hospitalCity = city;
                     },
                   ),
                   const SizedBox(height: 15),
-               /* _buildLabel("Phone number"),
+                  /* _buildLabel("Phone number"),
                 _buildTextFormField(
                   controller: _phoneController,
                   hint: "Enter phone number",
@@ -284,46 +338,50 @@ _hospitalCity = city;
 
                   _buildLabel("Hospital name"),
                   Autocomplete<String>(
-  optionsBuilder: (TextEditingValue textEditingValue) {
-    if (textEditingValue.text.isEmpty) {
-      return const Iterable<String>.empty();
-    }
-   // print(textEditingValue.text);
-    _getHospitalSuggestions(textEditingValue.text);
-    
-    return _suggestions.where((suggestion) =>
-        suggestion.toLowerCase().contains(textEditingValue.text.toLowerCase()));
-  },
-  onSelected: (String selectedHospital) {
-    _hospitalController.text = selectedHospital;
-   // print(selectedHospital);
-   _getHospitalArabicName(selectedHospital);
-   print(_hospitalArabicName );
-    _getHospitalCoordinates(_hospitalArabicName!);
-  },
-  fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
-    _hospitalController = controller; 
-    return TextFormField(
-      controller: controller,
-      focusNode: focusNode,
-      decoration: _inputDecoration("Enter hospital name", Icons.local_hospital),
-    );
-  },
-),
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      if (textEditingValue.text.isEmpty) {
+                        return const Iterable<String>.empty();
+                      }
+                      // print(textEditingValue.text);
+                      _getHospitalSuggestions(textEditingValue.text);
+
+                      return _suggestions.where((suggestion) => suggestion
+                          .toLowerCase()
+                          .contains(textEditingValue.text.toLowerCase()));
+                    },
+                    onSelected: (String selectedHospital) {
+                      _hospitalController.text = selectedHospital;
+                      // print(selectedHospital);
+                      _getHospitalArabicName(selectedHospital);
+                      print(_hospitalArabicName);
+                      _getHospitalCoordinates(_hospitalArabicName!);
+                    },
+                    fieldViewBuilder:
+                        (context, controller, focusNode, onEditingComplete) {
+                      _hospitalController = controller;
+                      return TextFormField(
+                        controller: controller,
+                        focusNode: focusNode,
+                        decoration: _inputDecoration(
+                            "Enter hospital name", Icons.local_hospital),
+                      );
+                    },
+                  ),
 
                   const SizedBox(height: 15),
                   SizedBox(
                     height: 200,
                     child: FlutterMap(
-                   mapController: mapController, 
+                      mapController: mapController,
                       options: MapOptions(
-                          initialCenter: LatLng(latitude, longitude),
+                        initialCenter: LatLng(latitude, longitude),
                         initialZoom: 13.0,
                       ),
                       children: [
                         TileLayer(
-                          urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          subdomains: ['a', 'b', 'c'],
+                          urlTemplate:
+                              'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          subdomains: const ['a', 'b', 'c'],
                         ),
                         MarkerLayer(
                           markers: [
@@ -342,7 +400,7 @@ _hospitalCity = city;
                       ],
                     ),
                   ),
-                  const SizedBox(height: 25),
+                 const SizedBox(height: 25),
 
                   Center(
                     child: ElevatedButton(
@@ -352,7 +410,8 @@ _hospitalCity = city;
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 50, vertical: 12),
                       ),
                       child: const Text(
                         "Request",
@@ -368,63 +427,28 @@ _hospitalCity = city;
       ),
     );
   }
-  Widget _buildTextFormField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    int maxLines = 1,
-    String? Function(String?)? validator,
-    Widget? suffixIcon,
-    TextInputType? keyboardType,
-  }) {
-    return TextFormField(
-      controller: controller,
-      maxLines: maxLines,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(
-          color: Colors.grey.shade400,
-          fontSize: 14,
-          fontStyle: FontStyle.italic,
-        ),
-        labelStyle: const TextStyle(color: Color(0xff613089)),
-        prefixIcon: Icon(icon, color: const Color(0xff613089)),
-        suffixIcon: suffixIcon,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: Colors.grey),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: Color(0xffb41391)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: Colors.grey),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-      ),
-      validator: validator,
-    );
-  }
 
-  String? validatePhoneNumber(String? value) {
-    final phoneRegExp = RegExp(r'^\d{10}$');
-    if (value == null || value.isEmpty) {
-      return 'Please enter a phone number';
-    } else if (!phoneRegExp.hasMatch(value)) {
-      return 'Phone number must be 10 digits';
-    }
-    return null;
-  }
+
+
   InputDecoration _inputDecoration(String hint, IconData icon) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
-      prefixIcon: Icon(icon, color: const Color(0xff613089)),
+      hintStyle: TextStyle(
+        color: Colors.grey.shade400,
+        fontSize: 14,
+        fontStyle: FontStyle.italic,
+      ),
+      labelStyle: const TextStyle(color: Color(0xff613089)),
+
       border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: const BorderSide(color: Colors.grey),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: const BorderSide(color: Color(0xffb41391)),
+      ),
+      enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
         borderSide: const BorderSide(color: Colors.grey),
       ),
@@ -440,125 +464,127 @@ _hospitalCity = city;
     );
   }
 
-
-Future<void> _submitForm() async {
-  if (selectedBloodType == null || _hospitalCity == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Please select a blood type and hospital city.")),
-    );
-    return;
-  }
-
-  final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/users'));
-
-  if (response.statusCode == 200) {
-    final List<dynamic> users = jsonDecode(response.body);
-    String? requiredBloodType = selectedBloodType;
-    String? requiredLocation = _hospitalCity;
-
-    final eligibleUsers = users.where((user) {
-      final publicData = user['medicalCard']['publicData'];
-      final bloodType = publicData['bloodType'] ?? '';
-      final lastDonationDate = DateTime.tryParse(publicData['lastBloodDonationDate'] ?? '') ?? DateTime(2000);
-      final location = user['location'] ?? '';
-      final gender = publicData['gender'] ?? '';
-      final allowedDuration = gender == 'Female'
-          ? Duration(days: 120)
-          : Duration(days: 90);
-      final allowedDate = DateTime.now().subtract(allowedDuration);
-
-      return bloodType == requiredBloodType &&
-          lastDonationDate.isBefore(allowedDate) &&
-          location == requiredLocation;
-    }).toList();
-
-    if (eligibleUsers.isNotEmpty) {
-      eligibleUsers.forEach((user) {
-        _createDonationRequest(user['_id']);
-        _sendNotification(user['_id'], "MediCardia",
-            "A chance to save a life! Blood donation needed for type $requiredBloodType at [Hospital Name].");
-      });
-
+  Future<void> _submitForm() async {
+    if (selectedBloodType == null || _hospitalCity == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Request sent to ${eligibleUsers.length} eligible donors!")),
+        const SnackBar(
+            content: Text("Please select a blood type and hospital city.")),
       );
+      return;
+    }
+
+    final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/users'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> users = jsonDecode(response.body);
+      String? requiredBloodType = selectedBloodType;
+      String? requiredLocation = _hospitalCity;
+
+      final eligibleUsers = users.where((user) {
+        final publicData = user['medicalCard']['publicData'];
+        final bloodType = publicData['bloodType'] ?? '';
+        final lastDonationDate =
+            DateTime.tryParse(publicData['lastBloodDonationDate'] ?? '') ??
+                DateTime(2000);
+        final location = user['location'] ?? '';
+        final gender = publicData['gender'] ?? '';
+        final allowedDuration =
+            gender == 'Female' ? const Duration(days: 120) : const Duration(days: 90);
+        final allowedDate = DateTime.now().subtract(allowedDuration);
+
+        return bloodType == requiredBloodType &&
+            lastDonationDate.isBefore(allowedDate) &&
+            location == requiredLocation;
+      }).toList();
+
+      if (eligibleUsers.isNotEmpty) {
+        eligibleUsers.forEach((user) {
+          _createDonationRequest(user['_id']);
+          _sendNotification(user['_id'], "MediCardia",
+              "A chance to save a life! Blood donation needed for type $requiredBloodType at [Hospital Name].");
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  "Request sent to ${eligibleUsers.length} eligible donors!")),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No eligible donors found.")),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("No eligible donors found.")),
+        const SnackBar(content: Text("Failed to fetch users.")),
       );
     }
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Failed to fetch users.")),
-    );
-  }
-
 
     bloodTypes.clear();
     availableUnits.clear();
-_hospitalController.clear();
+    _hospitalController.clear();
     // Navigate back to the previous page
     Navigator.pop(context);
-}
-
-
-Future<void> _createDonationRequest(String assignedUserId) async {
-  final userId = await storage.read(key: 'userid');
-  if (userId == null) {
-    print("User ID not found in storage.");
-    return;
   }
 
-  final Map<String, dynamic> requestPayload = {
-    'bloodType': selectedBloodType,
-    'units': selectedUnit.toString(),
-    'hospital': _hospitalId,
-    'createdByDoctor': userId,
-    'requiredDate': DateTime.now().add(Duration(days: 1)).toIso8601String(),
-    'assignedToUser': assignedUserId,
-  };
+  Future<void> _createDonationRequest(String assignedUserId) async {
+    final userId = await storage.read(key: 'userid');
+    if (userId == null) {
+      print("User ID not found in storage.");
+      return;
+    }
 
-  final response = await http.post(
-    Uri.parse('${ApiConstants.baseUrl}/donationrequest/addRequest'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode(requestPayload),
-  );
+    final Map<String, dynamic> requestPayload = {
+      'bloodType': selectedBloodType,
+      'units': selectedUnit.toString(),
+      'hospital': _hospitalId,
+      'createdByDoctor': userId,
+      'requiredDate': DateTime.now().add(const Duration(days: 1)).toIso8601String(),
+      'assignedToUser': assignedUserId,
+    };
 
-  if (response.statusCode == 201) {
-    print("Donation request added successfully.");
-  } else {
-    print("Failed to add donation request. Status code: ${response.statusCode}");
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}/donationrequest/addRequest'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(requestPayload),
+    );
+
+    if (response.statusCode == 201) {
+      print("Donation request added successfully.");
+    } else {
+      print(
+          "Failed to add donation request. Status code: ${response.statusCode}");
+    }
   }
-}
 
+  void _sendNotification(
+      String receiverId, String title, String message) async {
+    final DatabaseReference usersRef =
+        FirebaseDatabase.instance.ref('users/$receiverId');
+    final DataSnapshot snapshot = await usersRef.get();
 
-void _sendNotification(String receiverId, String title, String message) async {
-  final DatabaseReference usersRef = FirebaseDatabase.instance.ref('users/$receiverId');
-  final DataSnapshot snapshot = await usersRef.get();
+    if (snapshot.exists) {
+      final String? fcmToken = snapshot.child('fcmToken').value as String?;
 
-  if (snapshot.exists) {
-    final String? fcmToken = snapshot.child('fcmToken').value as String?;
-
-    if (fcmToken != null) {
-      try {
-        await sendNotifications(
-          fcmToken: fcmToken,
-          title: title,
-          body: message,
-          userId: receiverId,
-          type:'donation'
-        );
-        print('Notification sent successfully');
-      } catch (error) {
-        print('Error sending notification: $error');
+      if (fcmToken != null) {
+        try {
+          await sendNotifications(
+              fcmToken: fcmToken,
+              title: title,
+              body: message,
+              userId: receiverId,
+              type: 'donation');
+          print('Notification sent successfully');
+        } catch (error) {
+          print('Error sending notification: $error');
+        }
+      } else {
+        print('FCM token not found for the user.');
       }
     } else {
-      print('FCM token not found for the user.');
+      print('User not found in the database.');
     }
-  } else {
-    print('User not found in the database.');
   }
-}
 /*
 Future<void> addpermissionToDB(String deadline, selectedPriority, String text ,String patientId, String name) async {
   try {

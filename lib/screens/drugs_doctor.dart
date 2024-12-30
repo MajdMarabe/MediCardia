@@ -118,6 +118,7 @@ class _MedicineListPageState extends State<MedicineListPage> {
     }
   }
 
+
   Future<void> _selectDateTime(BuildContext context,
       TextEditingController controller, bool isStartDate) async {
     showDialog(
@@ -175,6 +176,7 @@ class _MedicineListPageState extends State<MedicineListPage> {
     );
   }
 
+
   Future<void> _addDrug(String drugName, bool isTemporary, String? startDate,
       String? endDate) async {
     try {
@@ -202,6 +204,7 @@ class _MedicineListPageState extends State<MedicineListPage> {
     }
   }
 
+
   Future<void> _deleteDrug(String drugName) async {
     try {
       final response = await http.delete(
@@ -224,6 +227,7 @@ class _MedicineListPageState extends State<MedicineListPage> {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
   }
+
 
   void _showAddDrugDialog() {
     _drugNameController.clear();
@@ -577,6 +581,7 @@ class _MedicineListPageState extends State<MedicineListPage> {
     );
   }
 
+
 Widget buildSearchSection() {
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -646,8 +651,10 @@ Widget buildSearchSection() {
 
 
 //////////////////////////////
-@override
 
+
+
+@override
 Widget build(BuildContext context) {
   return Scaffold(
     backgroundColor: const Color(0xFFF2F5FF),
@@ -660,160 +667,168 @@ Widget build(BuildContext context) {
         style: TextStyle(
           fontWeight: FontWeight.bold,
           color: Color(0xff613089),
-          fontSize: 24,
           letterSpacing: 1.5,
         ),
       ),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
-        onPressed: () {
-          Navigator.pop(context);
-        },
-      ),
+      automaticallyImplyLeading: !kIsWeb,
+      leading: kIsWeb
+          ? null
+          : IconButton(
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
     ),
-    body: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          buildSearchSection(),
+    body: Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxWidth: kIsWeb ? 900 : double.infinity,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              buildSearchSection(),
 
-          const SizedBox(height: 16), 
+              const SizedBox(height: 16),
 
-          drugs.isNotEmpty
-              ? Expanded(
-                  child: ListView.builder(
-                    itemCount: drugs.length,
-                    itemBuilder: (context, index) {
-                      final drug = drugs[index];
-
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 5,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CircleAvatar(
-                                radius: 40,
-                                backgroundColor: const Color(0xff613089),
-                                child: const Icon(
-                                  Icons.medication,
-                                  size: 40,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      drug['name'] ?? 'Unknown Drug',
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xff613089),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Dose: ${drug['dose']}',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    if (drug['startDate'] != null)
-                                      Text(
-                                        'Start Date: ${DateFormat('dd/MM/yyyy').format(drug['startDate'])}',
-                                        style: const TextStyle(
-                                            fontSize: 14, color: Colors.black87),
-                                      ),
-                                    if (drug['endDate'] != null)
-                                      GestureDetector(
-                                        onTap: () => _editDrugEndDate(drug, index),
-                                        child: Row(
-                                          children: [
-                                            Text(
-                                              'End Date: ${DateFormat('dd/MM/yyyy').format(drug['endDate'])}',
-                                              style: const TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.black87),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            const Icon(Icons.edit, color: Colors.blue, size: 16),
-                                          ],
-                                        ),
-                                      ),
-                                    if (drug['endDate'] == null && drug['startDate'] == null)
-                                      const Text(
-                                        'Its a permanent drug',
-                                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                                      ),
-                                    const SizedBox(height: 8),
-                                   if (drug['endDate'] != null && drug['startDate'] != null)
-
-                                    const Text(
-                                      'Tap on the date to change it.',
-                                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      drug['isExpired'] ? 'Expired' : 'Active',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: drug['isExpired']
-                                            ? Colors.red
-                                            : Colors.green,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Column(
+              drugs.isNotEmpty
+                  ? Expanded(
+                      child: ListView.builder(
+                        itemCount: drugs.length,
+                        itemBuilder: (context, index) {
+                          final drug = drugs[index];
+                          return Card(
+                            color: Colors.white,
+                            margin: const EdgeInsets.only(bottom: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 5,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.info,
-                                      color: Color(0xff613089),
+                                  const CircleAvatar(
+                                    radius: 30,
+                                    backgroundColor: Color(0xff613089),
+                                    child: Icon(
+                                     FontAwesomeIcons.capsules,
+                                      size: 30,
+                                      color: Colors.white,
                                     ),
-                                    onPressed: () =>
-                                        _showDrugDetailsDialog(drug), 
                                   ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.delete,
-                                      color: Colors.red,
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          drug['name'] ?? 'Unknown Drug',
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xff613089),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Dose: ${drug['dose']}',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        if (drug['startDate'] != null)
+                                          Text(
+                                            'Start Date: ${DateFormat('dd/MM/yyyy').format(drug['startDate'])}',
+                                            style: const TextStyle(
+                                                fontSize: 14, color: Colors.black87),
+                                          ),
+                                        if (drug['endDate'] != null)
+                                          GestureDetector(
+                                            onTap: () => _editDrugEndDate(drug, index),
+                                            child: Row(
+                                              children: [
+                                                Text(
+                                                  'End Date: ${DateFormat('dd/MM/yyyy').format(drug['endDate'])}',
+                                                  style: const TextStyle(
+                                                      fontSize: 14,
+                                                      color: Colors.black87),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                const Icon(Icons.edit, color: Color(0xff613089), size: 16),
+                                              ],
+                                            ),
+                                          ),
+                                        if (drug['endDate'] == null && drug['startDate'] == null)
+                                          const Text(
+                                            'Its a permanent drug.',
+                                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                                          ),
+                                        const SizedBox(height: 8),
+                                        if (drug['endDate'] != null && drug['startDate'] != null)
+                                          const Text(
+                                            'Tap on the end date to change it.',
+                                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                                          ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          drug['isExpired'] ? 'Expired' : 'Active',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: drug['isExpired']
+                                                ? Colors.red
+                                                : Colors.green,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    onPressed: () =>
-                                        _deleteDrug(drug['name'] ?? ''), 
+                                  ),
+                                  Column(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.info,
+                                          color: Color(0xff613089),
+                                        ),
+                                        onPressed: () =>
+                                            _showDrugDetailsDialog(drug),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          color: Color(0xff613089),
+                                        ),
+                                        onPressed: () =>
+                                            _deleteDrug(drug['name'] ?? ''),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  : Center(
+                      child: Text(
+                        'No medicines available.',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[500],
+                        
                         ),
-                      );
-                    },
-                  ),
-                )
-              : const Center(
-                  child: Text(
-                    'No medicines available.',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Color(0xff613089),
-                      fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ),
-        ],
+            ],
+          ),
+        ),
       ),
     ),
     floatingActionButton: FloatingActionButton(
@@ -825,22 +840,60 @@ Widget build(BuildContext context) {
 }
 
 
+
+
+
 void _editDrugEndDate(Map<String, dynamic> drug, int index) {
-  showDatePicker(
+  showDialog(
     context: context,
-    initialDate: drug['endDate'] ?? DateTime.now(),
-    firstDate: DateTime.now().subtract(const Duration(days: 365)),
-    lastDate: DateTime.now().add(const Duration(days: 365)),
-  ).then((selectedDate) {
-    if (selectedDate != null) {
-      setState(() {
-        drugs[index]['endDate'] = selectedDate;
-        drugs[index]['isExpired'] = selectedDate.isBefore(DateTime.now());
-      });
-      _updateDrugInDatabase(widget.patientId,drug['name'], selectedDate); 
-    }
-  });
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Select End Date', style: TextStyle(color: Color(0xff613089))),
+        content: SizedBox(
+          width: 300,
+          height: 400,
+          child: Column(
+            children: [
+              Expanded(
+                child: TableCalendar(
+                  firstDay: DateTime.utc(2020, 1, 1),
+                  lastDay: DateTime.utc(2030, 12, 31),
+                  focusedDay: drug['endDate'] ?? DateTime.now(),
+                  selectedDayPredicate: (day) {
+                    return isSameDay(day, drug['endDate']);
+                  },
+                  onDaySelected: (selectedDay, focusedDay) {
+                    setState(() {
+                      drug['endDate'] = selectedDay;
+                      drug['isExpired'] = selectedDay.isBefore(DateTime.now());
+                    });
+                    _updateDrugInDatabase(widget.patientId, drug['name'], selectedDay);
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  calendarStyle: const CalendarStyle(
+                    selectedDecoration: BoxDecoration(
+                      color: Color(0xffb41391),
+                      shape: BoxShape.circle,
+                    ),
+                    todayDecoration: BoxDecoration(
+                      color: Color(0xff613089),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  headerStyle: const HeaderStyle(
+                    formatButtonVisible: false,
+                    titleTextStyle: TextStyle(color: Color(0xff613089), fontSize: 20),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
+
 
 
 Future<void> _updateDrugInDatabase(String userId, String drugName, DateTime newEndDate) async {
@@ -871,4 +924,6 @@ print('innnnnnnnnnnnnnn');
     print('Error: $error');
   }
 }
+
+
 }

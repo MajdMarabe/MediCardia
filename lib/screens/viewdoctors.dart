@@ -8,6 +8,7 @@ import 'constants.dart';
 import 'user_doctors.dart';
 import 'chat_screen.dart';
 import 'permission_requests.dart';
+import 'reviews.dart';
 
 const storage = FlutterSecureStorage();
 
@@ -55,7 +56,7 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
               'name': doc['fullName'] ?? 'Unknown',
               'specialty': doc['specialization'] ?? 'Unknown',
               'rating': doc['rating'] ?? 0.0,
-              'image': doc['image'] ?? 'assets/images/doctor1.jpg',
+             'image': (doc['image']?.isNotEmpty == true) ? doc['image'] : 'assets/images/doctor1.jpg',
               'email': doc['email'] ?? 'No email provided',
               'phone': doc['phone'] ?? 'No phone number provided',
               'workplace': {
@@ -116,8 +117,12 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
   final Map<String, Widget> specialtiesWithIcons = {
     "All": const Icon(Icons.clear_all, color: Color(0xFF613089), size: 18),
     "Eye": const Icon(Icons.visibility, color: Color(0xFF613089), size: 18),
-    "Nose": Image.asset('assets/images/nose.png',
-        width: 15, height: 15, color:const Color(0xFF613089) ,), 
+    "Nose": Image.asset(
+      'assets/images/nose.png',
+      width: 15,
+      height: 15,
+      color: const Color(0xFF613089),
+    ),
     "General": const Icon(Icons.person, color: Color(0xFF613089), size: 18),
     "Pediatrics":
         const Icon(Icons.child_friendly, color: Color(0xFF613089), size: 18),
@@ -246,7 +251,7 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
                                   builder: (context, constraints) {
                                     final bool isWeb =
                                         constraints.maxWidth > 600;
-                                    final int crossAxisCount = isWeb ? 3 : 1;
+                                    final int crossAxisCount = isWeb ? 3 : 2;
                                     return SingleChildScrollView(
                                       child: GridView.builder(
                                         physics:
@@ -257,7 +262,7 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
                                           crossAxisCount: crossAxisCount,
                                           crossAxisSpacing: 16,
                                           mainAxisSpacing: 16,
-                                          childAspectRatio: isWeb ? 1 : 2.5,
+                                          childAspectRatio: isWeb ? 1.4 : 0.8,
                                         ),
                                         itemCount: displayedDoctors.length,
                                         itemBuilder: (context, index) {
@@ -378,7 +383,7 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
               value: entry.key,
               child: Row(
                 children: [
-                  entry.value, 
+                  entry.value,
                   const SizedBox(width: 3),
                   Text(
                     entry.key,
@@ -559,15 +564,30 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                               children: [
                                 SingleChildScrollView(
                                   scrollDirection: Axis.vertical,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.network(
-                                      widget.doctor['image'],
-                                      width: double.infinity,
-                                      height: 220,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
+                                  child: 
+ClipRRect(
+  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+  child: LayoutBuilder(
+    builder: (context, constraints) {
+      double imageHeight = constraints.maxWidth > 600 ? 280 : 160;
+
+      return widget.doctor["image"] != null && widget.doctor["image"].startsWith('http')
+          ? Image.network(
+              widget.doctor["image"] ?? "https://via.placeholder.com/150",
+              height: imageHeight, 
+              width: double.infinity,
+              fit: BoxFit.cover,
+            )
+          : Image.asset(
+              widget.doctor["image"] ?? "https://via.placeholder.com/150",
+              height: imageHeight,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            );
+    },
+  ),
+),
+
                                 ),
                                 const SizedBox(height: 12),
                                 Padding(
@@ -582,7 +602,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Dr ${widget.doctor['name']}',
+                                            'Dr. ${widget.doctor['name']}',
                                             style: const TextStyle(
                                               fontSize: 24,
                                               fontWeight: FontWeight.bold,
@@ -645,6 +665,41 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                           ),
                         ),
                       ),
+                   const SizedBox(height: 20),
+                Padding(
+  padding: const EdgeInsets.symmetric(vertical: 10.0),
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    children: [
+      _buildStatCard(
+        icon: Icons.people,
+        value: '1000+',
+        label: 'Patients',
+        color: Colors.blue,
+      ),
+      _buildStatCard(
+        icon: Icons.star_rate,
+        value: '4.9',
+        label: 'Ratings',
+        color: Colors.amber,
+      ),
+      _buildStatCard(
+        icon: Icons.reviews, 
+        value: '120+',       
+        label: 'Reviews',    
+        color: Colors.green, 
+        onTap: () {          
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ReviewsPage()), 
+          );
+        },
+      ),
+    ],
+  ),
+),
+
+
                       const SizedBox(height: 20),
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -809,4 +864,68 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
       },
     );
   }
+
+
+
+
+Widget _buildStatCard({
+  required IconData icon,
+  required String value,
+  required String label,
+  required Color color,
+  VoidCallback? onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      width: 100,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 6,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+  
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              shape: BoxShape.circle, 
+            ),
+            child: Icon(icon, size: 24, color: color), 
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black54,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+
 }

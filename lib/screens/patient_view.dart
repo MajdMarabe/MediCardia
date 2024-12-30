@@ -134,7 +134,7 @@ userid ==data['_id']?? 'Unknown';
         allergies = List<String>.from(
           data['medicalCard']?['publicData']?['allergies'] ?? [],
         );
-       //  base64Image=data['medicalCard']?['publicData']?['image'] ?? 'Unknown';
+        base64Image=data['medicalCard']?['publicData']?['image'] ?? 'Unknown';
         isLoading = false; 
       });
     } else {
@@ -179,11 +179,7 @@ Widget buildPatientInfo() {
       children: [
         Row(
           children: [
-            const CircleAvatar(
-              radius: 42,
-              backgroundColor: Colors.white,
-              backgroundImage: AssetImage('assets/images/doctor3.jpg'),
-            ),
+           _buildUserAvatar(),
             const SizedBox(width: 18),
             Expanded(
               child: Column(
@@ -354,6 +350,25 @@ Widget _buildInfoRow(IconData icon, String label, String value) {
 
 
 
+Image buildImageFromBase64(String? base64Image) {
+  try {
+    if (base64Image == null || base64Image.isEmpty) {
+      return Image.asset('assets/images/default_person.jpg'); 
+    }
+
+    final bytes = base64Decode(base64Image);
+    print("Decoded bytes length: ${bytes.length}");
+
+    return Image.memory(bytes);
+  } catch (e) {
+  
+    print("Error decoding image: $e");
+    return Image.asset('assets/images/default_person.jpg');
+  }
+}
+
+
+
   String formatDate(String isoDate) {
     try {
       DateTime parsedDate = DateTime.parse(isoDate);
@@ -363,6 +378,23 @@ Widget _buildInfoRow(IconData icon, String label, String value) {
       return isoDate;
     }
   }
+
+
+Widget _buildUserAvatar() {
+  ImageProvider backgroundImage;
+  try {
+    backgroundImage = buildImageFromBase64(base64Image).image;
+  } catch (e) {
+    backgroundImage = const AssetImage('assets/images/default_person.jpg');
+  }
+  return CircleAvatar(
+    radius: 42,
+    backgroundColor: Colors.white,
+    backgroundImage: backgroundImage,
+  );
+}
+
+
 
 
   // Widget for public information box

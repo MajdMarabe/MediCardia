@@ -1,13 +1,12 @@
 
 import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter_application_3/services/notification_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
+
 
 const storage = FlutterSecureStorage();
 
@@ -18,6 +17,7 @@ class GraphDetailsPage extends StatefulWidget {
   @override
   _GraphDetailsPageState createState() => _GraphDetailsPageState();
 }
+
 
 class _GraphDetailsPageState extends State<GraphDetailsPage> {
   Map<String, dynamic>? pressureData;
@@ -33,10 +33,9 @@ Future<void> fetchPressureData() async {
     print('Fetching pressure data...'); 
 
 final userid=widget.patientId;
-  final  apiUrl = '${ApiConstants.baseUrl}/pressure/$userid/data'; // ضع رابط الـ API هنا
+  final  apiUrl = '${ApiConstants.baseUrl}/pressure/$userid/data'; 
 
   try {
-    // إرسال طلب GET للحصول على بيانات ضغط الدم
     final response = await http.get(
       Uri.parse(apiUrl),
       headers: {
@@ -61,11 +60,18 @@ final userid=widget.patientId;
     print('Error fetching pressure data: $error');
   }
 }
+
+
 Future<void> fetchAge() async {
   String? storedAge = await storage.read(key: 'age');
   age = int.tryParse(storedAge ?? '0') ?? 0;
   print("Age: $age");
 }
+
+
+/////////////////////////////////
+
+
 @override
 Widget build(BuildContext context) {
  fetchAge();
@@ -204,6 +210,7 @@ _buildGraphSection(
     ),
   );
 }
+
 
 
 
@@ -465,6 +472,8 @@ _buildGraphSection(
       ],
     );
   }
+
+  
 
   Widget _buildDiastolicPressureChart({
     required int age,

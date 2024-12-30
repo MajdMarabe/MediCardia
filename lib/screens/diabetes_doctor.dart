@@ -20,12 +20,9 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
   final List<TimeOfDay> _reminderTimes = [];
   late List<FlSpot> weekReadings;
   final storage = const FlutterSecureStorage();
-  final TextEditingController _dateTimeClucoseController =
-      TextEditingController();
-  final TextEditingController _glucoseLevelController = TextEditingController();
-  String _glucoseErrorText = '';
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+
 
   @override
   void initState() {
@@ -213,63 +210,13 @@ class _DiabetesControlPageState extends State<DiabetesControlPage> {
     );
   }
 
-///////////////////////////////////
-
-Widget _buildQuickAddOption({
-  required IconData icon,
-  required String title,
-  required List<Color> gradientColors,
-  required VoidCallback onTap,
-}) {
-  return Center(
-    child: GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 200,
-        height: 60,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: gradientColors,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 6,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-
-
-
-
-///////////////////////////////////////
-
-
 
 
 
 
 //////////////////////////////
+
+
 
   Widget _buildGraphSection() {
     return Container(
@@ -353,93 +300,7 @@ Widget _buildQuickAddOption({
     );
   }
 
-  Widget _buildReminderSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      width: _reminderTimes.isEmpty
-          ? MediaQuery.of(context).size.width * 0.9
-          : null,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 8,
-            spreadRadius: 4,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Set reminder(s) to measure your glucose level',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xff613089),
-            ),
-          ),
-          const SizedBox(height: 20),
-          _reminderTimes.isEmpty
-              ? Text(
-                  'No reminders set.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
-                )
-              : Column(
-                  children: _reminderTimes.map((time) {
-                    return ListTile(
-                      leading: const Icon(Icons.notifications_active,
-                          color: Color(0xff613089)),
-                      title: Text(
-                        'Reminder at: ${time.format(context)}',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit,
-                                color: Color(0xff613089)),
-                            onPressed: () {
-                              _showReminderDialog(context, existingTime: time);
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete,
-                                color: Color(0xff613089)),
-                            onPressed: () {
-                              _removeReminder(time);
-                            },
-                          ),
-                        ],
-                      ),
-                      onLongPress: () {
-                        _removeReminder(time);
-                      },
-                    );
-                  }).toList(),
-                ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              _showReminderDialog(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xff613089),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 30),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-            ),
-            child: const Text('Add Reminder'),
-          ),
-        ],
-      ),
-    );
-  }
+  
 
   Widget _buildInfoCard({
     required IconData icon,
@@ -481,17 +342,19 @@ Widget _buildQuickAddOption({
       ),
     );
   }
+
+
   Widget _buildHeaderText() {
   return Container(
-    padding: EdgeInsets.all(16),
+    padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      gradient: LinearGradient(
+      gradient: const LinearGradient(
         colors: [Color.fromARGB(255, 71, 1, 74), Color.fromARGB(255, 218, 59, 246)], 
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
       borderRadius: BorderRadius.circular(12),
-      boxShadow: [
+      boxShadow: const [
         BoxShadow(
           color: Colors.black12,
           blurRadius: 8,
@@ -499,7 +362,7 @@ Widget _buildQuickAddOption({
         ),
       ],
     ),
-    child: Row(
+    child: const Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Icon(
@@ -536,7 +399,6 @@ Widget _buildQuickAddOption({
     ),
   );
 }
-
 }
 
 
