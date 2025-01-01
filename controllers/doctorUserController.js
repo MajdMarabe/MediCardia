@@ -42,6 +42,11 @@ module.exports.addRelation = asyncHandler(async (req, res) => {
     });
   
     await newRelation.save();
+
+
+    await Doctor.findByIdAndUpdate(doctorId, { $inc: { numberOfPatients: 1 } });
+
+
     res.status(201).json({ message: 'Relation added successfully', relation: newRelation });
   });
   
@@ -91,6 +96,8 @@ module.exports.removeRelation = verifyTokenAndAdmin, asyncHandler(async (req, re
     if (!relation) {
         res.status(404).json({ message: 'Relation not found' });
     } else {
+      await Doctor.findByIdAndUpdate(doctorId, { $inc: { numberOfPatients: -1 } });
+
         res.status(200).json({ message: 'Relation removed successfully' });
     }
 });

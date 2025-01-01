@@ -33,7 +33,11 @@ const {
     addMedicalHistory,
     addTreatmentPlan,
     getSettings,
-    updateSettings
+    updateSettings,
+    getProfile,
+    changePassword,
+    updateProfile
+    
 } = require("../controllers/userController");
 
 // Drug-related routes
@@ -47,6 +51,9 @@ router.get("/", getAllUsers);
 router.get("/:id/setting", getSettings);
 router.put("/:id/setsetting", updateSettings);
 router.get("/:id", getUserById);
+router.get("/profile/:userid", getProfile);
+router.put("/change-password",verifyToken, changePassword);
+router.put("/update/:userid", updateProfile);
 
 
 router.post("/register", register);

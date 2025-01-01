@@ -34,6 +34,7 @@ app.use("/api/users",require("./routes/users"))
 app.use("/api/hospital",require("./routes/hospital"))
 app.use("/api/donationrequest",require("./routes/donationRequest"))
 app.use("/api/pressure",require("./routes/pressure"))
+app.use("/api/rating",require("./routes/ratings"))
 
 
 

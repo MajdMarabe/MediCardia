@@ -46,20 +46,128 @@ module.exports.register = asyncHandler(async (req, res, next) => {
 
     await user.save();
 
-    // Trigger email verification
     const verifyResponse = await module.exports.verifyEmail({ body: { email: user.email } }, res, next);
     if (!verifyResponse) {
-        return; // Prevent further execution if verification fails
+        return; 
     }
 
     const token = user.generateToken();
 
-    // Include the user's `_id` in the response
     res.status(201).json({
-       // message: 'User registered successfully. Please verify your email.',
         token,
-        _id: user._id, // Add the user ID to the response
+        _id: user._id, 
     });
+});
+/**
+ * @desc Get doctor's profile before update
+ * @route /api/users/profile/:userid
+ * @method GET
+ * @access private (requires authentication)
+ */
+module.exports.getProfile = asyncHandler(async (req, res, next) => {
+    const user = await User.findById(req.params.userid);
+    if (!user) {
+        return res.status(404).json({ message: "user not found" });
+    }
+
+    const { password_hash, ...userData } = user._doc;
+
+    res.status(200).json({
+        message: "user profile fetched successfully",
+        user: userData,
+    });
+});
+/**
+ * @desc Update user profile
+ * @route PUT /api/users/update/:userid
+ * @method PUT
+ * @access Private (requires authentication)
+ */
+module.exports.updateProfile = asyncHandler(async (req, res) => {
+    const { username, email, phoneNumber, location } = req.body;
+
+    const user = await User.findById(req.params.userid);
+
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
+    if (email && email !== user.email) {
+        const emailExists = await User.findOne({ email });
+        if (emailExists) {
+            return res.status(400).json({ message: "This email is already registered" });
+        }
+    }
+
+    if (phoneNumber && phoneNumber !== user.medicalCard?.publicData?.phoneNumber) {
+        const phoneNumberExists = await User.findOne({
+            "medicalCard.publicData.phoneNumber": phoneNumber,
+        });
+        if (phoneNumberExists) {
+            return res.status(400).json({ message: "This phone number is already registered" });
+        }
+    }
+
+    if (username) user.username = username;
+    if (email) user.email = email;
+    if (phoneNumber) user.medicalCard.publicData.phoneNumber = phoneNumber;
+    if (location) user.location = location;
+
+    try {
+        await user.save();
+
+        res.status(200).json({
+            message: "User profile updated successfully",
+            user: {
+                username: user.username,
+                email: user.email,
+                phoneNumber: user.medicalCard.publicData.phoneNumber,
+                location: user.location,
+            },
+        });
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        res.status(500).json({ message: "There was an error updating the profile." });
+    }
+});
+
+
+/**
+ * @desc Change user's password
+ * @route PUT /api/users/change-password
+ * @method PUT
+ * @access Private (requires authentication)
+ */
+module.exports.changePassword = asyncHandler(async (req, res) => {
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+console.log(oldPassword);
+    if (!oldPassword || !newPassword || !confirmPassword) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    if (newPassword !== confirmPassword) {
+        return res.status(400).json({ message: 'New passwords do not match' });
+    }
+
+    const userid = req.user.id; 
+    const user = await User.findById(userid);
+
+    if (!user) {
+        return res.status(404).json({ message: 'user not found' });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(oldPassword, user.password_hash);
+    if (!isPasswordMatch) {
+        return res.status(400).json({ message: 'Old password is incorrect' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password_hash = hashedPassword;
+    await user.save();
+
+    res.status(200).json({ message: 'Password changed successfully' });
 });
 
 /**
@@ -77,7 +185,6 @@ module.exports.verifyEmail = asyncHandler(async (req, res, next) => {
         return next(new CustomError('Email not found', 404));
     }
 
-    // Generate a random 4-digit verification code
     const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
 
     // Save the verification code and expiration in the user/doctor document

@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const bcrypt = require('bcryptjs');
-const { Doctor, validateCreateDoctor } = require('../models/Doctor');
+const { Doctor, validateCreateDoctor ,validateUpdateDoctor} = require('../models/Doctor');
 const sendEmail = require("../middlewares/email");
 
 /**
@@ -52,7 +52,7 @@ module.exports.register = asyncHandler(async (req, res, next) => {
 
         const verifyResponse = await module.exports.verifyEmail({ body: { email: doctor.email } }, res, next);
         if (!verifyResponse) {
-            return; // Prevent further execution if verification fails
+            return; 
         }
 
         const token = doctor.generateToken();
@@ -67,6 +67,117 @@ module.exports.register = asyncHandler(async (req, res, next) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "There was an error registering the doctor" });
+    }
+});
+/**
+ * @desc Get doctor's profile before update
+ * @route /api/doctors/profile/:doctorId
+ * @method GET
+ * @access private (requires authentication)
+ */
+module.exports.getProfile = asyncHandler(async (req, res, next) => {
+    const doctor = await Doctor.findById(req.params.doctorId);
+    if (!doctor) {
+        return res.status(404).json({ message: "Doctor not found" });
+    }
+
+    const { password_hash, ...doctorData } = doctor._doc;
+
+    res.status(200).json({
+        message: "Doctor profile fetched successfully",
+        doctor: doctorData,
+    });
+});
+
+/**
+ * @desc Change doctor's password
+ * @route PUT /api/doctors/change-password
+ * @method PUT
+ * @access Private (requires authentication)
+ */
+module.exports.changePassword = asyncHandler(async (req, res) => {
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+console.log(oldPassword);
+    if (!oldPassword || !newPassword || !confirmPassword) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    if (newPassword !== confirmPassword) {
+        return res.status(400).json({ message: 'New passwords do not match' });
+    }
+
+    const doctorId = req.user.id; 
+    const doctor = await Doctor.findById(doctorId);
+
+    if (!doctor) {
+        return res.status(404).json({ message: 'Doctor not found' });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(oldPassword, doctor.password_hash);
+    if (!isPasswordMatch) {
+        return res.status(400).json({ message: 'Old password is incorrect' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    doctor.password_hash = hashedPassword;
+    await doctor.save();
+
+    res.status(200).json({ message: 'Password changed successfully' });
+});
+
+/**
+ * @desc Update doctor's profile
+ * @route /api/doctors/update/:doctorId
+ * @method PUT
+ * @access private (requires authentication)
+ */
+module.exports.updateProfile = asyncHandler(async (req, res, next) => {
+    const { error } = validateUpdateDoctor(req.body);
+    if (error) {
+        return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const doctor = await Doctor.findById(req.params.doctorId);
+    if (!doctor) {
+        return res.status(404).json({ message: "Doctor not found" });
+    }
+
+    if (req.body.email && req.body.email !== doctor.email) {
+        const emailExists = await Doctor.findOne({ email: req.body.email });
+        if (emailExists) {
+            return res.status(400).json({ message: "This email is already registered" });
+        }
+    }
+
+    if (req.body.licenseNumber && req.body.licenseNumber !== doctor.licenseNumber) {
+        const licenseExists = await Doctor.findOne({ licenseNumber: req.body.licenseNumber });
+        if (licenseExists) {
+            return res.status(400).json({ message: "This license number is already registered" });
+        }
+    }
+
+    doctor.fullName = req.body.fullName || doctor.fullName;
+    doctor.email = req.body.email || doctor.email;
+    doctor.phone = req.body.phone || doctor.phone;
+    doctor.specialization = req.body.specialization || doctor.specialization;
+    doctor.licenseNumber = req.body.licenseNumber || doctor.licenseNumber;
+    doctor.workplace.name = req.body.workplaceName || doctor.workplace.name;
+    doctor.workplace.address = req.body.workplaceAddress || doctor.workplace.address;
+
+    try {
+        const updatedDoctor = await doctor.save();
+
+        const { password_hash, ...updatedData } = updatedDoctor._doc;
+
+        res.status(200).json({
+            message: "Doctor profile updated successfully",
+            doctor: updatedData,
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "There was an error updating the profile" });
     }
 });
 

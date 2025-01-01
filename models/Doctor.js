@@ -68,6 +68,18 @@ const DoctorSchema = new mongoose.Schema({
         messages: {type: Boolean, default: true} ,
         requests: {type: Boolean, default: true} ,
       },
+      numberOfPatients: {
+        type: Number,
+        default: 0,
+    },
+    averageRating: {
+        type: Number,
+        default: 0, // يبدأ بـ 0 حتى يتم تحديثه
+    },
+    numberOfReviews: {
+        type: Number,
+        default: 0, // لحساب عدد المراجعات المرتبطة بالطبيب
+    },
 }, { timestamps: true });
 
 DoctorSchema.methods.generateToken = function () {
