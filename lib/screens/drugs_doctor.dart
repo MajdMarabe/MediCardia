@@ -760,7 +760,7 @@ Widget build(BuildContext context) {
                                                       color: Colors.black87),
                                                 ),
                                                 const SizedBox(width: 8),
-                                                const Icon(Icons.edit, color: Color(0xff613089), size: 16),
+                                                const Icon(Icons.edit_calendar_rounded, color: Color(0xff613089), size: 16),
                                               ],
                                             ),
                                           ),

@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart'; 
+import 'package:flutter/foundation.dart';
+import 'user_profile.dart'; 
 import 'package:flutter_application_3/widgets/custom_scaffold.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'constants.dart';
-import 'package:flutter_application_3/screens/verification_code.dart';
+import 'verification_code.dart';
+import 'welcome_screen.dart';
 
 class SignUpDoctorScreen extends StatefulWidget {
   const SignUpDoctorScreen({super.key});
@@ -210,8 +212,13 @@ Widget _buildWebLayout() {
         ),
         Row(
           children: [
-            TextButton(
-              onPressed: () {},
+ TextButton(
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                );
+              },
               child: const Text(
                 'Home',
                 style: TextStyle(
@@ -221,19 +228,15 @@ Widget _buildWebLayout() {
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                 Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => AboutUsPage()),
+                );
+              
+              },
               child: const Text(
                 'About',
-                style: TextStyle(
-                  color: Color(0xff613089),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: const Text(
-                'Contact',
                 style: TextStyle(
                   color: Color(0xff613089),
                   fontWeight: FontWeight.bold,

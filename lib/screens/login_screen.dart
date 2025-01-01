@@ -11,6 +11,8 @@ import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'package:flutter_application_3/screens/select_type.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'welcome_screen.dart';
+import 'user_profile.dart';
 
 const storage = FlutterSecureStorage();
 
@@ -202,8 +204,13 @@ messaging.getToken().then((tokenFCM) {
         ),
         Row(
           children: [
-            TextButton(
-              onPressed: () {},
+       TextButton(
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                );
+              },
               child: const Text(
                 'Home',
                 style: TextStyle(
@@ -213,19 +220,15 @@ messaging.getToken().then((tokenFCM) {
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                 Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => AboutUsPage()),
+                );
+              
+              },
               child: const Text(
                 'About',
-                style: TextStyle(
-                  color: Color(0xff613089),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: const Text(
-                'Contact',
                 style: TextStyle(
                   color: Color(0xff613089),
                   fontWeight: FontWeight.bold,

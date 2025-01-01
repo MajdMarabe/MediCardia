@@ -51,6 +51,13 @@ Map<String, bool> sectionExpanded = {
     'medicalInfo': false,
   };
 
+  List<DateTime> donationDates = [
+    DateTime(2023, 5, 10),
+    DateTime(2024, 1, 1),
+    DateTime(2024, 7, 25),
+  ];
+   bool showAllDonations = false;
+
 
 
   @override
@@ -125,7 +132,7 @@ Future<void> fetchUserInfo() async {
  idNumber =data['medicalCard']?['publicData']?['idNumber'] ?? 'Unknown';
  email =data['email']?? 'Unknown';
  location =data['location']?? 'Unknown';
-userid ==data['_id']?? 'Unknown';
+userid ==data['_id'];
         lastDonationDate =
             data['medicalCard']?['publicData']?['lastBloodDonationDate'] ?? 'N/A';
         chronicDiseases = List<String>.from(
@@ -369,15 +376,7 @@ Image buildImageFromBase64(String? base64Image) {
 
 
 
-  String formatDate(String isoDate) {
-    try {
-      DateTime parsedDate = DateTime.parse(isoDate);
-      return "${parsedDate.year}-${parsedDate.month.toString().padLeft(2, '0')}-${parsedDate.day.toString().padLeft(2, '0')}";
-    } catch (e) {
-      print("Error parsing date: $e");
-      return isoDate;
-    }
-  }
+
 
 
 Widget _buildUserAvatar() {
@@ -446,13 +445,102 @@ Widget _buildUserAvatar() {
           if (sectionExpanded['medicalInfo']!) ...[
            _buildInfoRow(Icons.healing, 'Chronic Diseases', chronicDiseases.join(', ')),
            _buildInfoRow(Icons.warning_amber_rounded, 'Allergies', allergies.join(', ')),
-            _buildInfoRow(Icons.bloodtype, 'Last Blood Donation', formatDate(lastDonationDate))
+                   _buildDonationHistory(donationDates),
           ],
         ],
       ),
     ),
   );
 }
+
+
+  Widget _buildDonationHistory(List<DateTime> donationDates) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 10),
+        const Text(
+          'Blood Donation History:',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 5),
+        donationDates.isEmpty
+            ? const Text('No donation records available.')
+            : Column(
+                children: [
+                  _buildDonationRow(donationDates.last, isLatest: true),
+                  if (showAllDonations)
+                    ...donationDates
+                        .take(donationDates.length - 1)
+                        .map((date) => _buildDonationRow(date))
+                        .toList(),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        showAllDonations = !showAllDonations;
+                      });
+                    },
+                    child: Text(
+                      showAllDonations ? 'Show Less' : 'Show All',
+                      style: const TextStyle(color: Colors.black, fontSize: 13),
+                      
+                    ),
+                  ),
+                ],
+              ),
+      ],
+    );
+  }
+
+  Widget _buildDonationRow(DateTime date, {bool isLatest = false}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: isLatest ? const Color(0xFFE9D9FF) : Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 6,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.calendar_month, color: Color(0xff613089)),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Donation Date: ${formatDate(date)}'),
+              Text(
+                'Days since last donation: ${_daysSinceLastDonation(date)}',
+                style: TextStyle(color: Colors.grey[700], fontSize: 12),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  String formatDate(DateTime date) {
+    return '${date.day}-${date.month}-${date.year}';
+  }
+
+  int _daysSinceLastDonation(DateTime date) {
+    final now = DateTime.now();
+    return now.difference(date).inDays;
+  }
+
+
 
 
 

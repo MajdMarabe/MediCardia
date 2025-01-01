@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'user_profile.dart';
+import 'welcome_screen.dart';
 import 'package:flutter_application_3/widgets/custom_scaffold.dart';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_application_3/screens/verification_code.dart';
+import 'verification_code.dart';
 
 const storage = FlutterSecureStorage();
 
@@ -138,8 +140,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         Row(
           children: [
-            TextButton(
-              onPressed: () {},
+         TextButton(
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                );
+              },
               child: const Text(
                 'Home',
                 style: TextStyle(
@@ -149,7 +156,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                 Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => AboutUsPage()),
+                );
+              
+              },
               child: const Text(
                 'About',
                 style: TextStyle(
@@ -158,16 +171,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
             ),
-            TextButton(
-              onPressed: () {},
-              child: const Text(
-                'Contact',
-                style: TextStyle(
-                  color: Color(0xff613089),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+ 
             Focus(
               onFocusChange: (hasFocus) {
              

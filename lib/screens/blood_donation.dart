@@ -1,4 +1,5 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/services/notification_service.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -177,6 +178,19 @@ class _BloodDonationPageState extends State<BloodDonationPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F5FF),
+      appBar: AppBar(
+  elevation: 0,
+  backgroundColor: const Color(0xFFF2F5FF),
+  leading: Visibility(
+    visible: !kIsWeb, 
+    child: IconButton(
+      icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    ),
+  ),
+),
       body: Center(
         child: Container(
           width: dialogWidth,

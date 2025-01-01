@@ -11,6 +11,7 @@ import 'package:flutter_application_3/screens/medical_notes_view.dart';
 import 'package:flutter_application_3/screens/treatment_plans_view.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter/foundation.dart';
+import 'blood_donation_home.dart';
 import 'drugshome.dart';
 import 'viewdoctors.dart';
 import 'notification_page.dart';
@@ -1119,7 +1120,7 @@ Widget build(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DonationRequestsPage(),
+       builder: (context) => BloodDonationHome(),
       ),
     );
   },
