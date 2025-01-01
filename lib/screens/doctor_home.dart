@@ -11,6 +11,7 @@ import 'patient_view.dart';
 import 'blood_donation.dart';
 import 'package:flutter/foundation.dart';
 import 'notification_page.dart';
+import 'reviews_doctor.dart';
 
 const storage = FlutterSecureStorage();
 
@@ -135,7 +136,11 @@ class HomePageContent extends StatefulWidget {
 class _HomePageContentState extends State<HomePageContent> {
   List<dynamic> _patients = [];
   List<dynamic> _Allpatients = [];
-
+  String? doctorid; 
+  String username='';
+  String speciality='';
+  int totalpatients=0;
+int averageRating=0;
   bool _isLoading = true;
   bool _showMyPatients = true;
   //List<dynamic> _allPatients = [];
@@ -144,9 +149,47 @@ class _HomePageContentState extends State<HomePageContent> {
   @override
   void initState() {
     super.initState();
+    _loadDoctorId();
+    fetchUserInfo();
     _fetchPatients();
-  }
 
+  }
+   Future<void> fetchUserInfo() async {
+  final String ? userid =  await storage.read(key: 'userid');
+  try {
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/doctors/$userid'),
+    );
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      setState(() {
+        username = data['fullName'] ?? 'Unknown';
+       speciality=data['specialization'] ?? 'Unknown';
+  totalpatients=   data['numberOfPatients'] ?? 'Unknown';
+  averageRating= data['averageRating'] ?? 'Unknown';
+      });
+    } else {
+      _showMessage('Failed to load user information');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  } catch (e) {
+    _showMessage('Error: $e');
+    setState(() {
+      _isLoading = false;
+    });
+  }
+}
+ void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+  Future<void> _loadDoctorId() async {
+    doctorid = await storage.read(key: 'userid'); // Use await inside async method
+    setState(() {}); // Update the UI when the doctorid is loaded
+  }
   Future<void> _fetchAllPatients() async {
     try {
       final doctorId = await storage.read(key: 'userid');
@@ -220,103 +263,182 @@ class _HomePageContentState extends State<HomePageContent> {
 
 /////////////////////////////////
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF2F5FF),
-      body: Center(
-        child: Container(
-          width: kIsWeb
-              ? MediaQuery.of(context).size.width * 0.75
-              : MediaQuery.of(context).size.width,
-          child: Stack(
-            children: [
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 8.0),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 20),
-                      _buildDoctorProfile(),
-                      const SizedBox(height: 20),
-                      buildSearchSection(),
-                      const SizedBox(height: 20),
-                      buildBloodDonationTile(context),
-                      const SizedBox(height: 20),
-                      _buildToggleButtons(),
-                      Expanded(
-                        child: _isLoading
-                            ? const Center(child: CircularProgressIndicator())
-                            : _buildPatientList(),
-                      ),
-                    ],
-                  ),
+
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFF2F5FF),
+    body: Center(
+      child: SizedBox(
+        width: kIsWeb
+            ? MediaQuery.of(context).size.width * 0.75
+            : MediaQuery.of(context).size.width,
+        child: Stack(
+          children: [
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Column(
+                  // crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 30),
+                    _buildDoctorProfile(),
+                    const SizedBox(height: 30),
+                    buildSearchSection(),
+                    const SizedBox(height: 30),
+                    Row(
+                      children: [
+                        Expanded(child: buildBloodDonationTile(context)),
+                        const SizedBox(width: 16), 
+                        Expanded(child: buildReviewsTile(context)),
+                      ],
+                    ),
+                    const SizedBox(height: 30),
+                 
+                    _buildToggleButtons(),
+                    Expanded(
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : _buildPatientList(),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget buildBloodDonationTile(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => BloodDonationPage()),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              spreadRadius: 2,
-              offset: const Offset(0, 5),
             ),
           ],
         ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: const Color(0xff613089).withOpacity(0.2),
-              child: const Icon(Icons.bloodtype, color: Color(0xff613089)),
+      ),
+    ),
+  );
+}
+
+Widget buildBloodDonationTile(BuildContext context) {
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => BloodDonationPage()),
+      );
+    },
+    child: Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            spreadRadius: 1,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: const Color(0xff613089).withOpacity(0.15),
+              shape: BoxShape.circle,
             ),
-            const SizedBox(width: 15),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Blood Donation",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xff613089),
-                    ),
-                  ),
-                  Text(
-                    "Click to view blood donation requests and share information.",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
+            child: Center(
+              child: Image.asset(
+                'assets/images/blood-donation.png',
+                width: 40,
+                height: 40,
+                color: const Color(0xff613089),
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            "Blood Donation",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xff613089),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "Tap to add new blood donation request.",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
+
+Widget buildReviewsTile(BuildContext context) {
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ReviewsPage(doctorid: doctorid as String,)),
+      );
+    },
+    child: Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            spreadRadius: 1,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: const Color(0xffFFA726).withOpacity(0.15),
+            child: const Icon(Icons.star, size: 28, color: Color(0xffFFA726)),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            "Reviews",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xffFFA726),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "Tap to view reviews about your services.",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+
+
 
   Widget buildSearchSection() {
     return Container(
@@ -388,8 +510,8 @@ class _HomePageContentState extends State<HomePageContent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Dr. John Smith",
+                 Text(
+                 "Dr.$username",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -397,15 +519,18 @@ class _HomePageContentState extends State<HomePageContent> {
                   ),
                 ),
                 const SizedBox(height: 5),
-                const Text(
-                  "Specialist: Cardiologist",
+                 Text(
+                  "Specialist:$speciality",
                   style: TextStyle(fontSize: 16, color: Colors.white70),
                 ),
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildProfileStat("250", "Total Patients"),
+                    _buildProfileStat(totalpatients.toString(), "Total Patients"),
+                    _buildProfileStat(averageRating.toString(), "average Rating"),
+
+                    
                   ],
                 ),
               ],
@@ -467,7 +592,7 @@ class _HomePageContentState extends State<HomePageContent> {
         constraints: const BoxConstraints(minHeight: 40, minWidth: 150),
         children: const [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(horizontal: 25),
             child: Text('Your patients', style: TextStyle(fontSize: 16)),
           ),
           Padding(

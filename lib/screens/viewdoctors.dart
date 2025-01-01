@@ -59,6 +59,7 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
              'image': (doc['image']?.isNotEmpty == true) ? doc['image'] : 'assets/images/doctor1.jpg',
               'email': doc['email'] ?? 'No email provided',
               'phone': doc['phone'] ?? 'No phone number provided',
+              'numberOfPatients' : doc['numberOfPatients']?? 0,
               'workplace': {
                 'name': doc['workplace']?['name'] ?? 'No workplace name',
                 'address': doc['workplace']?['address'] ?? 'No address',
@@ -438,7 +439,42 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
   int? selectedDay;
   int? selectedTime;
   bool isFavorite = false;
+    double averageRating = 0.0;
+  int reviewCount = 0;
+  bool isLoading = true;
+    @override
+  void initState() {
+    super.initState();
+    fetchRatingData();
+  }
 
+  Future<void> fetchRatingData() async {
+    final apiUrl = '${ApiConstants.baseUrl}/rating/${widget.doctor['id']}'; // Replace with your API URL
+     try {
+    final response = await http.get(Uri.parse(apiUrl));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+       
+        averageRating = (data['averageRating'] is int)
+            ? (data['averageRating'] as int).toDouble()
+            : data['averageRating'] is double
+                ? data['averageRating']
+                : 0.0;
+        reviewCount = data['reviewCount'] ?? 0;  // Default to 0 if no reviews
+        
+        isLoading = false;
+      });
+    } else {
+      throw Exception('Failed to load data');
+    }
+  } catch (e) {
+    print('Error fetching data: $e');
+    setState(() {
+      isLoading = false;
+    });
+  }
+  }
   Future<void> _setAsMyDoctor(BuildContext context) async {
     final url = Uri.parse('${ApiConstants.baseUrl}/doctorsusers/relations');
     final patientId = await storage.read(key: 'userid');
@@ -621,7 +657,7 @@ ClipRRect(
                                       ),
                                       Row(
                                         children: [
-                                          IconButton(
+                                        /*  IconButton(
                                             icon: Icon(
                                               isFavorite
                                                   ? Icons.favorite
@@ -634,7 +670,7 @@ ClipRRect(
                                                 isFavorite = !isFavorite;
                                               });
                                             },
-                                          ),
+                                          ),*/
                                           IconButton(
                                             icon: const Icon(
                                               Icons.chat,
@@ -673,25 +709,25 @@ ClipRRect(
     children: [
       _buildStatCard(
         icon: Icons.people,
-        value: '1000+',
+        value: widget.doctor['numberOfPatients'].toString(),
         label: 'Patients',
         color: Colors.blue,
       ),
       _buildStatCard(
         icon: Icons.star_rate,
-        value: '4.9',
+value: averageRating.toString(),
         label: 'Ratings',
         color: Colors.amber,
       ),
       _buildStatCard(
         icon: Icons.reviews, 
-        value: '120+',       
-        label: 'Reviews',    
+        value: reviewCount.toString(),       
+        label:'Reviews',    
         color: Colors.green, 
         onTap: () {          
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const ReviewsPage()), 
+            MaterialPageRoute(builder: (context) => ReviewsPage(doctorid:widget.doctor['id'])), 
           );
         },
       ),

@@ -22,7 +22,6 @@ class DoctorProfilePage extends StatefulWidget {
 class _DoctorProfilePageState extends State<DoctorProfilePage> {
   File? _image;
 
-  // Widget to create profile items
   Widget _itemProfile(String title, String subtitle, IconData iconData,
       {VoidCallback? onTap}) {
     return GestureDetector(
@@ -53,15 +52,12 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
 
 
 
-// Function to handle log out
   Future<void> _logOut() async {
-    // Add your logout logic here (e.g., clearing user session, etc.)
     try {
-    await storage.deleteAll(); // Clears all stored keys and values
+    await storage.deleteAll(); 
     print('Storage cleared successfully.');
   await FirebaseMessaging.instance.deleteToken();
 
-    // Navigate the user back to the welcome or login screen
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const WelcomeScreen()),
     );
@@ -135,6 +131,21 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
                         );
                       },
                     ),
+                                        const SizedBox(height: 10),
+
+                               _itemProfile(
+                      'Change Password',
+                      'Change your password',
+                      CupertinoIcons.lock,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>ChangePasswordPage()),
+                        );
+                      },
+                    ),
+              
                     const SizedBox(height: 10),
                     _itemProfile(
                       'About Us',
@@ -182,49 +193,74 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
 ///////////////////////////////////////// Edit Profile Page ///////////////////////////////////////////
 
 
-
-
-
 class DoctorEditProfilePage extends StatefulWidget {
+
+
   @override
   _DoctorEditProfilePageState createState() => _DoctorEditProfilePageState();
 }
 
 class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
   final _formProfileKey = GlobalKey<FormState>();
-  final _fullNameController = TextEditingController(text: "Dr. John Smith");
-  final _emailController = TextEditingController(text: "johnsmith@example.com");
-    final TextEditingController _passwordController = TextEditingController(text: "123456");
-  final _phoneController = TextEditingController(text: "+1 234 567 8901");
-  final _specializationController = TextEditingController(text: "Cardiologist");
-  final _licenseNumberController = TextEditingController(text: "LIC12345678");
-  final _workplaceNameController = TextEditingController(text: "City Hospital");
-  final _workplaceAddressController =
-      TextEditingController(text: "123 Main St, Springfield");
-      bool _isPasswordVisible = false;
+  final _fullNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _specializationController = TextEditingController();
+  final _licenseNumberController = TextEditingController();
+  final _workplaceNameController = TextEditingController();
+  final _workplaceAddressController = TextEditingController();
+  
+  bool _isPasswordVisible = false;
   XFile? _imageFile;
-
+  
+  // Add focus nodes for all fields
   final fullNameFocusNode = FocusNode();
   final emailFocusNode = FocusNode();
-    final passwordFocusNode = FocusNode();
+  final passwordFocusNode = FocusNode();
   final phoneFocusNode = FocusNode();
   final specializationFocusNode = FocusNode();
   final licenseFocusNode = FocusNode();
   final workplaceNameFocusNode = FocusNode();
   final workplaceAddressFocusNode = FocusNode();
+  String? doctorid; 
 
-  Future<String?> encodeImageToBase64(XFile? imageFile) async {
-    if (imageFile == null) return null;
+  @override
+  void initState() {
+    super.initState();
+    //_loadDoctorId();
+    _loadDoctorProfile();
+  }
+Future<void> _loadDoctorId() async {
+    doctorid = await storage.read(key: 'userid'); 
+  }
+  Future<void> _loadDoctorProfile() async {
+        doctorid = await storage.read(key: 'userid'); 
 
-    try {
-      // Use XFile's bytes property to get the file's data as Uint8List
-      final Uint8List bytes = await imageFile.readAsBytes();
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/doctors/profile/$doctorid'),
+      headers: {
+         'Content-Type': 'application/json',
+      //'token': token ??'',
+      }, 
+    );
 
-      // Return the Base64-encoded string
-      return base64Encode(bytes);
-    } catch (e) {
-      print('Error encoding image to Base64: $e');
-      return null;
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final doctor = data['doctor'];
+
+      setState(() {
+        _fullNameController.text = doctor['fullName'] ?? '';
+        _emailController.text = doctor['email'] ?? '';
+        _passwordController.text = '';
+        _phoneController.text = doctor['phone'] ?? '';
+        _specializationController.text = doctor['specialization'] ?? '';
+        _licenseNumberController.text = doctor['licenseNumber'] ?? '';
+        _workplaceNameController.text = doctor['workplace']['name'] ?? '';
+        _workplaceAddressController.text = doctor['workplace']['address'] ?? '';
+      });
+    } else {
+      print('Failed to load doctor profile: ${response.statusCode}');
     }
   }
 
@@ -298,7 +334,67 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
     );
   }
 
-///////////////////////////////
+ 
+void _saveProfile() async {
+  if (_formProfileKey.currentState!.validate()) {
+    final String fullName = _fullNameController.text;
+    final String email = _emailController.text;
+    final String phone = _phoneController.text;
+    final String specialization = _specializationController.text;
+    final String licenseNumber = _licenseNumberController.text;
+    final String workplaceName = _workplaceNameController.text;
+    final String workplaceAddress = _workplaceAddressController.text;
+
+    
+    final Map<String, dynamic> requestData = {
+      'fullName': fullName,
+      'email': email,
+      'phone': phone,
+      'specialization': specialization,
+      'licenseNumber': licenseNumber,
+      'workplaceName': workplaceName,
+      'workplaceAddress': workplaceAddress,
+    };
+
+    try {
+        doctorid = await storage.read(key: 'userid'); 
+      final response = await http.put(
+
+        Uri.parse('${ApiConstants.baseUrl}/doctors/update/$doctorid'),  
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(requestData),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Profile updated successfully!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        final responseData = json.decode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(responseData['message'] ?? 'Error updating profile'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (error) {
+      print('Error updating profile: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Error updating profile. Please try again later."),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+}
 
 
   @override
@@ -318,14 +414,14 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
           ),
         ),
         automaticallyImplyLeading: false,
-          leading: kIsWeb
-      ? null
-      : IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+        leading: kIsWeb
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -346,7 +442,7 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
                         children: [
                           CircleAvatar(
                             radius: 50,
-                            backgroundColor: Colors.grey[300],
+                            backgroundColor:Colors.white,
                             child: _imageFile != null
                                 ? kIsWeb
                                     ? ClipOval(
@@ -429,9 +525,8 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
                               return null;
                             },
                           ),
+                    
                           const SizedBox(height: 15),
-                           _buildPasswordField(),
-                           const SizedBox(height: 15),
                           _buildEditableField(
                             controller: _phoneController,
                             label: "Phone",
@@ -470,7 +565,20 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
                         ],
                       ),
                     ),
+                  /*  const SizedBox(height: 30),
+                    ElevatedButton(
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChangePasswordPage(),
+      ),
+    );
+  },
+  child: const Text("Change Password"),
+),*/
                     const SizedBox(height: 30),
+
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -497,110 +605,286 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
     );
   }
 
-
-
- Widget _buildPasswordField() {
-  return Row(
-    children: [
-      Expanded(
-        child: TextFormField(
-          controller: _passwordController,
-          obscureText: !_isPasswordVisible,
-          focusNode: passwordFocusNode,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Password cannot be empty';
-            }
-            if (value.length < 6) {
-              return 'Password must be at least 6 characters long';
-            }
-            return null;
-          },
-          decoration: InputDecoration(
-            labelText: "Password",
-            labelStyle: const TextStyle(color: Color(0xff613089)),
-            hintText: 'Enter Password',
-            hintStyle: TextStyle(
-              color: Colors.grey.shade400,
-              fontSize: 14,
-              fontStyle: FontStyle.italic,
-            ),
-            prefixIcon: const Icon(Icons.lock, color: Color(0xff613089)),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(
-                color: Color(0xffb41391),
-                width: 2.0,
+  Widget _buildPasswordField() {
+    return Row(
+      children: [
+        Expanded(
+          child: TextFormField(
+            controller: _passwordController,
+            obscureText: !_isPasswordVisible,
+            focusNode: passwordFocusNode,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Password cannot be empty';
+              }
+              if (value.length < 6) {
+                return 'Password must be at least 6 characters long';
+              }
+              return null;
+            },
+            decoration: InputDecoration(
+              labelText: "Password",
+              labelStyle: const TextStyle(color: Color(0xff613089)),
+              hintText: 'Enter Password',
+              hintStyle: TextStyle(
+                color: Colors.grey.shade400,
+                fontSize: 14,
+                fontStyle: FontStyle.italic,
               ),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                color: const Color(0xff613089),
+              prefixIcon: const Icon(Icons.lock, color: Color(0xff613089)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
               ),
-              onPressed: () {
-                setState(() {
-                  _isPasswordVisible = !_isPasswordVisible;
-                });
-              },
+              focusedBorder: OutlineInputBorder(
+                borderSide: const BorderSide(
+                  color: Color(0xffb41391),
+                  width: 2.0,
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  color: const Color(0xff613089),
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isPasswordVisible = !_isPasswordVisible;
+                  });
+                },
+              ),
             ),
           ),
         ),
-      ),
-      const SizedBox(width: 10),
-      IconButton(
-        icon: const Icon(Icons.edit, color: Color(0xff613089)),
-        onPressed: () {
-          setState(() {
-            _passwordController.clear();
-            passwordFocusNode.requestFocus();
-          });
-        },
-      ),
-    ],
-  );
-}
-
-
-  void _saveProfile() {
-    if (_formProfileKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Profile updated successfully!"),
-          backgroundColor: Colors.green,
+        const SizedBox(width: 10),
+        IconButton(
+          icon: const Icon(Icons.edit, color: Color(0xff613089)),
+          onPressed: () {
+            setState(() {
+              _passwordController.clear();
+              passwordFocusNode.requestFocus();
+            });
+          },
         ),
-      );
-    }
-  }
-
-  @override
-  void dispose() {
-    _fullNameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _specializationController.dispose();
-    _licenseNumberController.dispose();
-    _workplaceNameController.dispose();
-    _workplaceAddressController.dispose();
-    fullNameFocusNode.dispose();
-    emailFocusNode.dispose();
-    phoneFocusNode.dispose();
-    specializationFocusNode.dispose();
-    licenseFocusNode.dispose();
-    workplaceNameFocusNode.dispose();
-    workplaceAddressFocusNode.dispose();
-    super.dispose();
+      ],
+    );
   }
 }
-
 
 
 
 ////////////////////////////////////////////////////////
 
+
+
+class ChangePasswordPage extends StatefulWidget {
+ 
+  @override
+  _ChangePasswordPageState createState() => _ChangePasswordPageState();
+}
+
+class _ChangePasswordPageState extends State<ChangePasswordPage> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _oldPasswordController = TextEditingController();
+  final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  bool _isLoading = false;
+  bool _isPasswordVisible = false;
+
+  Future<void> _changePassword() async {
+      final String? token= await storage.read(key: 'token'); 
+
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final String oldPassword = _oldPasswordController.text;
+      final String newPassword = _newPasswordController.text;
+      final String confirmPassword = _confirmPasswordController.text;
+
+      if (newPassword != confirmPassword) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("New passwords do not match!"),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      try {
+
+
+
+    final url = Uri.parse('${ApiConstants.baseUrl}/doctors/change-password');
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'token': token ?? '',
+    };
+
+    final body = jsonEncode({
+       'oldPassword': oldPassword,
+            'newPassword': newPassword,
+            'confirmPassword': confirmPassword,
+    });
+
+    final response = await http.put(url, headers: headers, body: body);
+
+
+
+
+
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Password updated successfully!"),
+              backgroundColor: Colors.green,
+            ),
+          );
+          _oldPasswordController.clear();
+          _newPasswordController.clear();
+          _confirmPasswordController.clear();
+        } else {
+          final responseData = json.decode(response.body);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(responseData['message'] ?? 'Error changing password'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        print ("\n$e\n\n\n");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("An error occurred. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Change Password"),
+        backgroundColor: const Color(0xff613089),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    _buildPasswordField(
+                      controller: _oldPasswordController,
+                      label: "Old Password",
+                      icon: Icons.lock,
+                    ),
+                    const SizedBox(height: 15),
+                    _buildPasswordField(
+                      controller: _newPasswordController,
+                      label: "New Password",
+                      icon: Icons.lock_outline,
+                    ),
+                    const SizedBox(height: 15),
+                    _buildPasswordField(
+                      controller: _confirmPasswordController,
+                      label: "Confirm New Password",
+                      icon: Icons.lock_outline,
+                    ),
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xff613089),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: _changePassword,
+                        child: const Text(
+                          'Change Password',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: !_isPasswordVisible,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return '$label cannot be empty';
+        }
+        if (value.length < 6) {
+          return '$label must be at least 6 characters long';
+        }
+        return null;
+      },
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Color(0xff613089)),
+        hintText: 'Enter $label',
+        hintStyle: TextStyle(
+          color: Colors.grey.shade400,
+          fontSize: 14,
+          fontStyle: FontStyle.italic,
+        ),
+        prefixIcon: Icon(icon, color: const Color(0xff613089)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(
+            color: Color(0xffb41391),
+            width: 2.0,
+          ),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+            color: const Color(0xff613089),
+          ),
+          onPressed: () {
+            setState(() {
+              _isPasswordVisible = !_isPasswordVisible;
+            });
+          },
+        ),
+      ),
+    );
+  }
+}
+
+
+////////////////////////////////////////////
 
 
 class NotificationSettingsPage extends StatefulWidget {

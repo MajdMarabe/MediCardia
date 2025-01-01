@@ -129,6 +129,20 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 10),
                     _itemProfile(
+                      'Change Password',
+                      'Change your password',
+                      CupertinoIcons.lock,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>ChangePasswordPage()),
+                        );
+                      },
+                    ),
+              
+                    const SizedBox(height: 10),
+                    _itemProfile(
                       'About Us',
                       'Learn more about us',
                       CupertinoIcons.info,
@@ -175,38 +189,129 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  final TextEditingController _nameController =
-      TextEditingController(text: "John Smith");
-  final TextEditingController _emailController =
-      TextEditingController(text: "JohSmith@gmail.com");
-  final TextEditingController _passwordController =
-      TextEditingController(text: "123456");
-  final TextEditingController _locationController =
-      TextEditingController(text: "Kanada");
+
+ final _phoneController = TextEditingController();
+  final _nameController = TextEditingController();
+    final _emailController = TextEditingController();
+
+  final _locationController = TextEditingController();
+
+    
+    
 
   final _formProfileKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
   XFile? _imageFile;
+  final phoneFocusNode = FocusNode();
 
   final fullNameFocusNode = FocusNode();
   final emailFocusNode = FocusNode();
   final passwordFocusNode = FocusNode();
   final locationFocusNode = FocusNode();
-
+  String? userid; 
+  @override
+  void initState() {
+    super.initState();
+    //_loadDoctorId();
+    _loaduserProfile();
+  }
   Future<String?> encodeImageToBase64(XFile? imageFile) async {
     if (imageFile == null) return null;
 
     try {
-      // Use XFile's bytes property to get the file's data as Uint8List
       final Uint8List bytes = await imageFile.readAsBytes();
 
-      // Return the Base64-encoded string
       return base64Encode(bytes);
     } catch (e) {
       print('Error encoding image to Base64: $e');
       return null;
     }
   }
+
+  Future<void> _loaduserProfile() async {
+        userid = await storage.read(key: 'userid'); 
+       final token = await storage.read(key: 'token'); 
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/users/profile/$userid'),
+      headers: {
+         'Content-Type': 'application/json',
+      'token': token ??'',
+      }, 
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final user = data['user'];
+
+      setState(() {
+        _nameController.text = user['username'] ?? '';
+        _emailController.text = user['email'] ?? '';
+        _phoneController.text = user['medicalCard']['publicData']['phoneNumber'] ?? '';
+        _locationController.text = user['location'] ?? '';
+      });
+    } else {
+      // Handle error
+      print('Failed to load doctor profile: ${response.statusCode}');
+    }
+  }
+  void _saveProfile() async {
+  if (_formProfileKey.currentState!.validate()) {
+    final String username = _nameController.text;
+    final String email = _emailController.text;
+    final String phoneNumber = _phoneController.text;
+    final String location = _locationController.text;
+  
+
+    
+    final Map<String, dynamic> requestData = {
+      'username': username,
+      'email': email,
+    //  'password': password,
+      'phoneNumber': phoneNumber,
+      'location': location,
+     
+    };
+
+    try {
+        userid = await storage.read(key: 'userid'); 
+      final response = await http.put(
+
+        Uri.parse('${ApiConstants.baseUrl}/users/update/$userid'),  
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(requestData),
+      );
+
+      if (response.statusCode == 200) {
+        // Successfully updated the profile
+        final responseData = json.decode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Profile updated successfully!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        final responseData = json.decode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(responseData['message'] ?? 'Error updating profile'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (error) {
+      print('Error updating profile: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Error updating profile. Please try again later."),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+}
 
   Future<void> _selectImage() async {
     final ImagePicker picker = ImagePicker();
@@ -226,7 +331,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _passwordController.dispose();
     _locationController.dispose();
     super.dispose();
   }
@@ -362,15 +466,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             },
                           ),
                           const SizedBox(height: 15),
+                              _buildEditableField(
+                            controller: _phoneController,
+                            label: "Phone",
+                            icon: Icons.phone,
+                            focusNode: phoneFocusNode,
+                            keyboardType: TextInputType.phone,
+                          ),
+                                                    const SizedBox(height: 15),
+
                           _buildEditableField(
                             controller: _locationController,
                             label: "Location",
-                            icon: Icons.phone,
+                            icon: Icons.location_city,
                             focusNode: locationFocusNode,
                             keyboardType: TextInputType.phone,
                           ),
                           const SizedBox(height: 15),
-                          _buildPasswordField(),
                         ],
                       ),
                     ),
@@ -401,81 +513,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget _buildPasswordField() {
-    return Row(
-      children: [
-        Expanded(
-          child: TextFormField(
-            controller: _passwordController,
-            obscureText: !_isPasswordVisible,
-            focusNode: passwordFocusNode,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Password cannot be empty';
-              }
-              if (value.length < 6) {
-                return 'Password must be at least 6 characters long';
-              }
-              return null;
-            },
-            decoration: InputDecoration(
-              labelText: "Password",
-              labelStyle: const TextStyle(color: Color(0xff613089)),
-              hintText: 'Enter Password',
-              hintStyle: TextStyle(
-                color: Colors.grey.shade400,
-                fontSize: 14,
-                fontStyle: FontStyle.italic,
-              ),
-              prefixIcon: const Icon(Icons.lock, color: Color(0xff613089)),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(
-                  color: Color(0xffb41391),
-                  width: 2.0,
-                ),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                  color: const Color(0xff613089),
-                ),
-                onPressed: () {
-                  setState(() {
-                    _isPasswordVisible = !_isPasswordVisible;
-                  });
-                },
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        IconButton(
-          icon: const Icon(Icons.edit, color: Color(0xff613089)),
-          onPressed: () {
-            setState(() {
-              _passwordController.clear();
-              passwordFocusNode.requestFocus();
-            });
-          },
-        ),
-      ],
-    );
-  }
 
-  void _saveProfile() {
-    if (_formProfileKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Profile updated successfully!"),
-          backgroundColor: Colors.green,
-        ),
-      );
-    }
-  }
+
 
   Widget _buildEditableField({
     required TextEditingController controller,
@@ -537,6 +576,217 @@ class _EditProfilePageState extends State<EditProfilePage> {
 ////////////////////////////////////////////////////////////
 
 
+
+
+class ChangePasswordPage extends StatefulWidget {
+ 
+  @override
+  _ChangePasswordPageState createState() => _ChangePasswordPageState();
+}
+
+class _ChangePasswordPageState extends State<ChangePasswordPage> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _oldPasswordController = TextEditingController();
+  final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  bool _isLoading = false;
+  bool _isPasswordVisible = false;
+
+  Future<void> _changePassword() async {
+      final String? token= await storage.read(key: 'token'); 
+
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final String oldPassword = _oldPasswordController.text;
+      final String newPassword = _newPasswordController.text;
+      final String confirmPassword = _confirmPasswordController.text;
+
+      if (newPassword != confirmPassword) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("New passwords do not match!"),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      try {
+
+
+
+    final url = Uri.parse('${ApiConstants.baseUrl}/users/change-password');
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'token': token ?? '',
+    };
+
+    final body = jsonEncode({
+       'oldPassword': oldPassword,
+            'newPassword': newPassword,
+            'confirmPassword': confirmPassword,
+    });
+
+    final response = await http.put(url, headers: headers, body: body);
+
+
+
+
+
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Password updated successfully!"),
+              backgroundColor: Colors.green,
+            ),
+          );
+          _oldPasswordController.clear();
+          _newPasswordController.clear();
+          _confirmPasswordController.clear();
+        } else {
+          final responseData = json.decode(response.body);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(responseData['message'] ?? 'Error changing password'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        print ("\n$e\n\n\n");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("An error occurred. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Change Password"),
+        backgroundColor: const Color(0xff613089),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    _buildPasswordField(
+                      controller: _oldPasswordController,
+                      label: "Old Password",
+                      icon: Icons.lock,
+                    ),
+                    const SizedBox(height: 15),
+                    _buildPasswordField(
+                      controller: _newPasswordController,
+                      label: "New Password",
+                      icon: Icons.lock_outline,
+                    ),
+                    const SizedBox(height: 15),
+                    _buildPasswordField(
+                      controller: _confirmPasswordController,
+                      label: "Confirm New Password",
+                      icon: Icons.lock_outline,
+                    ),
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xff613089),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: _changePassword,
+                        child: const Text(
+                          'Change Password',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: !_isPasswordVisible,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return '$label cannot be empty';
+        }
+        if (value.length < 6) {
+          return '$label must be at least 6 characters long';
+        }
+        return null;
+      },
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Color(0xff613089)),
+        hintText: 'Enter $label',
+        hintStyle: TextStyle(
+          color: Colors.grey.shade400,
+          fontSize: 14,
+          fontStyle: FontStyle.italic,
+        ),
+        prefixIcon: Icon(icon, color: const Color(0xff613089)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(
+            color: Color(0xffb41391),
+            width: 2.0,
+          ),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+            color: const Color(0xff613089),
+          ),
+          onPressed: () {
+            setState(() {
+              _isPasswordVisible = !_isPasswordVisible;
+            });
+          },
+        ),
+      ),
+    );
+  }
+}
+
+
+
+//////////////////////////////////////////////////////////////
 
 
 class AboutUsPage extends StatelessWidget {
@@ -759,7 +1009,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
     try {
       final response = await http.get(
         Uri.parse(
-            '${ApiConstants.baseUrl}/users/$userId/setting'), // Replace with your API URL and user ID
+            '${ApiConstants.baseUrl}/users/$userId/setting'), 
       );
 
       if (response.statusCode == 200) {
@@ -778,7 +1028,6 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
     }
   }
 
-  // Method to save the updated settings to the backend
   Future<void> updateSettings() async {
     final userId = await storage.read(key: 'userid');
     try {
@@ -796,7 +1045,6 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         print('Settings updated successfully: ${data['notificationSettings']}');
-        // Optionally show a success message to the user
       } else {
         print('Failed to update settings');
       }

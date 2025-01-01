@@ -32,17 +32,15 @@ void main() async {
   await initNotifications(); 
 /*
   FirebaseDatabase.instance.databaseURL = 'https://majd-726c9-default-rtdb.europe-west1.firebasedatabase.app';
-  FirebaseDatabase.instance.setPersistenceEnabled(true); // لتفعيل التخزين المؤقت إذا كنت تحتاجه
+  FirebaseDatabase.instance.setPersistenceEnabled(true); 
 */
 if (kIsWeb) {
-  // إعدادات خاصة للويب (إن وجدت)
   FirebaseDatabase.instance.databaseURL =
       'https://majd-726c9-default-rtdb.europe-west1.firebasedatabase.app';
 } else {
-  // إعدادات خاصة للموبايل
   FirebaseDatabase.instance.databaseURL =
       'https://majd-726c9-default-rtdb.europe-west1.firebasedatabase.app';
-  FirebaseDatabase.instance.setPersistenceEnabled(true); // دعم التخزين المؤقت
+  FirebaseDatabase.instance.setPersistenceEnabled(true); 
 }
 
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);

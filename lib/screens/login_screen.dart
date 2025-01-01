@@ -64,14 +64,49 @@ class _SignInScreenState extends State<SignInScreen> {
 
           final userJson = jsonEncode(responseData);
           await storage.write(key: 'user', value: userJson);
-        if (!kIsWeb) { 
-    String? Token = await FirebaseMessaging.instance.getToken();
-if (Token != null) {
-  FirebaseDatabase.instance.ref('users/$userid').update({
-    'fcmToken': Token,
+if (!kIsWeb) {
+  // للموبايل
+  String? tokenFCM = await FirebaseMessaging.instance.getToken();
+  if (tokenFCM != null) {
+    await FirebaseDatabase.instance.ref('users/$userid').update({
+      'fcmToken': tokenFCM,
+    });
+  }
+} else {
+  // للويب
+  try {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+messaging.getToken().then((tokenFCM) {
+  print("FCM Token: $tokenFCM");
 });
+
+
+
+
+   /* NotificationSettings settings = await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      String? webToken = await FirebaseMessaging.instance.getToken(
+        vapidKey: "BOaWKc1t4Xr-PGiHPOaiUPoNspxgHsv-a0EmXPknX0O07pTGKYl4YI85mn52sNCoVWWM7IfSMRsi55vTgLyg1EE", // ضع المفتاح العام الخاص بالـ VAPID
+      );
+      if (webToken != null) {
+        await FirebaseDatabase.instance.ref('users/$userid').update({
+          'fcmToken': webToken,
+        });
+      }
+    } else {
+      print("User denied or notifications not enabled on the web.");
+    }*/
+  } catch (e) {
+    print("Error fetching FCM token for web: $e");
+  }
 }
-}
+
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Login Successful! User ID: $userid')),

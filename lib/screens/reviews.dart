@@ -1,203 +1,262 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
+import 'constants.dart'; // For making HTTP requests
 
-class ReviewsPage extends StatelessWidget {
-  const ReviewsPage({super.key});
+class Review {
+  final String username;
+  final int rating;
+  final String date;
+  final String comment;
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFFF2F5FF),
-    appBar: kIsWeb
-        ? AppBar(
-            backgroundColor: const Color(0xFFF2F5FF),
-            elevation: 0,
-            automaticallyImplyLeading: false,
-            centerTitle: true,
-            title: const Text(
-              'Reviews',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Color(0xff613089),
-                letterSpacing: 1.5,
-              ),
-            ),
-          )
-        : AppBar(
-            backgroundColor: const Color(0xFFF2F5FF),
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            centerTitle: true,
-            title: const Text(
-              'Reviews',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Color(0xff613089),
-                letterSpacing: 1.5,
-              ),
-            ),
-          ),
-    body: Builder(
-      builder: (context) {
-        double screenWidth = MediaQuery.of(context).size.width;
-        double contentWidth = screenWidth > 600 ? 900 : screenWidth;  
+  Review({
+    required this.username,
+    required this.rating,
+    required this.date,
+    required this.comment,
+  });
 
-        return SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: contentWidth), 
-                child: Column(
-                  children: [
-                 
-                    Column(
-                      children: [
-                        const Text(
-                          '4.0',
-                          style: TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF613089),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: List.generate(
-                            5,
-                            (index) => Icon(
-                              Icons.star,
-                              color: index < 4 ? Colors.amber : Colors.grey,
-                              size: 24,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'based on 23 reviews',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Column(
-                      children: [
-                        _buildRatingBar('Excellent', Colors.green, 0.8),
-                        _buildRatingBar('Good', Colors.lightGreen, 0.6),
-                        _buildRatingBar('Average', Colors.yellow, 0.4),
-                        _buildRatingBar('Below Average', Colors.orange, 0.2),
-                        _buildRatingBar('Poor', Colors.red, 0.1),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    _buildReviewCard(
-                      imageUrl: 'https://via.placeholder.com/150',
-                      username: 'Joan Perkins',
-                      rating: 5,
-                      date: '1 days ago',
-                      comment:
-                          'This chair is a great addition for any room in your home, not only just the living room. Featuring a mid-century design with modern available on the market.',
-                    ),
-                    _buildReviewCard(
-                      imageUrl: 'https://via.placeholder.com/150',
-                      username: 'Frank Garrett',
-                      rating: 4,
-                      date: '4 days ago',
-                      comment:
-                          'Suspendisse potenti. Nullam tincidunt lacus tellus, aliquam est vehicula. Pellentesque consectetur condimentum nulla.',
-                    ),
-                    _buildReviewCard(
-                      imageUrl: 'https://via.placeholder.com/150',
-                      username: 'Randy Palmer',
-                      rating: 4,
-                      date: '1 month ago',
-                      comment:
-                          'Aenean ante nisi, gravida non mattis semper, varius et turpis. Vivamus viverra, urna sed bibendum laoreet.',
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => WriteReviewPage()),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF2F5FF),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 70,
-                          vertical: 12,
-                        ),
-                        side: const BorderSide(
-                          color: Color(0xFF613089),
-                          width: 1.5,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Write a Review',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Color(0xFF613089),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    ),
-  );
+  factory Review.fromJson(Map<String, dynamic> json) {
+    return Review(
+      username: json['username'],
+      rating: json['rating'],
+      date: json['date'],
+      comment: json['comment'],
+    );
+  }
 }
 
+class ReviewsPage extends StatefulWidget {
+  final String doctorid;
+  const ReviewsPage({Key? key, required this.doctorid}) : super(key: key);
+  @override
+  _ReviewsPageState createState() => _ReviewsPageState();
+}
 
+class _ReviewsPageState extends State<ReviewsPage> {
+  double averageRating = 0.0;
+  int reviewCount = 0;
+  bool isLoading = true;
+  List<Review> reviews = [];
+  Map<String, int> ratingDistribution = {
+    'Excellent': 0,
+    'Good': 0,
+    'Average': 0,
+    'Below Average': 0,
+    'Poor': 0,
+  };
 
+  @override
+  void initState() {
+    super.initState();
+    fetchRatingData();
+  }
 
+  Future<void> fetchRatingData() async {
+    final apiUrl = '${ApiConstants.baseUrl}/rating/${widget.doctorid}';
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['reviewCount'] == 0 || data['recentReviews'] == null) {
+          setState(() {
+            averageRating = 0.0;
+            reviewCount = 0;
+            reviews = [];
+            ratingDistribution = {
+              'Excellent': 0,
+              'Good': 0,
+              'Average': 0,
+              'Below Average': 0,
+              'Poor': 0,
+            };
+            isLoading = false;
+          });
+          return;
+        }
 
+        setState(() {
+          ratingDistribution = {
+            'Excellent': data['ratingDistribution']['excellent'],
+            'Good': data['ratingDistribution']['good'],
+            'Average': data['ratingDistribution']['average'],
+            'Below Average': data['ratingDistribution']['belowAverage'],
+            'Poor': data['ratingDistribution']['poor'],
+          };
+          averageRating = (data['averageRating'] is int)
+              ? (data['averageRating'] as int).toDouble()
+              : data['averageRating'] is double
+                  ? data['averageRating']
+                  : 0.0;
+          reviewCount = data['reviewCount'] ?? 0;
+          reviews = (data['recentReviews'] as List)
+              .map((reviewData) => Review.fromJson(reviewData))
+              .toList();
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
-
-
-  Widget _buildRatingBar(String label, Color color, double value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
-            ),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF2F5FF),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF2F5FF),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        centerTitle: true,
+        title: const Text(
+          'Reviews',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xff613089),
+            letterSpacing: 1.5,
           ),
-          Expanded(
-            child: LinearProgressIndicator(
-              value: value,
-              color: color,
-              backgroundColor: Colors.grey[200],
-              minHeight: 8,
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        ],
+        ),
       ),
+    body: isLoading
+    ? const Center(child: CircularProgressIndicator())
+    : SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Center(
+            child: Column(
+              children: [
+                if (reviewCount == 0)
+                  const Center(
+                    child: Text(
+                      'No reviews available yet.',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  )
+                else ...[
+                  Column(
+                    children: [
+                      Text(
+                        averageRating.toStringAsFixed(1),
+                        style: const TextStyle(
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF613089),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(
+                          5,
+                          (index) => Icon(
+                            Icons.star,
+                            color: index < averageRating.round()
+                                ? Colors.amber
+                                : Colors.grey,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'based on $reviewCount reviews',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Column(
+                    children: ratingDistribution.entries.map((entry) {
+                      return _buildRatingBar(
+                        entry.key,
+                        _getRatingColor(entry.key),
+                        entry.value.toDouble() / (reviewCount > 0 ? reviewCount : 1),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 24),
+                  ...reviews.map((review) => _buildReviewCard(
+                        imageUrl: '', // Replace with actual image URL
+                        username: review.username,
+                        rating: review.rating,
+                        date: review.date,
+                        comment: review.comment,
+                      )),
+                ],
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => WriteReviewPage(doctorid: widget.doctorid),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFF2F5FF),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 70,
+                      vertical: 12,
+                    ),
+                    side: const BorderSide(
+                      color: Color(0xFF613089),
+                      width: 1.5,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Write a Review',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF613089),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+
     );
   }
 
+  Color _getRatingColor(String category) {
+    switch (category) {
+      case 'Excellent':
+        return Colors.green;
+      case 'Good':
+        return Colors.lightGreen;
+      case 'Average':
+        return Colors.yellow;
+      case 'Below Average':
+        return Colors.orange;
+      case 'Poor':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
 
   Widget _buildReviewCard({
     required String imageUrl,
@@ -207,7 +266,6 @@ Widget build(BuildContext context) {
     required String comment,
   }) {
     return Card(
-      color: Colors.white,
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -229,16 +287,12 @@ Widget build(BuildContext context) {
                       Text(
                         username,
                         style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       Text(
                         date,
                         style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
+                            fontSize: 12, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -257,9 +311,7 @@ Widget build(BuildContext context) {
                   Text(
                     comment,
                     style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.black87,
-                    ),
+                        fontSize: 14, color: Colors.black87),
                   ),
                 ],
               ),
@@ -269,10 +321,32 @@ Widget build(BuildContext context) {
       ),
     );
   }
+
+  Widget _buildRatingBar(String label, Color color, double value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+          ),
+          Expanded(
+            child: LinearProgressIndicator(
+              value: value.isNaN ? 0.0 : value,
+              color: color,
+              backgroundColor: Colors.grey[200],
+              minHeight: 8,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
-
-
-
 
 /////////////////////////////////////////////////////////
 
@@ -280,7 +354,9 @@ Widget build(BuildContext context) {
 
 
 class WriteReviewPage extends StatefulWidget {
-  @override
+    final String doctorid;
+  const WriteReviewPage({Key? key, required this.doctorid}) : super(key: key);
+    @override
   _WriteReviewPageState createState() => _WriteReviewPageState();
 }
 
@@ -292,18 +368,20 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
 
 
   
-void _submitReview() {
+
+void _submitReview() async {
   if (_selectedStars == 0 && _feedback == null && _recommend == null) {
+    // Show the incomplete dialog
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Color(0xffF0E5FF), 
+        backgroundColor: Color(0xffF0E5FF),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16), 
+          borderRadius: BorderRadius.circular(16),
         ),
         title: const Row(
           children: [
-            Icon(Icons.warning, color:Color(0xFF613089), size: 24), 
+            Icon(Icons.warning, color: Color(0xFF613089), size: 24),
             SizedBox(width: 8),
             Text(
               'Incomplete!',
@@ -311,7 +389,7 @@ void _submitReview() {
                 color: Color(0xFF613089),
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                fontFamily: 'CuteFont', 
+                fontFamily: 'CuteFont',
               ),
             ),
           ],
@@ -324,12 +402,12 @@ void _submitReview() {
               style: TextStyle(
                 color: Color(0xFF613089),
                 fontSize: 16,
-                fontFamily: 'CuteFont', 
+                fontFamily: 'CuteFont',
               ),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 20),
-            Icon(Icons.error, color: Color(0xFF613089), size: 60), 
+            Icon(Icons.error, color: Color(0xFF613089), size: 60),
           ],
         ),
         actions: [
@@ -338,9 +416,9 @@ void _submitReview() {
               Navigator.pop(context);
             },
             style: TextButton.styleFrom(
-              backgroundColor: Color(0xffF0E5FF), 
+              backgroundColor: Color(0xffF0E5FF),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12), 
+                borderRadius: BorderRadius.circular(12),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
             ),
@@ -356,69 +434,110 @@ void _submitReview() {
         ],
       ),
     );
-  } else {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xffF0E5FF), 
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16), 
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.favorite, color: Color(0xFF613089), size: 24), 
-            SizedBox(width: 8),
-            Text(
-              'Thank You  :)',
-              style: TextStyle(
-                color: Color(0xFF613089),
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'CuteFont', 
-              ),
-            ),
-          ],
-        ),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Your review has been submitted successfully!',
-              style: TextStyle(
-                color: Color(0xFF613089),
-                fontSize: 16,
-                fontFamily: 'CuteFont', 
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 20),
-            Icon(Icons.check_circle, color: Color(0xFF613089), size: 60), 
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context); 
-            },
-            style: TextButton.styleFrom(
-              backgroundColor: const Color(0xffF0E5FF), 
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12), 
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-            ),
-            child: const Text(
-              'OK',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF613089),
-              ),
-            ),
+    return;
+  }
+
+  // Prepare data for the API
+  final reviewData = {
+    'doctorId':'676d98880702b1a05a386acd',
+    'rating': _selectedStars,
+    'review': _feedback ?? '',
+   // 'recommend': _recommend ?? false,
+  };
+
+  // API URL (Replace with your actual API endpoint)
+  final apiUrl = '${ApiConstants.baseUrl}/rating/add';
+    final token=await storage.read(key: 'token') ?? '';
+
+  try {
+    // Make the POST request
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {
+         'Content-Type': 'application/json',
+      'token': token ??'',
+      },
+      body: jsonEncode(reviewData),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      // Successful submission
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: const Color(0xffF0E5FF),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-        ],
-      ),
+          title: const Row(
+            children: [
+              Icon(Icons.favorite, color: Color(0xFF613089), size: 24),
+              SizedBox(width: 8),
+              Text(
+                'Thank You  :)',
+                style: TextStyle(
+                  color: Color(0xFF613089),
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'CuteFont',
+                ),
+              ),
+            ],
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Your review has been submitted successfully!',
+                style: TextStyle(
+                  color: Color(0xFF613089),
+                  fontSize: 16,
+                  fontFamily: 'CuteFont',
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 20),
+              Icon(Icons.check_circle, color: Color(0xFF613089), size: 60),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: const Color(0xffF0E5FF),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF613089),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // Handle server errors
+      print('Error: ${response.body}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to submit the review. Please try again.')),
+      );
+    }
+  } catch (e) {
+    // Handle network errors
+    print('Error: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Network error. Please try again.')),
     );
   }
 }
@@ -540,7 +659,7 @@ void _submitReview() {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Text(
+               /*     const Text(
                       'Do you recommend Dr. Mim?',
                       style: TextStyle(
                         fontSize: 18,
@@ -592,7 +711,7 @@ void _submitReview() {
                           ),
                         ),
                       ],
-                    ),
+                    ),*/
                     const SizedBox(height: 35),
                     Center(
                       child: ElevatedButton(

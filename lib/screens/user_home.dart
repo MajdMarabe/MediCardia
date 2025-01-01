@@ -40,10 +40,11 @@ String? base64Image ='';
   
   List<String> chronicDiseases = []; 
   List<String> allergies = []; 
- 
+   List<Map<String, dynamic>> allDoctors = [];
+  List<Map<String, dynamic>> displayedDoctors = [];
   bool isLoading = true; 
 bool _isExpanded = false;
-
+ List<String> doctorNames = [];
 
   final items = const [
     Icon(
@@ -64,7 +65,12 @@ bool _isExpanded = false;
     const NotificationPage(),
     ProfilePage(),
   ];
-
+ @override
+  void initState() {
+    super.initState();
+    fetchUserInfo();
+    fetchDoctors();
+  }
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -72,6 +78,55 @@ bool _isExpanded = false;
   }
 
   
+  // Function to build circular service buttons
+  Future<void> fetchDoctors() async {
+  try {
+    final response = await http
+        .get(Uri.parse('${ApiConstants.baseUrl}/rating/top/rated'));
+
+    if (kDebugMode) {
+      print("The response is: ${response.body}");
+    }
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+      final List<dynamic> doctorsData = jsonResponse['data']; // استخراج قائمة الأطباء
+
+      setState(() {
+        allDoctors = doctorsData.map((doc) {
+          return {
+            'id': doc['id'], // لاحظ التعديل هنا
+            'name': doc['name'] ?? 'Unknown',
+            'specialty': doc['speciality'] ?? 'Unknown',
+            'averageRating': doc['averageRating'] ?? 0.0,
+            'image':  'assets/images/doctor1.jpg',
+            'phone': doc['phone'] ?? 'No phone number provided',
+            'numberOfPatients': doc['numberOfPatients'] ?? 0,
+            'numberOfReviews': doc['numberOfReviews'] ?? 0,
+            'workplace': {
+              'name': doc['workplace']?['name'] ?? 'No workplace name',
+              'address': doc['workplace']?['address'] ?? 'No address',
+            },
+          };
+        }).toList();
+
+        doctorNames = allDoctors.map((doctor) => doctor['name'] as String).toList();
+        displayedDoctors = List.from(allDoctors);
+        isLoading = false;
+      });
+    } else {
+      _showMessage('Failed to load doctors');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  } catch (e) {
+    _showMessage('Error: $e');
+    setState(() {
+      isLoading = false;
+    });
+  }
+}
 // Fetch all doctors from the API
  Future<void> fetchUserInfo() async {
   final String ? userid =  await storage.read(key: 'userid');
@@ -120,11 +175,7 @@ bool _isExpanded = false;
   }
 
 
- @override
-  void initState() {
-    super.initState();
-    fetchUserInfo();
-  }
+
 
 
 
@@ -762,8 +813,10 @@ Widget _buildUserAvatar() {
 
 
   // Function to build doctor cards
-  Widget buildDoctorCard(String name, String distance, String imagePath) {
-    return Container(
+  Widget buildDoctorCard(String name, String distance, String imagePath, VoidCallback onTap) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
       width: 150,
       margin: const EdgeInsets.only(right: 15),
       decoration: BoxDecoration(
@@ -807,12 +860,7 @@ Widget _buildUserAvatar() {
                 const SizedBox(height: 5),
                 Row(
                   children: [
-                    const Icon(
-                      Icons.location_on,
-                      size: 14,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(width: 4),
+                   
                     Text(
                       distance,
                       style: const TextStyle(
@@ -828,64 +876,12 @@ Widget _buildUserAvatar() {
           const SizedBox(height: 10),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
 
-  // "Popular Doctor" Section
-  Widget buildPopularDoctorSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Popular Doctors',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xff613089),
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  // Handle "See more" action
-                },
-                child: const Text(
-                  'See more',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xff613089),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          height: 180,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            children: [
-              buildDoctorCard(
-                  'Dr. Benedit Montero', '3.2 km', 'assets/images/doctor1.jpg'),
-              buildDoctorCard(
-                  'Dr. Pegang Globe', '5.7 km', 'assets/images/doctor2.jpg'),
-              buildDoctorCard(
-                  'Dr. Linda Brown', '4.1 km', 'assets/images/doctor3.jpg'),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-      ],
-    );
-  }
+
 
 
 
@@ -1208,4 +1204,80 @@ Widget build(BuildContext context) {
           ),
   );
 }
+// "Popular Doctor" Section
+Widget buildPopularDoctorSection() {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Popular Doctors',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xff613089),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                // Handle "See more" action
+              },
+              child: const Text(
+                'See more',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Color(0xff613089),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 10),
+      SizedBox(
+        height: 180,
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : allDoctors.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No doctors available',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  )
+                : ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: displayedDoctors.length,
+                    itemBuilder: (context, index) {
+                      final doctor = displayedDoctors[index];
+                      return buildDoctorCard(
+                        doctor['name'] as String,
+                        '${doctor['averageRating']} ⭐',
+                        doctor['image'] as String,
+                         () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DoctorDetailPage(
+                          doctor: doctor,
+                        ),
+                      ),
+                    );
+                  },
+                      );
+                      
+                    },
+                  ),
+      ),
+      const SizedBox(height: 20),
+    ],
+  );
+}
+
 }

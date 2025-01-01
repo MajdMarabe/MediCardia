@@ -7,11 +7,11 @@ firebase.initializeApp({
   authDomain: "majd-726c9.firebaseapp.com",
   databaseURL: "https://majd-726c9-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "majd-726c9",
-  storageBucket: "majd-726c9.appspot.com",
+  storageBucket: "majd-726c9.firebasestorage.app",
   messagingSenderId: "645330668025",
   appId: "1:645330668025:web:aae846640ed5ea31ab5528",
   measurementId: "G-2CC2LT453B",
-  vapidKey: "BOaWKc1t4Xr-PGiHPOaiUPoNspxgHsv-a0EmXPknX0O07pTGKYl4YI85mn52sNCoVWWM7IfSMRsi55vTgLyg1EE"
+vapidKey: "BOaWKc1t4Xr-PGiHPOaiUPoNspxgHsv-a0EmXPknX0O07pTGKYl4YI85mn52sNCoVWWM7IfSMRsi55vTgLyg1EE"
 });
 
 // Retrieve an instance of Firebase Messaging so that it can handle background messages

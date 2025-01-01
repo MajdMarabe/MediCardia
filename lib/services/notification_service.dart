@@ -34,6 +34,7 @@ Future<void> requestNotificationPermissions() async {
     badge: true,
     sound: true,
   );
+  
   print('Notification permission status: ${settings.authorizationStatus}');
 }
 
