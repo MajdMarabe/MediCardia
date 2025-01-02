@@ -66,7 +66,13 @@ const UserSchema = new mongoose.Schema({
             bloodType: { type: String, trim: true, default: null },
             chronicConditions: { type: [String], trim: true, default: [] }, 
             allergies: { type: [String], trim: true, default: [] },
+            BloodDonationDate: [{
             lastBloodDonationDate: { type: Date, default: null },
+            },
+            ],
+           DonationDateForCheck: { type: Date, default: null },
+
+
             phoneNumber: { type: String, trim: true, default: null },
           /*  Drugs:[
                 { 
@@ -193,8 +199,12 @@ function validatePublicData(publicData) {
         bloodType: joi.string().trim().optional(),
         chronicConditions: joi.array().items(joi.string().trim()).optional(),
         allergies: joi.array().items(joi.string().trim()).optional(),
-        lastBloodDonationDate: joi.alternatives().try(joi.date(), joi.string().allow('').optional()),
-        phoneNumber: joi.string().trim().optional(),
+        BloodDonationDate: joi.array().items(
+            joi.object({
+              lastBloodDonationDate: joi.date().allow(null),
+            })
+          ).allow(null),   
+               phoneNumber: joi.string().trim().optional(),
         Drugs: joi.array().items(joi.string().trim()).optional(),
         image: joi.string().optional() 
 

@@ -13,6 +13,7 @@ const sendEmail = require("../middlewares/email");
 module.exports.register = asyncHandler(async (req, res, next) => {
     // Validate input data
     const { error } = validateCreateDoctor(req.body);
+    console.log(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
     }
@@ -36,6 +37,7 @@ module.exports.register = asyncHandler(async (req, res, next) => {
     // Create new doctor object
     doctor = new Doctor({
         fullName: req.body.fullName,
+        image: req.body.image,
         email: req.body.email,
         password_hash: hashedPassword,
         phone: req.body.phone,
@@ -134,6 +136,7 @@ console.log(oldPassword);
  * @access private (requires authentication)
  */
 module.exports.updateProfile = asyncHandler(async (req, res, next) => {
+    console.log(req.body);
     const { error } = validateUpdateDoctor(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
@@ -159,6 +162,8 @@ module.exports.updateProfile = asyncHandler(async (req, res, next) => {
     }
 
     doctor.fullName = req.body.fullName || doctor.fullName;
+    doctor.image = req.body.image || doctor.image;
+
     doctor.email = req.body.email || doctor.email;
     doctor.phone = req.body.phone || doctor.phone;
     doctor.specialization = req.body.specialization || doctor.specialization;

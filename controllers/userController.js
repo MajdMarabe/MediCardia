@@ -84,7 +84,7 @@ module.exports.getProfile = asyncHandler(async (req, res, next) => {
  * @access Private (requires authentication)
  */
 module.exports.updateProfile = asyncHandler(async (req, res) => {
-    const { username, email, phoneNumber, location } = req.body;
+    const { username, email, phoneNumber, location,image } = req.body;
 
     const user = await User.findById(req.params.userid);
 
@@ -112,6 +112,8 @@ module.exports.updateProfile = asyncHandler(async (req, res) => {
     if (email) user.email = email;
     if (phoneNumber) user.medicalCard.publicData.phoneNumber = phoneNumber;
     if (location) user.location = location;
+    
+     if (image)  user.medicalCard.publicData.image = image;
 
     try {
         await user.save();
@@ -123,6 +125,8 @@ module.exports.updateProfile = asyncHandler(async (req, res) => {
                 email: user.email,
                 phoneNumber: user.medicalCard.publicData.phoneNumber,
                 location: user.location,
+                image: user.medicalCard.publicData.image,
+
             },
         });
     } catch (error) {
@@ -572,36 +576,109 @@ module.exports.resetPassword = asyncHandler(async (req, res, next) => {
  * @method PUT
  * @access Public
  */
-
 module.exports.updatePublicMedicalCardData = asyncHandler(async (req, res) => {
-    const { publicData } = req.body; // The public data sent by the user
+    const { publicData } = req.body; // البيانات العامة المرسلة من المستخدم
 
-    // Validate the public data
+    // التحقق من صحة البيانات العامة
     const { error } = validatePublicData(publicData);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
     }
 
-    // Fetch the user to be updated
+    // البحث عن المستخدم الذي سيتم تحديث بياناته
     const user = await User.findById(req.params.id);
     if (!user) {
         return res.status(404).json({ message: "User not found" });
     }
 
-    // Remove the Drugs field from the update data
-    const { Drugs, ...updatedPublicData } = publicData;
+    // فصل حقل BloodDonationDate عن بقية البيانات العامة
+    const { BloodDonationDate, Drugs, ...updatedPublicData } = publicData;
 
-    // Update the user's public medical card data
+    // تحديث البيانات العامة للمستخدم
     user.medicalCard.publicData = {
         ...user.medicalCard.publicData,
-        ...updatedPublicData, // Merge the updated public data, excluding Drugs
+        ...updatedPublicData, // دمج البيانات المحدثة العامة (بدون BloodDonationDate و Drugs)
     };
 
-    // Save the updated user document
+    // تحديث أو إضافة تواريخ التبرع بالدم إذا تم إرسالها
+    if (BloodDonationDate && Array.isArray(BloodDonationDate)) {
+        BloodDonationDate.forEach(donation => {
+            if (donation.lastBloodDonationDate) {
+                user.medicalCard.publicData.BloodDonationDate.push(donation);
+            }
+        });
+    }
+
+    // حفظ مستند المستخدم المحدث
     await user.save();
 
     res.status(200).json({ message: "Public medical card data updated successfully", user });
 });
+/**
+ * @desc Get All Blood Donation Dates for a User
+ * @route /api/users/:id/blood-donations
+ * @method GET
+ * @access Public
+ */
+module.exports.getBloodDonationDates = asyncHandler(async (req, res) => {
+    console.log('innnnnnn');
+
+    // البحث عن المستخدم باستخدام معرّف المستخدم
+    const user = await User.findById(req.params.id);
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
+    // إرجاع جميع تواريخ التبرع بالدم
+    const donationDates = user.medicalCard.publicData.BloodDonationDate;
+
+    res.status(200).json({ donationDates });
+});
+/**
+ * @desc Add a New Blood Donation Date for a User
+ * @route /api/users/:id/blood-donations
+ * @method POST
+ * @access Public
+ */
+module.exports.addBloodDonationDate = asyncHandler(async (req, res) => {
+    const { lastBloodDonationDate } = req.body; // تاريخ التبرع بالدم المرسل من المستخدم
+    console.log(lastBloodDonationDate);
+
+    if (!lastBloodDonationDate) {
+        return res.status(400).json({ message: "lastBloodDonationDate is required" });
+    }
+
+    // البحث عن المستخدم الذي سيتم إضافة تاريخ التبرع له
+    const user = await User.findById(req.params.id);
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
+    // تحويل التاريخ المرسل إلى كائن Date
+    const newDonationDate = new Date(lastBloodDonationDate);
+
+    // إضافة التاريخ الجديد إلى قائمة التواريخ
+    user.medicalCard.publicData.BloodDonationDate.push({
+        lastBloodDonationDate: newDonationDate,
+    });
+
+    // مقارنة التاريخ الجديد مع الحقل DonationDateForCheck وتحديثه إذا كان أحدث
+    if (
+        !user.medicalCard.publicData.DonationDateForCheck || // إذا كان الحقل فارغًا
+        newDonationDate > new Date(user.medicalCard.publicData.DonationDateForCheck) // إذا كان التاريخ الجديد أحدث
+    ) {
+        user.medicalCard.publicData.DonationDateForCheck = newDonationDate;
+    }
+
+    // حفظ المستخدم
+    await user.save();
+
+    res.status(200).json({
+        message: "Blood donation date added successfully",
+        user,
+    });
+});
+
 
 /**
  * @desc Update Medical History

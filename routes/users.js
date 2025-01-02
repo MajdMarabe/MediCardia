@@ -36,7 +36,9 @@ const {
     updateSettings,
     getProfile,
     changePassword,
-    updateProfile
+    updateProfile,
+    getBloodDonationDates,
+    addBloodDonationDate
     
 } = require("../controllers/userController");
 
@@ -45,6 +47,8 @@ router.post('/:id/adddrugs', addDrugToUser);
 router.delete('/:id/deletedrugs', deleteDrugFromUser);
 router.get('/:id/getUserDrugs', getUserDrugs);
 router.put("/:id/updateDrugEndDate", updateDrugEndDate);
+router.get('/:id/blood-donations', getBloodDonationDates);
+router.post('/:id/blood-donations', addBloodDonationDate);
 
 // User routes
 router.get("/", getAllUsers);

@@ -11,6 +11,10 @@ const DoctorSchema = new mongoose.Schema({
         minlength: 3,
         maxlength: 250,
     },
+    image: { 
+        type: String,  // Store base64 image string
+        default: null 
+    },
     email: {
         type: String,
         required: true,
@@ -108,6 +112,8 @@ function validateCreateDoctor(obj) {
         licenseNumber: joi.string().trim().required(),
         workplaceName: joi.string().trim().required(),
         workplaceAddress: joi.string().trim().optional(),
+                image: joi.string().optional() ,
+        
     });
     return schema.validate(obj);
 }
@@ -122,6 +128,8 @@ function validateUpdateDoctor(obj) {
         licenseNumber: joi.string().trim(),
         workplaceName: joi.string().trim(),
         workplaceAddress: joi.string().trim(),
+        image: joi.string().optional() ,
+
     });
     return schema.validate(obj);
 }
