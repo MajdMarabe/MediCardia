@@ -12,6 +12,8 @@ import 'blood_donation.dart';
 import 'package:flutter/foundation.dart';
 import 'notification_page.dart';
 import 'reviews_doctor.dart';
+import 'doctor_schedule.dart';
+
 
 const storage = FlutterSecureStorage();
 
@@ -293,10 +295,68 @@ Widget build(BuildContext context) {
                     const SizedBox(height: 30),
                     buildSearchSection(),
                     const SizedBox(height: 30),
-                    Row(
+                         Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(child: buildBloodDonationTile(context)),
-                        const SizedBox(width: 16), 
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => DoctorSchedulePage()),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 8,
+                                    spreadRadius: 1,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 60,
+                                    height: 60,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xff613089).withOpacity(0.15),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.access_time,  
+                                        color: Color(0xff613089),
+                                        size: 30,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    "Set Your Schedule",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xff613089),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
                         Expanded(child: buildReviewsTile(context)),
                       ],
                     ),
@@ -371,15 +431,7 @@ Widget buildBloodDonationTile(BuildContext context) {
               color: Color(0xff613089),
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
-            "Tap to add new blood donation request.",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
-          ),
+        
         ],
       ),
     ),
@@ -415,28 +467,20 @@ Widget buildReviewsTile(BuildContext context) {
         children: [
           CircleAvatar(
             radius: 30,
-            backgroundColor: const Color(0xffFFA726).withOpacity(0.15),
-            child: const Icon(Icons.star, size: 28, color: Color(0xffFFA726)),
+            backgroundColor: const Color(0xff613089).withOpacity(0.15),
+            child: const Icon(Icons.star, size: 28, color: Color(0xff613089)),
           ),
           const SizedBox(height: 12),
           const Text(
-            "Reviews",
+            "Reviews \n",
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Color(0xffFFA726),
+              color: Color(0xff613089),
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
-            "Tap to view reviews about your services.",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
-          ),
+        
         ],
       ),
     ),

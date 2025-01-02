@@ -9,6 +9,7 @@ import 'user_doctors.dart';
 import 'chat_screen.dart';
 import 'permission_requests.dart';
 import 'reviews.dart';
+import 'appointment.dart';
 
 const storage = FlutterSecureStorage();
 
@@ -56,10 +57,12 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
               'name': doc['fullName'] ?? 'Unknown',
               'specialty': doc['specialization'] ?? 'Unknown',
               'rating': doc['rating'] ?? 0.0,
-             'image': (doc['image']?.isNotEmpty == true) ? doc['image'] : 'assets/images/doctor1.jpg',
+              'image': (doc['image']?.isNotEmpty == true)
+                  ? doc['image']
+                  : 'assets/images/doctor1.jpg',
               'email': doc['email'] ?? 'No email provided',
               'phone': doc['phone'] ?? 'No phone number provided',
-              'numberOfPatients' : doc['numberOfPatients']?? 0,
+              'numberOfPatients': doc['numberOfPatients'] ?? 0,
               'workplace': {
                 'name': doc['workplace']?['name'] ?? 'No workplace name',
                 'address': doc['workplace']?['address'] ?? 'No address',
@@ -439,42 +442,43 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
   int? selectedDay;
   int? selectedTime;
   bool isFavorite = false;
-    double averageRating = 0.0;
+  double averageRating = 0.0;
   int reviewCount = 0;
   bool isLoading = true;
-    @override
+  @override
   void initState() {
     super.initState();
     fetchRatingData();
   }
 
   Future<void> fetchRatingData() async {
-    final apiUrl = '${ApiConstants.baseUrl}/rating/${widget.doctor['id']}'; // Replace with your API URL
-     try {
-    final response = await http.get(Uri.parse(apiUrl));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+    final apiUrl =
+        '${ApiConstants.baseUrl}/rating/${widget.doctor['id']}'; // Replace with your API URL
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          averageRating = (data['averageRating'] is int)
+              ? (data['averageRating'] as int).toDouble()
+              : data['averageRating'] is double
+                  ? data['averageRating']
+                  : 0.0;
+          reviewCount = data['reviewCount'] ?? 0; // Default to 0 if no reviews
+
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
       setState(() {
-       
-        averageRating = (data['averageRating'] is int)
-            ? (data['averageRating'] as int).toDouble()
-            : data['averageRating'] is double
-                ? data['averageRating']
-                : 0.0;
-        reviewCount = data['reviewCount'] ?? 0;  // Default to 0 if no reviews
-        
         isLoading = false;
       });
-    } else {
-      throw Exception('Failed to load data');
     }
-  } catch (e) {
-    print('Error fetching data: $e');
-    setState(() {
-      isLoading = false;
-    });
   }
-  }
+
   Future<void> _setAsMyDoctor(BuildContext context) async {
     final url = Uri.parse('${ApiConstants.baseUrl}/doctorsusers/relations');
     final patientId = await storage.read(key: 'userid');
@@ -600,30 +604,36 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                               children: [
                                 SingleChildScrollView(
                                   scrollDirection: Axis.vertical,
-                                  child: 
-ClipRRect(
-  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-  child: LayoutBuilder(
-    builder: (context, constraints) {
-      double imageHeight = constraints.maxWidth > 600 ? 280 : 160;
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                        top: Radius.circular(16)),
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        double imageHeight =
+                                            constraints.maxWidth > 600
+                                                ? 280
+                                                : 160;
 
-      return widget.doctor["image"] != null && widget.doctor["image"].startsWith('http')
-          ? Image.network(
-              widget.doctor["image"] ?? "https://via.placeholder.com/150",
-              height: imageHeight, 
-              width: double.infinity,
-              fit: BoxFit.cover,
-            )
-          : Image.asset(
-              widget.doctor["image"] ?? "https://via.placeholder.com/150",
-              height: imageHeight,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            );
-    },
-  ),
-),
-
+                                        return widget.doctor["image"] != null &&
+                                                widget.doctor["image"]
+                                                    .startsWith('http')
+                                            ? Image.network(
+                                                widget.doctor["image"] ??
+                                                    "https://via.placeholder.com/150",
+                                                height: imageHeight,
+                                                width: double.infinity,
+                                                fit: BoxFit.cover,
+                                              )
+                                            : Image.asset(
+                                                widget.doctor["image"] ??
+                                                    "https://via.placeholder.com/150",
+                                                height: imageHeight,
+                                                width: double.infinity,
+                                                fit: BoxFit.cover,
+                                              );
+                                      },
+                                    ),
+                                  ),
                                 ),
                                 const SizedBox(height: 12),
                                 Padding(
@@ -657,7 +667,7 @@ ClipRRect(
                                       ),
                                       Row(
                                         children: [
-                                        /*  IconButton(
+                                          /*  IconButton(
                                             icon: Icon(
                                               isFavorite
                                                   ? Icons.favorite
@@ -701,41 +711,42 @@ ClipRRect(
                           ),
                         ),
                       ),
-                   const SizedBox(height: 20),
-                Padding(
-  padding: const EdgeInsets.symmetric(vertical: 10.0),
-  child: Row(
-    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-    children: [
-      _buildStatCard(
-        icon: Icons.people,
-        value: widget.doctor['numberOfPatients'].toString(),
-        label: 'Patients',
-        color: Colors.blue,
-      ),
-      _buildStatCard(
-        icon: Icons.star_rate,
-value: averageRating.toString(),
-        label: 'Ratings',
-        color: Colors.amber,
-      ),
-      _buildStatCard(
-        icon: Icons.reviews, 
-        value: reviewCount.toString(),       
-        label:'Reviews',    
-        color: Colors.green, 
-        onTap: () {          
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ReviewsPage(doctorid:widget.doctor['id'])), 
-          );
-        },
-      ),
-    ],
-  ),
-),
-
-
+                      const SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildStatCard(
+                              icon: Icons.people,
+                              value:
+                                  widget.doctor['numberOfPatients'].toString(),
+                              label: 'Patients',
+                              color: Colors.blue,
+                            ),
+                            _buildStatCard(
+                              icon: Icons.star_rate,
+                              value: averageRating.toString(),
+                              label: 'Ratings',
+                              color: Colors.amber,
+                            ),
+                            _buildStatCard(
+                              icon: Icons.reviews,
+                              value: reviewCount.toString(),
+                              label: 'Reviews',
+                              color: Colors.green,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ReviewsPage(
+                                          doctorid: widget.doctor['id'])),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
                       const SizedBox(height: 20),
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -756,123 +767,34 @@ value: averageRating.toString(),
                           style: TextStyle(fontSize: 16, color: Colors.black54),
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(
-                          "Location",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF613089),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.location_on,
-                                color: Color(0xFF613089)),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                "${widget.doctor['workplace']['name']} - ${widget.doctor['workplace']['address']}",
-                                style: const TextStyle(
-                                    fontSize: 16, color: Colors.black54),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(
-                          "Appointment",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF613089),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: DropdownButton<int>(
-                          hint: Text(
-                            "Select Day",
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                          value: selectedDay,
-                          items: List.generate(7, (index) {
-                            return DropdownMenuItem<int>(
-                              value: index,
-                              child: Text(
-                                days[index],
-                                style:
-                                    const TextStyle(color: Color(0xFF613089)),
+                      const SizedBox(height: 30),
+                     
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const AppointmentPage(),
                               ),
                             );
-                          }),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedDay = value;
-                              selectedTime = null;
-                            });
                           },
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      if (selectedDay != null)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "Available Time",
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF613089),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  children: List.generate(
-                                    availableTimes.length,
-                                    (index) => Padding(
-                                      padding:
-                                          const EdgeInsets.only(right: 8.0),
-                                      child: ChoiceChip(
-                                        label: Text(availableTimes[index]),
-                                        selected: selectedTime == index,
-                                        onSelected: (selected) {
-                                          setState(() {
-                                            selectedTime =
-                                                selected ? index : null;
-                                          });
-                                        },
-                                        selectedColor: const Color(0xFF613089),
-                                        labelStyle: TextStyle(
-                                          color: selectedTime == index
-                                              ? Colors.white
-                                              : Colors.black87,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF613089),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 32),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            "     Appointment    ",
+                            style: TextStyle(fontSize: 16, color: Colors.white),
                           ),
                         ),
-                      const SizedBox(height: 20),
+                      ),
+                      const SizedBox(height: 10),
                       Center(
                         child: ElevatedButton(
                           onPressed: () => _setAsMyDoctor(context),
@@ -885,7 +807,7 @@ value: averageRating.toString(),
                             ),
                           ),
                           child: const Text(
-                            "Set as My Doctor",
+                            "Set as My Doctor  ",
                             style: TextStyle(fontSize: 16, color: Colors.white),
                           ),
                         ),
@@ -901,67 +823,61 @@ value: averageRating.toString(),
     );
   }
 
-
-
-
-Widget _buildStatCard({
-  required IconData icon,
-  required String value,
-  required String label,
-  required Color color,
-  VoidCallback? onTap,
-}) {
-  return GestureDetector(
-    onTap: onTap,
-    child: Container(
-      width: 100,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            blurRadius: 6,
-            spreadRadius: 2,
-          ),
-        ],
+  Widget _buildStatCard({
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 100,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              blurRadius: 6,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 24, color: color),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black54,
+              ),
+            ),
+          ],
+        ),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-  
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              shape: BoxShape.circle, 
-            ),
-            child: Icon(icon, size: 24, color: color), 
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.black54,
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-
+    );
+  }
 }

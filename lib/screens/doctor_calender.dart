@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -18,9 +19,29 @@ class _DoctorCalendarPageState extends State<DoctorCalendarPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+            backgroundColor: const Color(0xFFF2F5FF),
       appBar: AppBar(
-        title: const Text("Calendar"),
-        backgroundColor: const Color(0xff613089),
+      backgroundColor: const Color(0xFFF2F5FF),
+      elevation: 0,
+      centerTitle: true,
+        title: const Text(
+          "Calender",
+          style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Color(0xff613089),
+          letterSpacing: 1.5,
+        ),
+        ),
+
+           automaticallyImplyLeading: !kIsWeb,
+      leading: kIsWeb
+          ? null
+          : IconButton(
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
       ),
       body: Column(
         children: [
