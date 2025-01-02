@@ -52,9 +52,7 @@ Map<String, bool> sectionExpanded = {
   };
 
   List<DateTime> donationDates = [
-    DateTime(2023, 5, 10),
-    DateTime(2024, 1, 1),
-    DateTime(2024, 7, 25),
+    
   ];
    bool showAllDonations = false;
 
@@ -66,6 +64,7 @@ Map<String, bool> sectionExpanded = {
     getDoctorId();
     isPatientAssignedToDoctor();
     fetchUserInfo();
+    _loadDonationDates();
   }
 
 
@@ -452,7 +451,31 @@ Widget _buildUserAvatar() {
     ),
   );
 }
+Future<void> _loadDonationDates() async {
+   final userid =widget.patientId;
 
+    final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/users/$userid/blood-donations'));
+
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = json.decode(response.body);
+
+    // Check if the 'donationDates' key exists and is a list
+    if (data.containsKey('donationDates') && data['donationDates'] is List) {
+      final List<dynamic> dates = data['donationDates'];
+
+      setState(() {
+        // Extract and parse the 'lastBloodDonationDate' for each donation object
+        donationDates = dates
+            .map((e) => DateTime.parse(e['lastBloodDonationDate'] ?? '')) // Ensure the date string is valid
+            .toList();
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invalid data format for donation dates')));
+    }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load donation dates')));
+  }
+}
 
   Widget _buildDonationHistory(List<DateTime> donationDates) {
     return Column(

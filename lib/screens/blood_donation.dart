@@ -497,9 +497,10 @@ class _BloodDonationPageState extends State<BloodDonationPage> {
       final eligibleUsers = users.where((user) {
         final publicData = user['medicalCard']['publicData'];
         final bloodType = publicData['bloodType'] ?? '';
-        final lastDonationDate =
-            DateTime.tryParse(publicData['lastBloodDonationDate'] ?? '') ??
-                DateTime(2000);
+        final lastDonationDate = DateTime.tryParse(
+      publicData['DonationDateForCheck'] ?? '') ?? 
+      DateTime(2000);
+
         final location = user['location'] ?? '';
         final gender = publicData['gender'] ?? '';
         final allowedDuration =
@@ -515,7 +516,7 @@ class _BloodDonationPageState extends State<BloodDonationPage> {
         eligibleUsers.forEach((user) {
           _createDonationRequest(user['_id']);
           _sendNotification(user['_id'], "MediCardia",
-              "A chance to save a life! Blood donation needed for type $requiredBloodType at [Hospital Name].");
+              "A chance to save a life! Blood donation needed for type $requiredBloodType at ${_hospitalController.text} hospital.");
         });
 
         ScaffoldMessenger.of(context).showSnackBar(

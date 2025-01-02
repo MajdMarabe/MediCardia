@@ -1174,8 +1174,13 @@ Widget _buildDatePickerField() {
       "chronicConditions": _selectedChronicDiseases.isNotEmpty ? _selectedChronicDiseases : [],
       "allergies": allergiesArray.isNotEmpty ? allergiesArray : [],
       "phoneNumber": _phoneController.text.isNotEmpty ? _phoneController.text : null,
-      "lastBloodDonationDate": _lastDonationDate?.toIso8601String() ?? "",
-    }
+    "BloodDonationDate": _lastDonationDate != null
+        ? [
+            {
+              "lastBloodDonationDate": _lastDonationDate?.toIso8601String(),
+            }
+          ]
+        : [],    }
   };
 
   // Add the image only if it's not null

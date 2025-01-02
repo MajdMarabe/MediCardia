@@ -1,23 +1,79 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_3/screens/constants.dart';
+import 'package:flutter_application_3/screens/donation_requests.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'donation_requests.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+
+const storage = FlutterSecureStorage();
 class BloodDonationHome extends StatefulWidget {
   @override
   _BloodDonationHomeState createState() => _BloodDonationHomeState();
 }
 
 class _BloodDonationHomeState extends State<BloodDonationHome> {
-  List<DateTime> donationDates = [
-    DateTime(2023, 5, 10),
-    DateTime(2024, 1, 1),
-    DateTime(2024, 7, 25),
-    DateTime(2024, 10, 15),
-    DateTime(2025, 2, 14),
-  ];
-
+  List<DateTime> donationDates = [];
   bool showAll = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Load donation dates on initialization
+    _loadDonationDates();
+  }
+  
+
+ Future<void> _loadDonationDates() async {
+   final userid = await storage.read(key: 'userid');
+
+    final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/users/$userid/blood-donations'));
+
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = json.decode(response.body);
+
+    // Check if the 'donationDates' key exists and is a list
+    if (data.containsKey('donationDates') && data['donationDates'] is List) {
+      final List<dynamic> dates = data['donationDates'];
+
+      setState(() {
+        // Extract and parse the 'lastBloodDonationDate' for each donation object
+        donationDates = dates
+            .map((e) => DateTime.parse(e['lastBloodDonationDate'] ?? '')) // Ensure the date string is valid
+            .toList();
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invalid data format for donation dates')));
+    }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load donation dates')));
+  }
+}
+
+
+
+  // Add new donation date
+  Future<void> _addDonationDate(DateTime date) async {
+            final userid = await storage.read(key: 'userid');
+
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}/users/$userid/blood-donations'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'lastBloodDonationDate': date.toIso8601String()}),
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        donationDates.add(date);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Donation date added successfully')));
+    } else {
+      // Handle error
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add donation date')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +142,7 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    
                     donationDates.isEmpty
                         ? const Center(
                             child: Text(
@@ -136,6 +192,39 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
                       padding: const EdgeInsets.all(16.0),
                       child: ElevatedButton.icon(
                         onPressed: () {
+                          _selectDate(context, TextEditingController(), (newDate) {
+                            DateTime selectedDate = DateTime.parse(newDate);
+                            _addDonationDate(selectedDate);
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 16, horizontal: 25),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        icon: Image.asset(
+                          'assets/images/blood-donation-request.png',
+                          width: 22,
+                          height: 22,
+                          color: const Color(0xff613089),
+                        ),
+                        label: const Text(
+                          'Add New Donation Date',
+                          style: TextStyle(
+                              color: Color(0xff613089),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 17),
+                        ),
+                      ),
+                      
+                    ),
+                        Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: ElevatedButton.icon(
+                        onPressed: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -165,7 +254,7 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
                               fontSize: 17),
                         ),
                       ),
-                    ),
+                        ),
                   ],
                 ),
               ),
@@ -213,24 +302,6 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
               ),
             ],
           ),
-          if (isLatest)
-            IconButton(
-              icon: const Icon(
-                Icons.edit_calendar_sharp,
-                color: Color(0xff613089),
-              ),
-              onPressed: () {
-                _selectDate(context, TextEditingController(), (newDate) {
-                  setState(() {
-                    // Update the donation date in the list
-                    int index = donationDates.indexOf(date);
-                    if (index != -1) {
-                      donationDates[index] = DateTime.parse(newDate);
-                    }
-                  });
-                });
-              },
-            ),
         ],
       ),
     );
@@ -292,11 +363,12 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
   }
 
   String formatDate(DateTime date) {
-    return '${date.day}-${date.month}-${date.year}';
+    return "${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}";
   }
 
-  int _daysSinceLastDonation(DateTime date) {
-    final now = DateTime.now();
-    return now.difference(date).inDays;
+  String _daysSinceLastDonation(DateTime lastDonationDate) {
+    final today = DateTime.now();
+    final difference = today.difference(lastDonationDate).inDays;
+    return difference.toString();
   }
 }

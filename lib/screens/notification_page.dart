@@ -57,35 +57,39 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   // Fetch notifications from Firebase Realtime Database
-  Future<void> _fetchFirebaseNotifications() async {
-   try {
-    // قراءة الـ userId من الـ FlutterSecureStorage
+ Future<void> _fetchFirebaseNotifications() async {
+  try {
+    // قراءة الـ userId من التخزين الآمن
     final String? userId = await storage.read(key: 'userid');
+    print(userId);
     if (userId == null) {
       print('User ID not found');
       return;
     }
 
-    // الحصول على مرجع قاعدة بيانات Firebase
+    // الحصول على مرجع قاعدة البيانات
     final DatabaseReference databaseRef = FirebaseDatabase.instance.ref('notifications');
 
-    // جلب جميع الإشعارات
-    final snapshot = await databaseRef.orderByChild('userId').equalTo(userId).get();
+    // جلب الإشعارات الخاصة بـ userId فقط
+    final Query query = databaseRef.orderByChild('userId').equalTo(userId);
+    final DataSnapshot snapshot = await query.get();
 
     if (snapshot.exists) {
       Map<dynamic, dynamic> data = snapshot.value as Map<dynamic, dynamic>;
 
       // تحويل البيانات إلى قائمة من الخرائط
-      List<Map<String, dynamic>> fetchedNotifications = [];
-      data.forEach((key, value) {
-        fetchedNotifications.add({
+      List<Map<String, dynamic>> fetchedNotifications = data.entries.map((entry) {
+        final key = entry.key;
+        final value = entry.value as Map<dynamic, dynamic>;
+
+        return {
           'id': key,
           'title': value['title'] ?? 'No Title',
           'body': value['body'] ?? 'No Body',
           'timestamp': value['timestamp'] ?? '',
           'userId': value['userId'] ?? '',
-        });
-      });
+        };
+      }).toList();
 
       setState(() {
         notifications = fetchedNotifications;
@@ -99,8 +103,8 @@ class _NotificationPageState extends State<NotificationPage> {
   } catch (e) {
     print('Error fetching notifications from Firebase: $e');
   }
+}
 
-  }
 
   // Delete notification from the backend and local list
   Future<void> _deleteNotification(String notificationId) async {

@@ -48,83 +48,97 @@ class _SignUpDoctorScreenState extends State<SignUpDoctorScreen> {
   }
 
   Future<void> _submitSignUp() async {
-    if (!_formSignupKey.currentState!.validate() || !agreePersonalData) {
-      if (!agreePersonalData) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content:
-                  Text('Please agree to the processing of personal data')),
-        );
-      }
-      return;
-    }
-
-    setState(() {
-      isLoading = true;
-    });
-
-    final url = Uri.parse('${ApiConstants.baseUrl}/doctors/register');
-
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'fullName': _fullNameController.text,
-          'email': _emailController.text,
-          'password_hash': _passwordController.text,
-          'phone': _phoneController.text,
-          'specialization': _specializationController.text,
-          'licenseNumber': _licenseNumberController.text,
-          'workplaceName': _workplaceNameController.text,
-          'workplaceAddress': _workplaceAddressController.text,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        final doctorId = responseData['_id'];
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sign up successful')),
-        );
-
-        // Clear form fields
-        _formSignupKey.currentState!.reset();
-        _fullNameController.clear();
-        _emailController.clear();
-        _passwordController.clear();
-        _phoneController.clear();
-        _specializationController.clear();
-        _licenseNumberController.clear();
-        _workplaceNameController.clear();
-        _workplaceAddressController.clear();
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => VerificationCodeScreen(
-                  email: _emailController.text, flag: '2')),
-        );
-      } else {
-        final errorResponse = jsonDecode(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  'Failed to sign up: ${errorResponse["message"] ?? "Unknown error"}')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
+  String? base64Image;
+  if (_imageFile != null) {
+    base64Image = await encodeImageToBase64(_imageFile);
+    print('Encoded Image: $base64Image'); // Debugging the base64 string
   }
 
+  if (!_formSignupKey.currentState!.validate() || !agreePersonalData) {
+    if (!agreePersonalData) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please agree to the processing of personal data'),
+        ),
+      );
+    }
+    return;
+  }
+
+  setState(() {
+    isLoading = true;
+  });
+
+  final url = Uri.parse('${ApiConstants.baseUrl}/doctors/register');
+
+  // Prepare the request body
+  final requestBody = {
+    'fullName': _fullNameController.text,
+    'email': _emailController.text,
+    'password_hash': _passwordController.text,
+    'phone': _phoneController.text,
+    'specialization': _specializationController.text,
+    'licenseNumber': _licenseNumberController.text,
+    'workplaceName': _workplaceNameController.text,
+    'workplaceAddress': _workplaceAddressController.text,
+    if (base64Image != null) 'image': base64Image, // Add only if the image exists
+  };
+
+  try {
+    // Send the HTTP POST request
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      final doctorId = responseData['_id'];
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sign up successful')),
+      );
+
+      // Clear form fields
+      _formSignupKey.currentState!.reset();
+      _fullNameController.clear();
+      _emailController.clear();
+      _passwordController.clear();
+      _phoneController.clear();
+      _specializationController.clear();
+      _licenseNumberController.clear();
+      _workplaceNameController.clear();
+      _workplaceAddressController.clear();
+
+      // Navigate to VerificationCodeScreen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              VerificationCodeScreen(email: _emailController.text, flag: '2'),
+        ),
+      );
+    } else {
+      final errorResponse = jsonDecode(response.body);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to sign up: ${errorResponse["message"] ?? "Unknown error"}',
+          ),
+        ),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: $e')),
+    );
+  } finally {
+    setState(() {
+      isLoading = false;
+    });
+  }
+}
 
 
 Future<String?> encodeImageToBase64(XFile? imageFile) async {

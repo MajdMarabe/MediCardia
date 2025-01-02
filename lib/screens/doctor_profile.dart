@@ -213,7 +213,8 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
   
   bool _isPasswordVisible = false;
   XFile? _imageFile;
-  
+  String? base64Image ='';
+
   // Add focus nodes for all fields
   final fullNameFocusNode = FocusNode();
   final emailFocusNode = FocusNode();
@@ -258,6 +259,8 @@ Future<void> _loadDoctorId() async {
         _licenseNumberController.text = doctor['licenseNumber'] ?? '';
         _workplaceNameController.text = doctor['workplace']['name'] ?? '';
         _workplaceAddressController.text = doctor['workplace']['address'] ?? '';
+                        base64Image=doctor['image'] ?? '';
+
       });
     } else {
       print('Failed to load doctor profile: ${response.statusCode}');
@@ -276,7 +279,24 @@ Future<void> _loadDoctorId() async {
         _imageFile = pickedFile;
       });
     }
+         base64Image = await encodeImageToBase64(_imageFile);
+
   }
+
+Future<String?> encodeImageToBase64(XFile? imageFile) async {
+  if (imageFile == null) return null;
+
+  try {
+    // Use XFile's bytes property to get the file's data as Uint8List
+    final Uint8List bytes = await imageFile.readAsBytes();
+
+    // Return the Base64-encoded string
+    return base64Encode(bytes);
+  } catch (e) {
+    print('Error encoding image to Base64: $e');
+    return null;
+  }
+}
 
   Widget _buildEditableField({
     required TextEditingController controller,
@@ -354,6 +374,8 @@ void _saveProfile() async {
       'licenseNumber': licenseNumber,
       'workplaceName': workplaceName,
       'workplaceAddress': workplaceAddress,
+            'image': base64Image,
+
     };
 
     try {
@@ -375,6 +397,8 @@ void _saveProfile() async {
             backgroundColor: Colors.green,
           ),
         );
+                      Navigator.pop(context);
+
       } else {
         final responseData = json.decode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -386,12 +410,14 @@ void _saveProfile() async {
       }
     } catch (error) {
       print('Error updating profile: $error');
+      if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Error updating profile. Please try again later."),
           backgroundColor: Colors.red,
         ),
       );
+      }
     }
   }
 }
@@ -749,6 +775,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           _oldPasswordController.clear();
           _newPasswordController.clear();
           _confirmPasswordController.clear();
+              Navigator.pop(context);
+
         } else {
           final responseData = json.decode(response.body);
           ScaffoldMessenger.of(context).showSnackBar(
@@ -774,61 +802,104 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Change Password"),
-        backgroundColor: const Color(0xff613089),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    _buildPasswordField(
-                      controller: _oldPasswordController,
-                      label: "Old Password",
-                      icon: Icons.lock,
-                    ),
-                    const SizedBox(height: 15),
-                    _buildPasswordField(
-                      controller: _newPasswordController,
-                      label: "New Password",
-                      icon: Icons.lock_outline,
-                    ),
-                    const SizedBox(height: 15),
-                    _buildPasswordField(
-                      controller: _confirmPasswordController,
-                      label: "Confirm New Password",
-                      icon: Icons.lock_outline,
-                    ),
-                    const SizedBox(height: 30),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff613089),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        onPressed: _changePassword,
-                        child: const Text(
-                          'Change Password',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ],
+@override
+Widget build(BuildContext context) {
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      final double pageWidth = constraints.maxWidth > 600 ? 600 : constraints.maxWidth;
+
+      return Scaffold(
+        backgroundColor: const Color(0xFFF2F5FF),
+        appBar: kIsWeb
+            ? AppBar(
+                backgroundColor: const Color(0xFFF2F5FF),
+                elevation: 0,
+                centerTitle: true,
+                title: const Text(
+                  'Update Password',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xff613089),
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                automaticallyImplyLeading: false,
+              )
+            : AppBar(
+                backgroundColor: const Color(0xFFF2F5FF),
+                elevation: 0,
+                centerTitle: true,
+                title: const Text(
+                  'Update Password',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xff613089),
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
                 ),
               ),
-      ),
-    );
-  }
+        body: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: pageWidth),
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          _buildPasswordField(
+                            controller: _oldPasswordController,
+                            label: "Old Password",
+                            icon: Icons.lock,
+                          ),
+                          const SizedBox(height: 15),
+                          _buildPasswordField(
+                            controller: _newPasswordController,
+                            label: "New Password",
+                            icon: Icons.lock_outline,
+                          ),
+                          const SizedBox(height: 15),
+                          _buildPasswordField(
+                            controller: _confirmPasswordController,
+                            label: "Confirm New Password",
+                            icon: Icons.lock_outline,
+                          ),
+                          const SizedBox(height: 30),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xff613089),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed: _changePassword,
+                              child: const Text(
+                                'Change Password',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
 
   Widget _buildPasswordField({
     required TextEditingController controller,

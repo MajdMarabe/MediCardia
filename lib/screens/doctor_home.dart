@@ -143,6 +143,8 @@ class _HomePageContentState extends State<HomePageContent> {
 int averageRating=0;
   bool _isLoading = true;
   bool _showMyPatients = true;
+  String? base64Image1 ='';
+
   //List<dynamic> _allPatients = [];
   List<dynamic> _filteredPatients = [];
 
@@ -165,6 +167,7 @@ int averageRating=0;
       setState(() {
         username = data['fullName'] ?? 'Unknown';
        speciality=data['specialization'] ?? 'Unknown';
+       
   totalpatients=   data['numberOfPatients'] ?? 'Unknown';
   averageRating= data['averageRating'] ?? 'Unknown';
       });
@@ -182,10 +185,13 @@ int averageRating=0;
   }
 }
  void _showMessage(String message) {
+  if (mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
   }
+}
+
   Future<void> _loadDoctorId() async {
     doctorid = await storage.read(key: 'userid'); // Use await inside async method
     setState(() {}); // Update the UI when the doctorid is loaded
