@@ -45,7 +45,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
               'specialty': doctor['specialization'] ?? 'Unknown',
               'price': doctor['price'] ?? 0,
               'rating': doctor['rating'] ?? 0.0,
-              'image': doctor['image'] ?? 'assets/images/doctor1.jpg',
+              'image': doctor['image'] ?? 'Unknown',
             };
           }).toList();
           filteredDoctors = doctors;
@@ -239,6 +239,32 @@ class DoctorCard extends StatelessWidget {
   const DoctorCard({required this.doctor, Key? key}) : super(key: key);
 
 
+
+Widget _buildImageFromBase64(String base64Image, double height) {
+  try {
+    if (base64Image.startsWith('data:image')) {
+      base64Image = base64Image.split(',').last;
+    }
+
+    final bytes = base64Decode(base64Image); 
+    return Image.memory(
+      bytes, 
+      height: height,
+      width: double.infinity,
+      fit: BoxFit.cover,
+    );
+  } catch (e) {
+    print("Error decoding Base64 image: $e");
+    return Image.asset(
+      "assets/images/default_person.jpg", 
+      height: height,
+      width: double.infinity,
+      fit: BoxFit.cover,
+    );
+  }
+}
+
+
 @override
 Widget build(BuildContext context) {
   return SingleChildScrollView(
@@ -253,20 +279,22 @@ ClipRRect(
   child: LayoutBuilder(
     builder: (context, constraints) {
       double imageHeight = constraints.maxWidth > 600 ? 240 : 120;
+return doctor["image"] != null
+    ? doctor["image"].startsWith('http') 
+        ? Image.network(
+            doctor["image"], 
+            height: imageHeight,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          )
+        : _buildImageFromBase64(doctor["image"], imageHeight) 
+    : Image.asset(
+        "assets/images/default_person.jpg", 
+        height: imageHeight,
+        width: double.infinity,
+        fit: BoxFit.cover,
+      );
 
-      return doctor["image"] != null && doctor["image"].startsWith('http')
-          ? Image.network(
-              doctor["image"] ?? "https://via.placeholder.com/150",
-              height: imageHeight, 
-              width: double.infinity,
-              fit: BoxFit.cover,
-            )
-          : Image.asset(
-              doctor["image"] ?? "https://via.placeholder.com/150",
-              height: imageHeight,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            );
     },
   ),
 ),

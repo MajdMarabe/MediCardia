@@ -267,36 +267,99 @@ Future<void> _loadDoctorId() async {
     }
   }
 
-  Future<void> _selectImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 100,
-    );
 
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = pickedFile;
-      });
-    }
-         base64Image = await encodeImageToBase64(_imageFile);
 
-  }
-
-Future<String?> encodeImageToBase64(XFile? imageFile) async {
-  if (imageFile == null) return null;
-
+Image buildImageFromBase64(String? base64Image) {
   try {
-    // Use XFile's bytes property to get the file's data as Uint8List
-    final Uint8List bytes = await imageFile.readAsBytes();
+    if (base64Image == null || base64Image.isEmpty) {
+      return Image.asset('assets/images/default_person.jpg'); 
+    }
 
-    // Return the Base64-encoded string
-    return base64Encode(bytes);
+    final bytes = base64Decode(base64Image);
+    print("Decoded bytes length: ${bytes.length}");
+
+    return Image.memory(bytes);
   } catch (e) {
-    print('Error encoding image to Base64: $e');
-    return null;
+  
+    print("Error decoding image: $e");
+    return Image.asset('assets/images/default_person.jpg');
   }
 }
+
+
+Future<void> _selectImage() async {
+  final ImagePicker picker = ImagePicker();
+  final XFile? pickedFile = await picker.pickImage(
+    source: ImageSource.gallery,
+    imageQuality: 100,
+  );
+
+  if (pickedFile != null) {
+    setState(() {
+      _imageFile = pickedFile;
+    });
+
+    // Convert picked image to base64 and update the avatar
+    final bytes = await pickedFile.readAsBytes();
+    base64Image = base64Encode(bytes);
+  }
+}
+
+
+Widget _buildUserAvatar() {
+  ImageProvider backgroundImage;
+  try {
+    backgroundImage = buildImageFromBase64(base64Image).image;
+  } catch (e) {
+    backgroundImage = const AssetImage('assets/images/default_person.jpg');
+  }
+
+  return GestureDetector(
+    onTap: _selectImage, 
+    child: Stack(
+      clipBehavior: Clip.none, 
+      children: [
+        CircleAvatar(
+          radius: 55,
+          backgroundColor: Colors.white,
+          backgroundImage: backgroundImage,
+        ),
+        Positioned(
+          bottom: -5, 
+          right: -5,
+          child: GestureDetector(
+            onTap: _selectImage,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+  
+              child: const Icon(
+                Icons.edit,
+                color: Color(0xff613089),
+                size: 24,
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+
+
+
 
   Widget _buildEditableField({
     required TextEditingController controller,
@@ -458,69 +521,10 @@ void _saveProfile() async {
             child: Center(
               child: Container(
                 width: pageWidth,
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(17.0),
                 child: Column(
                   children: [
-                    GestureDetector(
-                      onTap: _selectImage,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          CircleAvatar(
-                            radius: 50,
-                            backgroundColor:Colors.white,
-                            child: _imageFile != null
-                                ? kIsWeb
-                                    ? ClipOval(
-                                        child: Image.network(
-                                          _imageFile!.path,
-                                          width: 100,
-                                          height: 100,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      )
-                                    : ClipOval(
-                                        child: Image.file(
-                                          File(_imageFile!.path),
-                                          width: 100,
-                                          height: 100,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      )
-                                : const SizedBox.shrink(),
-                          ),
-                          if (_imageFile == null) ...[
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                const CircleAvatar(
-                                  radius: 50,
-                                  backgroundImage: AssetImage(
-                                      'assets/images/default_person.jpg'),
-                                  backgroundColor: Colors.grey,
-                                ),
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: GestureDetector(
-                                    onTap: _selectImage,
-                                    child: const CircleAvatar(
-                                      radius: 15,
-                                      backgroundColor: Color(0xff613089),
-                                      child: Icon(
-                                        Icons.edit,
-                                        size: 16,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
+              _buildUserAvatar(),
                     const SizedBox(height: 20),
                     Form(
                       key: _formProfileKey,
@@ -631,70 +635,10 @@ void _saveProfile() async {
     );
   }
 
-  Widget _buildPasswordField() {
-    return Row(
-      children: [
-        Expanded(
-          child: TextFormField(
-            controller: _passwordController,
-            obscureText: !_isPasswordVisible,
-            focusNode: passwordFocusNode,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Password cannot be empty';
-              }
-              if (value.length < 6) {
-                return 'Password must be at least 6 characters long';
-              }
-              return null;
-            },
-            decoration: InputDecoration(
-              labelText: "Password",
-              labelStyle: const TextStyle(color: Color(0xff613089)),
-              hintText: 'Enter Password',
-              hintStyle: TextStyle(
-                color: Colors.grey.shade400,
-                fontSize: 14,
-                fontStyle: FontStyle.italic,
-              ),
-              prefixIcon: const Icon(Icons.lock, color: Color(0xff613089)),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(
-                  color: Color(0xffb41391),
-                  width: 2.0,
-                ),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                  color: const Color(0xff613089),
-                ),
-                onPressed: () {
-                  setState(() {
-                    _isPasswordVisible = !_isPasswordVisible;
-                  });
-                },
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        IconButton(
-          icon: const Icon(Icons.edit, color: Color(0xff613089)),
-          onPressed: () {
-            setState(() {
-              _passwordController.clear();
-              passwordFocusNode.requestFocus();
-            });
-          },
-        ),
-      ],
-    );
-  }
+
+
+
+
 }
 
 

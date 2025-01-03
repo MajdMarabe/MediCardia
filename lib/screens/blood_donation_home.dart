@@ -7,8 +7,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-
 const storage = FlutterSecureStorage();
+
 class BloodDonationHome extends StatefulWidget {
   @override
   _BloodDonationHomeState createState() => _BloodDonationHomeState();
@@ -21,42 +21,34 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
   @override
   void initState() {
     super.initState();
-    // Load donation dates on initialization
     _loadDonationDates();
   }
-  
 
- Future<void> _loadDonationDates() async {
-   final userid = await storage.read(key: 'userid');
-
+  Future<void> _loadDonationDates() async {
+    final userid = await storage.read(key: 'userid');
     final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/users/$userid/blood-donations'));
 
-  if (response.statusCode == 200) {
-    final Map<String, dynamic> data = json.decode(response.body);
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
 
-    // Check if the 'donationDates' key exists and is a list
-    if (data.containsKey('donationDates') && data['donationDates'] is List) {
-      final List<dynamic> dates = data['donationDates'];
+      if (data.containsKey('donationDates') && data['donationDates'] is List) {
+        final List<dynamic> dates = data['donationDates'];
 
-      setState(() {
-        // Extract and parse the 'lastBloodDonationDate' for each donation object
-        donationDates = dates
-            .map((e) => DateTime.parse(e['lastBloodDonationDate'] ?? '')) // Ensure the date string is valid
-            .toList();
-      });
+        setState(() {
+          donationDates = dates
+              .map((e) => DateTime.parse(e['lastBloodDonationDate'] ?? ''))
+              .toList();
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid data format for donation dates')));
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invalid data format for donation dates')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to load donation dates')));
     }
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load donation dates')));
   }
-}
 
-
-
-  // Add new donation date
   Future<void> _addDonationDate(DateTime date) async {
-            final userid = await storage.read(key: 'userid');
+    final userid = await storage.read(key: 'userid');
 
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}/users/$userid/blood-donations'),
@@ -68,10 +60,9 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
       setState(() {
         donationDates.add(date);
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Donation date added successfully')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Donation date added successfully')));
     } else {
-      // Handle error
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add donation date')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to add donation date')));
     }
   }
 
@@ -142,24 +133,18 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
                         ),
                       ),
                     ),
-                    
+                    const SizedBox(height: 20),
                     donationDates.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
                               'No donation records available.',
-                              style: TextStyle(
-                                  fontSize: 18, color: Colors.white70),
+                              style: TextStyle(fontSize: 16, color: Colors.grey[500]),
                             ),
                           )
-                        : ListView(
-                            shrinkWrap: true,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                        : Column(
                             children: [
-                              ...donationDates.reversed
-                                  .take(showAll ? donationDates.length : 3)
-                                  .map((date) => _buildDonationCard(
-                                      date, date == donationDates.last))
-                                  .toList(),
+                              for (var date in donationDates.reversed.take(showAll ? donationDates.length : 3))
+                                _buildDonationCard(date, date == donationDates.last),
                               if (donationDates.length > 3)
                                 Padding(
                                   padding: const EdgeInsets.all(16.0),
@@ -171,11 +156,8 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 5, horizontal: 10),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(25),
-                                      ),
+                                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                                     ),
                                     child: Text(
                                       showAll ? 'Show Less' : 'Show All',
@@ -199,29 +181,20 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 16, horizontal: 25),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
-                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 25),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                         ),
-                        icon: Image.asset(
-                          'assets/images/blood-donation-request.png',
-                          width: 22,
-                          height: 22,
-                          color: const Color(0xff613089),
+                        icon: const Icon(
+                          Icons.add_circle_outline,
+                          color: Color(0xff613089),
                         ),
                         label: const Text(
                           'Add New Donation Date',
-                          style: TextStyle(
-                              color: Color(0xff613089),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 17),
+                          style: TextStyle(color: Color(0xff613089), fontWeight: FontWeight.bold, fontSize: 17),
                         ),
                       ),
-                      
                     ),
-                        Padding(
+                    Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: ElevatedButton.icon(
                         onPressed: () {
@@ -234,11 +207,8 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 16, horizontal: 25),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
-                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 25),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                         ),
                         icon: Image.asset(
                           'assets/images/blood-donation-request.png',
@@ -248,13 +218,10 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
                         ),
                         label: const Text(
                           'Go to Blood Donation Requests',
-                          style: TextStyle(
-                              color: Color(0xff613089),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 17),
+                          style: TextStyle(color: Color(0xff613089), fontWeight: FontWeight.bold, fontSize: 17),
                         ),
                       ),
-                        ),
+                    ),
                   ],
                 ),
               ),
@@ -265,9 +232,10 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
     );
   }
 
-  Widget _buildDonationCard(DateTime date, bool isLatest) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+ Widget _buildDonationCard(DateTime date, bool isLatest) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 15), 
+    child: Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isLatest ? const Color(0xFFE9D9FF) : Colors.white,
@@ -284,7 +252,7 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
         children: [
           const CircleAvatar(
             radius: 25,
-            backgroundColor: Color(0xff8E44AD),
+            backgroundColor: Color(0xff613089),
             child: Icon(Icons.calendar_month, color: Colors.white),
           ),
           const SizedBox(width: 15),
@@ -292,9 +260,8 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Donation Date: ${formatDate(date)}     ',
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                'Donation Date: ${formatDate(date)}',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               Text(
                 'Days since last donation: ${_daysSinceLastDonation(date)}',
@@ -304,18 +271,18 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
-  void _selectDate(BuildContext context,
-      TextEditingController controller, Function(String) onSave) async {
+
+  void _selectDate(BuildContext context, TextEditingController controller, Function(String) onSave) async {
     DateTime initialDate = DateTime.now();
     DateTime? selectedDate = await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Select Last Donation Date',
-              style: TextStyle(color: Color(0xff613089))),
+          title: const Text('Select Last Donation Date', style: TextStyle(color: Color(0xff613089))),
           content: SizedBox(
             width: 300,
             height: 400,
@@ -344,8 +311,7 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
                     ),
                     headerStyle: const HeaderStyle(
                       formatButtonVisible: false,
-                      titleTextStyle:
-                          TextStyle(color: Color(0xff613089), fontSize: 20),
+                      titleTextStyle: TextStyle(color: Color(0xff613089), fontSize: 20),
                     ),
                   ),
                 ),

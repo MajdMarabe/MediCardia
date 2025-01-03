@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_3/screens/donation_requests.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
@@ -9,7 +8,6 @@ import 'package:flutter_application_3/screens/medical_history_view.dart';
 import 'package:flutter_application_3/screens/lab_tests_view.dart';
 import 'package:flutter_application_3/screens/medical_notes_view.dart';
 import 'package:flutter_application_3/screens/treatment_plans_view.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter/foundation.dart';
 import 'blood_donation_home.dart';
 import 'drugshome.dart';
@@ -36,7 +34,7 @@ class _HomePageState extends State<HomePage> {
   String bloodType = 'Unknown'; 
   int age = 0; 
   String phoneNumber = 'N/A'; 
-  String lastDonationDate = 'N/A'; 
+
 String? base64Image ='';
   
   List<String> chronicDiseases = []; 
@@ -100,7 +98,7 @@ bool _isExpanded = false;
             'name': doc['name'] ?? 'Unknown',
             'specialty': doc['speciality'] ?? 'Unknown',
             'averageRating': doc['averageRating'] ?? 0.0,
-            'image':  'assets/images/doctor1.jpg',
+            'image':  doc['image'] ?? 'Unknown',   
             'phone': doc['phone'] ?? 'No phone number provided',
             'numberOfPatients': doc['numberOfPatients'] ?? 0,
             'numberOfReviews': doc['numberOfReviews'] ?? 0,
@@ -142,16 +140,15 @@ bool _isExpanded = false;
         gender = data['medicalCard']?['publicData']?['gender'] ?? 'Unknown';
         bloodType = data['medicalCard']?['publicData']?['bloodType'] ?? 'Unknown';
         age = data['medicalCard']?['publicData']?['age'] ?? 0;
-        phoneNumber = data['medicalCard']?['publicData']?['phoneNumber'] ?? 'N/A';
-        lastDonationDate =
-            data['medicalCard']?['publicData']?['lastBloodDonationDate'] ?? 'N/A';
+         base64Image=data['medicalCard']?['publicData']?['image'] ?? 'Unknown';
+
+
         chronicDiseases = List<String>.from(
           data['medicalCard']?['publicData']?['chronicConditions'] ?? [],
         );
         allergies = List<String>.from(
           data['medicalCard']?['publicData']?['allergies'] ?? [],
         );
-        base64Image=data['medicalCard']?['publicData']?['image'] ?? 'Unknown';
         isLoading = false; 
       });
     } else {
@@ -369,21 +366,8 @@ Widget buildUserInfo() {
             if (_isExpanded) ...[
               const SizedBox(height: 16),
               buildInfoRow(Icons.credit_card, 'ID Number: 123456789'),
-              buildEditableRow(Icons.phone, 'Phone: $phoneNumber', (newValue) {
-                setState(() {
-                  phoneNumber = newValue;
-                });
-              }),
-              buildEditableRow(
-                Icons.calendar_today,
-                'Last Donation: ${formatDate(lastDonationDate)}',
-                (newValue) {
-                  setState(() {
-                    lastDonationDate = newValue;
-                  });
-                },
-                isDate: true,
-              ),
+           
+             
               buildEditableListRow(FontAwesomeIcons.heartbeat,
                   'Chronic diseases:', chronicDiseases, (newValue) {
                 setState(() {
@@ -437,7 +421,7 @@ Widget buildUserInfo() {
 
 
 
-Widget _buildUserAvatar() {
+  Widget _buildUserAvatar() {
   ImageProvider backgroundImage;
   try {
     backgroundImage = buildImageFromBase64(base64Image).image;
@@ -450,7 +434,6 @@ Widget _buildUserAvatar() {
     backgroundImage: backgroundImage,
   );
 }
-
 
   
 
@@ -481,11 +464,9 @@ Widget _buildUserAvatar() {
           IconButton(
             icon: const Icon(Icons.edit, color: Colors.white),
             onPressed: () {
-              if (isDate) {
-                _selectDate(context, controller, onSave);
-              } else {
+            
                 _showEditDialog(context, controller.text, onSave);
-              }
+          
             },
           ),
         ],
@@ -722,60 +703,7 @@ Widget _buildUserAvatar() {
 /////////////////////////
 
 
-  Future<void> _selectDate(BuildContext context,
-      TextEditingController controller, Function(String) onSave) async {
-    DateTime initialDate = DateTime.now();
-    DateTime? selectedDate = await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Select Last Donation Date',
-              style: TextStyle(color: Color(0xff613089))),
-          content: SizedBox(
-            width: 300,
-            height: 400,
-            child: Column(
-              children: [
-                Expanded(
-                  child: TableCalendar(
-                    firstDay: DateTime.utc(2020, 1, 1),
-                    lastDay: DateTime.utc(2030, 12, 31),
-                    focusedDay: initialDate,
-                    onDaySelected: (selectedDay, focusedDay) {
-                      controller.text = "${selectedDay.toLocal()}"
-                          .split(' ')[0]; // Format the date
-                      onSave(controller.text); 
-                      Navigator.of(context).pop();
-                    },
-                    calendarStyle: const CalendarStyle(
-                      selectedDecoration: BoxDecoration(
-                        color: Color(0xffb41391),
-                        shape: BoxShape.circle,
-                      ),
-                      todayDecoration: BoxDecoration(
-                        color: Color(0xff613089),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    headerStyle: const HeaderStyle(
-                      formatButtonVisible: false,
-                      titleTextStyle:
-                          TextStyle(color: Color(0xff613089), fontSize: 20),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-
-    if (selectedDate != null) {
-      controller.text = "${selectedDate.toLocal()}".split(' ')[0];
-      onSave(controller.text); 
-    }
-  }
+ 
 
   // Function to build search section
   Widget buildSearchSection() {
@@ -813,73 +741,7 @@ Widget _buildUserAvatar() {
   }
 
 
-  // Function to build doctor cards
-  Widget buildDoctorCard(String name, String distance, String imagePath, VoidCallback onTap) {
-  return GestureDetector(
-    onTap: onTap,
-    child: Container(
-      width: 150,
-      margin: const EdgeInsets.only(right: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            spreadRadius: 2,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-            child: Image.asset(
-              imagePath,
-              height: 100,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xff613089),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 5),
-                Row(
-                  children: [
-                   
-                    Text(
-                      distance,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-        ],
-      ),
-    ),
-  );
-}
+
 
 
 
@@ -1205,6 +1067,95 @@ Widget build(BuildContext context) {
           ),
   );
 }
+
+
+
+
+
+Widget buildDoctorCard(String name, String distance, String? base64Image, VoidCallback onTap) {
+  ImageProvider backgroundImage;
+
+  // فك تشفير الصورة باستخدام buildImageFromBase64
+  try {
+    if (base64Image != null && base64Image.isNotEmpty && base64Image != 'Unknown') {
+      backgroundImage = buildImageFromBase64(base64Image).image;
+      print(" image: $base64Image");
+    } else {
+      backgroundImage = const AssetImage('assets/images/default_person.jpg');
+    }
+  } catch (e) {
+    print("Error decoding image: $e");
+    backgroundImage = const AssetImage('assets/images/default_person.jpg');
+  }
+
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      width: 150,
+      margin: const EdgeInsets.only(right: 15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            spreadRadius: 2,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+            child: Image(
+              image: backgroundImage,
+              height: 100,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xff613089),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 5),
+                Row(
+                  children: [
+                    Text(
+                      distance,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+      ),
+    ),
+  );
+}
+
+
+
+
 // "Popular Doctor" Section
 Widget buildPopularDoctorSection() {
   return Column(

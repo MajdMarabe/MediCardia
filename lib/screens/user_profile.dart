@@ -217,18 +217,7 @@ String? base64Image ='';
   }
 
 
-  Future<String?> encodeImageToBase64(XFile? imageFile) async {
-    if (imageFile == null) return null;
 
-    try {
-      final Uint8List bytes = await imageFile.readAsBytes();
-
-      return base64Encode(bytes);
-    } catch (e) {
-      print('Error encoding image to Base64: $e');
-      return null;
-    }
-  }
 
 
   Future<void> _loaduserProfile() async {
@@ -259,6 +248,97 @@ String? base64Image ='';
       print('Failed to load doctor profile: ${response.statusCode}');
     }
   }
+
+
+  Future<void> _selectImage() async {
+  final ImagePicker picker = ImagePicker();
+  final XFile? pickedFile = await picker.pickImage(
+    source: ImageSource.gallery,
+    imageQuality: 100,
+  );
+
+  if (pickedFile != null) {
+    setState(() {
+      _imageFile = pickedFile;
+    });
+
+    // Convert picked image to base64 and update the avatar
+    final bytes = await pickedFile.readAsBytes();
+    base64Image = base64Encode(bytes);
+  }
+}
+
+
+
+Image buildImageFromBase64(String? base64Image) {
+  try {
+    if (base64Image == null || base64Image.isEmpty) {
+      return Image.asset('assets/images/default_person.jpg'); 
+    }
+
+    final bytes = base64Decode(base64Image);
+    print("Decoded bytes length: ${bytes.length}");
+
+    return Image.memory(bytes);
+  } catch (e) {
+  
+    print("Error decoding image: $e");
+    return Image.asset('assets/images/default_person.jpg');
+  }
+}
+
+
+Widget _buildUserAvatar() {
+  ImageProvider backgroundImage;
+  try {
+    backgroundImage = buildImageFromBase64(base64Image).image;
+  } catch (e) {
+    backgroundImage = const AssetImage('assets/images/default_person.jpg');
+  }
+
+  return GestureDetector(
+    onTap: _selectImage, 
+    child: Stack(
+      clipBehavior: Clip.none, 
+      children: [
+        CircleAvatar(
+          radius: 55,
+          backgroundColor: Colors.white,
+          backgroundImage: backgroundImage,
+        ),
+        Positioned(
+          bottom: -5, 
+          right: -5,
+          child: GestureDetector(
+            onTap: _selectImage,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+  
+              child: const Icon(
+                Icons.edit,
+                color: Color(0xff613089),
+                size: 24,
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 
 
   void _saveProfile() async {
@@ -325,20 +405,7 @@ String? base64Image ='';
 
 
 
-  Future<void> _selectImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 100,
-    );
 
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = pickedFile;
-      });
-    }
-     base64Image = await encodeImageToBase64(_imageFile);
-  }
 
 
 
@@ -395,66 +462,7 @@ String? base64Image ='';
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
                   children: [
-                    GestureDetector(
-                      onTap: _selectImage,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.grey[300],
-                            child: _imageFile != null
-                                ? kIsWeb
-                                    ? ClipOval(
-                                        child: Image.network(
-                                          _imageFile!.path,
-                                          width: 100,
-                                          height: 100,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      )
-                                    : ClipOval(
-                                        child: Image.file(
-                                          File(_imageFile!.path),
-                                          width: 100,
-                                          height: 100,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      )
-                                : const SizedBox.shrink(),
-                          ),
-                          if (_imageFile == null) ...[
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                const CircleAvatar(
-                                  radius: 50,
-                                  backgroundImage: AssetImage(
-                                      'assets/images/default_person.jpg'),
-                                  backgroundColor: Colors.grey,
-                                ),
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: GestureDetector(
-                                    onTap: _selectImage,
-                                    child: const CircleAvatar(
-                                      radius: 15,
-                                      backgroundColor: Color(0xff613089),
-                                      child: Icon(
-                                        Icons.edit,
-                                        size: 16,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
+                  _buildUserAvatar(),
                     const SizedBox(height: 20),
                     Form(
                       key: _formProfileKey,

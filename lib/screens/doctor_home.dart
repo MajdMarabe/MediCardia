@@ -145,7 +145,7 @@ class _HomePageContentState extends State<HomePageContent> {
 int averageRating=0;
   bool _isLoading = true;
   bool _showMyPatients = true;
-  String? base64Image1 ='';
+  String? base64ImageDoctor ='';
 
   //List<dynamic> _allPatients = [];
   List<dynamic> _filteredPatients = [];
@@ -169,6 +169,7 @@ int averageRating=0;
       setState(() {
         username = data['fullName'] ?? 'Unknown';
        speciality=data['specialization'] ?? 'Unknown';
+        base64ImageDoctor=data['image'] ?? 'Unknown';
        
   totalpatients=   data['numberOfPatients'] ?? 'Unknown';
   averageRating= data['averageRating'] ?? 'Unknown';
@@ -253,21 +254,25 @@ int averageRating=0;
 
 
 
- Image buildImageFromBase64(String? base64Image) {
+Image buildImageFromBase64(String? base64Image) {
   try {
     if (base64Image == null || base64Image.isEmpty) {
-      return Image.asset('assets/images/default_person.jpg');
+      return Image.asset('assets/images/default_person.jpg'); 
     }
 
     final bytes = base64Decode(base64Image);
     print("Decoded bytes length: ${bytes.length}");
 
-    return Image.memory(bytes); 
+    return Image.memory(bytes);
   } catch (e) {
+  
     print("Error decoding image: $e");
-    return Image.asset('assets/images/default_person.jpg'); 
+    return Image.asset('assets/images/default_person.jpg');
   }
 }
+
+
+
 
 /////////////////////////////////
 
@@ -541,6 +546,22 @@ Widget buildReviewsTile(BuildContext context) {
     );
   }
 
+
+  Widget _buildUserAvatar() {
+  ImageProvider backgroundImage;
+  try {
+    backgroundImage = buildImageFromBase64(base64ImageDoctor).image;
+  } catch (e) {
+    backgroundImage = const AssetImage('assets/images/default_person.jpg');
+  }
+  return CircleAvatar(
+    radius: 42,
+    backgroundColor: Colors.white,
+    backgroundImage: backgroundImage,
+  );
+}
+
+
   Widget _buildDoctorProfile() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -550,11 +571,7 @@ Widget buildReviewsTile(BuildContext context) {
       ),
       child: Row(
         children: [
-          const CircleAvatar(
-            radius: 40,
-            backgroundColor: Colors.white,
-            backgroundImage: AssetImage('assets/images/doctor1.jpg'),
-          ),
+        _buildUserAvatar(),
           const SizedBox(width: 20),
           Expanded(
             child: Column(
@@ -699,7 +716,7 @@ Widget _buildPatientList() {
 }
 
 
-Widget _buildUserAvatar(String base64Image) {
+Widget _buildUserAvatarPatient(String base64Image) {
   ImageProvider backgroundImage;
   try {
     backgroundImage = buildImageFromBase64(base64Image).image; 
@@ -721,7 +738,7 @@ Widget _buildPatientInfoTile(
   String patientId,
 ) {
   return ListTile(
-    leading: _buildUserAvatar(base64Image), 
+    leading: _buildUserAvatarPatient(base64Image), 
     title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
     subtitle: Text(details),
     onTap: () {

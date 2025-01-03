@@ -59,7 +59,7 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
               'rating': doc['rating'] ?? 0.0,
               'image': (doc['image']?.isNotEmpty == true)
                   ? doc['image']
-                  : 'assets/images/doctor1.jpg',
+                  : 'Unknown',
               'email': doc['email'] ?? 'No email provided',
               'phone': doc['phone'] ?? 'No phone number provided',
               'numberOfPatients': doc['numberOfPatients'] ?? 0,
@@ -464,7 +464,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
               : data['averageRating'] is double
                   ? data['averageRating']
                   : 0.0;
-          reviewCount = data['reviewCount'] ?? 0; // Default to 0 if no reviews
+          reviewCount = data['reviewCount'] ?? 0; 
 
           isLoading = false;
         });
@@ -522,14 +522,33 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<String> days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    List<String> availableTimes = [
-      "9:00 AM",
-      "10:00 AM",
-      "11:00 AM",
-      "12:00 PM",
-      "1:00 PM"
-    ];
+ 
+
+
+    Widget buildImageFromBase64OrAsset(String image, double height) {
+  try {
+    if (image.startsWith('data:image')) {
+      image = image.split(',').last;
+    }
+
+    final bytes = base64Decode(image); 
+    return Image.memory(
+      bytes,
+      height: height,
+      width: double.infinity,
+      fit: BoxFit.cover,
+    );
+  } catch (e) {
+    print("Error decoding base64 image: $e");
+    return Image.asset(
+      "assets/images/default_person.jpg", 
+      height: height,
+      width: double.infinity,
+      fit: BoxFit.cover,
+    );
+  }
+}
+
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -614,23 +633,23 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                                                 ? 280
                                                 : 160;
 
-                                        return widget.doctor["image"] != null &&
-                                                widget.doctor["image"]
-                                                    .startsWith('http')
-                                            ? Image.network(
-                                                widget.doctor["image"] ??
-                                                    "https://via.placeholder.com/150",
-                                                height: imageHeight,
-                                                width: double.infinity,
-                                                fit: BoxFit.cover,
-                                              )
-                                            : Image.asset(
-                                                widget.doctor["image"] ??
-                                                    "https://via.placeholder.com/150",
-                                                height: imageHeight,
-                                                width: double.infinity,
-                                                fit: BoxFit.cover,
-                                              );
+                         return widget.doctor["image"] != null
+    ? !widget.doctor["image"].startsWith('http') 
+        ? buildImageFromBase64OrAsset(widget.doctor["image"], imageHeight)
+        : Image.asset(
+            "assets/images/default_person.jpg",
+            height: imageHeight,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          )
+    : Image.asset(
+        "assets/images/default_person.jpg", 
+        height: imageHeight,
+        width: double.infinity,
+        fit: BoxFit.cover,
+      );
+
+
                                       },
                                     ),
                                   ),
