@@ -85,7 +85,7 @@ module.exports.getProfile = asyncHandler(async (req, res, next) => {
  */
 module.exports.updateProfile = asyncHandler(async (req, res) => {
     const { username, email, phoneNumber, location,image } = req.body;
-
+///console.log(image);
     const user = await User.findById(req.params.userid);
 
     if (!user) {
