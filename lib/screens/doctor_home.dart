@@ -182,9 +182,10 @@ int averageRating=0;
     }
   } catch (e) {
     _showMessage('Error: $e');
+if(mounted){
     setState(() {
       _isLoading = false;
-    });
+    });}
   }
 }
  void _showMessage(String message) {
@@ -245,9 +246,10 @@ int averageRating=0;
         throw Exception('Failed to load patients');
       }
     } catch (e) {
+      if(mounted){
       setState(() {
         _isLoading = false;
-      });
+      });}
       print('Error fetching patients: $e');
     }
   }

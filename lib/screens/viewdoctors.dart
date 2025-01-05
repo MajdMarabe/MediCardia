@@ -808,8 +808,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    const AppointmentPage(),
-                              ),
+ AppointmentPage(doctorid: widget.doctor['id'],name: widget.doctor['name'] ,),                              ),
                             );
                           },
                           style: ElevatedButton.styleFrom(

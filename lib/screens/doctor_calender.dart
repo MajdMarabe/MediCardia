@@ -1,6 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_3/screens/constants.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class DoctorCalendarPage extends StatefulWidget {
   @override
@@ -10,52 +14,58 @@ class DoctorCalendarPage extends StatefulWidget {
 class _DoctorCalendarPageState extends State<DoctorCalendarPage> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  final Map<DateTime, List<String>> _events = {
-    DateTime.now(): ['Routine Checkup - 10:00 AM', 'Cardiology Conference - 3:00 PM'],
-    DateTime.now().add(Duration(days: 1)): ['Surgery - 9:00 AM', 'Team Meeting - 2:00 PM'],
-    DateTime.now().add(Duration(days: 3)): ['Follow-up Appointment - 11:30 AM'],
-  };
+List<Map<String, dynamic>> _events = [];
+    String? doctorid;
+  @override
+  void initState() {
+    super.initState();
+    _fetchDoctorId();
+    //_buildCalendar();
+  }
+
+  Future<void> _fetchDoctorId() async {
+    doctorid = await storage.read(key: 'userid');
+    if (doctorid != null) {
+      //_fetchSchedule(selectedDay); 
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-            backgroundColor: const Color(0xFFF2F5FF),
-      appBar: AppBar(
       backgroundColor: const Color(0xFFF2F5FF),
-      elevation: 0,
-      centerTitle: true,
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF2F5FF),
+        elevation: 0,
+        centerTitle: true,
         title: const Text(
-          "Calender",
+          "Calendar",
           style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Color(0xff613089),
-          letterSpacing: 1.5,
+            fontWeight: FontWeight.bold,
+            color: Color(0xff613089),
+            letterSpacing: 1.5,
+          ),
         ),
-        ),
-
-           automaticallyImplyLeading: !kIsWeb,
-      leading: kIsWeb
-          ? null
-          : IconButton(
-              icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
+        automaticallyImplyLeading: !kIsWeb,
+        leading: kIsWeb
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
       ),
       body: Column(
         children: [
-          // Calendar Widget
           _buildCalendar(),
           const SizedBox(height: 10),
-          // Scheduled Events Section
           Expanded(
             child: _buildEventList(),
           ),
         ],
       ),
     );
-    
   }
 
   Widget _buildCalendar() {
@@ -84,9 +94,10 @@ class _DoctorCalendarPageState extends State<DoctorCalendarPage> {
           setState(() {
             _selectedDay = selectedDay;
             _focusedDay = focusedDay;
+            _fetchBookedSlots(); 
           });
         },
-        eventLoader: (day) => _events[day] ?? [],
+        eventLoader: (day) => _events,  
         calendarStyle: CalendarStyle(
           selectedDecoration: BoxDecoration(
             color: const Color(0xff613089),
@@ -107,13 +118,10 @@ class _DoctorCalendarPageState extends State<DoctorCalendarPage> {
           titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
-      
     );
-    
   }
 
   Widget _buildEventList() {
-    final events = _events[_selectedDay] ?? [];
     return Container(
       margin: const EdgeInsets.all(15),
       padding: const EdgeInsets.all(15),
@@ -140,7 +148,7 @@ class _DoctorCalendarPageState extends State<DoctorCalendarPage> {
             ),
           ),
           const SizedBox(height: 10),
-          if (events.isEmpty)
+          if (_events.isEmpty)
             const Center(
               child: Text(
                 "No events for this day",
@@ -150,24 +158,81 @@ class _DoctorCalendarPageState extends State<DoctorCalendarPage> {
           else
             Expanded(
               child: ListView.builder(
-                itemCount: events.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.blue.withOpacity(0.2),
-                      child: const Icon(Icons.event, color: Colors.blue),
-                    ),
-                    title: Text(events[index]),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-                    onTap: () {
-                      // Action on tap (e.g., view event details)
-                    },
-                  );
+                itemCount: _events.length,
+     itemBuilder: (context, index) {
+  final slotDetails = _events[index]; 
+  return ListTile(
+    leading: CircleAvatar(
+      backgroundColor: Colors.blue.withOpacity(0.2),
+      child: const Icon(Icons.event, color: Colors.blue),
+    ),
+    title: Text("Time: ${slotDetails['time']}"), 
+    trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+    onTap: () {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Appointment Details"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Time: ${slotDetails['time']}"),
+                Text("Patient Name: ${slotDetails['patientName']}"),
+                Text("Notes: ${slotDetails['notes']?? 'no notes'}"),
+              ],
+            ),
+            actions: [
+              TextButton(
+                child: Text("Close"),
+                onPressed: () {
+                  Navigator.of(context).pop();
                 },
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+},
+
+
               ),
             ),
         ],
       ),
     );
   }
+
+
+Future<void> _fetchBookedSlots() async {
+  final String apiUrl = '${ApiConstants.baseUrl}/appointment/schedules/$doctorid/booked';
+
+  if (_selectedDay == null) return;
+
+  final selectedDate = '${_selectedDay!.year}-${_selectedDay!.month.toString().padLeft(2, '0')}-${_selectedDay!.day.toString().padLeft(2, '0')}';
+  String formattedDate = DateFormat('dd-MM-yyyy').format(DateTime.parse(selectedDate));
+
+  final response = await http.post(
+    Uri.parse(apiUrl),
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode({'date': formattedDate}),
+  );
+
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
+    setState(() {
+      _events = List<Map<String, dynamic>>.from(data['slots']);
+    });
+  } else {
+    setState(() {
+      _events = [];
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: ${response.body}')),
+    );
+  }
+}
 }
