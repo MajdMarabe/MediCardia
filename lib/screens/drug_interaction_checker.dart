@@ -341,9 +341,9 @@ class _DrugInteractionCheckerPageState
 
                     // If no drugs are added
                     if (drugs.isEmpty) ...[
-                      const Text(
+                       Text(
                         '• Add a full drug regimen and view interactions.',
-                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black54),
+                        style: TextStyle(fontSize: 16, color: Colors.grey[500]),
                       ),
                       const SizedBox(height: 30),
                     ],

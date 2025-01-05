@@ -655,7 +655,7 @@ Widget _buildSystolicPressureChart(int age) {
 
                   if (value == 90) {
                     lineColor = Colors.blue.withOpacity(0.5); // ضغط منخفض
-                  } else if (age < 30) {
+                  } else if (age < 30 && age > 0) {
                     if (value == 120) {
                       lineColor = Colors.green.withOpacity(0.5); // طبيعي
                     }  else {
@@ -757,6 +757,7 @@ Widget _buildSystolicPressureChart(int age) {
               ],
               extraLinesData: ExtraLinesData(
                 horizontalLines: [
+                  if (age > 0) ...[
                   HorizontalLine(
                     y: 90,
                     color: Colors.blue.withOpacity(0.2),
@@ -768,7 +769,8 @@ Widget _buildSystolicPressureChart(int age) {
                       labelResolver: (line) => '\n\nLow', 
                     ),
                   ),
-                  if (age < 30) ...[
+                   ],
+                  if (age < 30 && age > 0) ...[
                     HorizontalLine(
                       y: 120,
                       color: Colors.green.withOpacity(0.2),
@@ -801,7 +803,7 @@ Widget _buildSystolicPressureChart(int age) {
                         show: true,
                         alignment: Alignment.center,
                         style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
-                        labelResolver: (line) => '\n\nNormal',
+                        labelResolver: (line) => '\nNormal',
                       ),
                     ),
                     HorizontalLine(
@@ -812,7 +814,7 @@ Widget _buildSystolicPressureChart(int age) {
                         show: true,
                         alignment: Alignment.center,
                         style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
-                        labelResolver: (line) => '\n\nHigh',
+                        labelResolver: (line) => '\nHigh',
                       ),
                     ),
                   ],
@@ -904,7 +906,7 @@ Widget _buildDiastolicPressureChart(int age) {
                   if (value == 60) {
                     lineColor = Colors.blue.withOpacity(0.5); // ضغط منخفض
                     lineWidth = 1.5;
-                  } else if (age < 30) {
+                  } else if (age < 30 && age > 0) {
                     if (value == 80) {
                       lineColor = Colors.green.withOpacity(0.5); // طبيعي
                       lineWidth = 1.5;
@@ -1012,6 +1014,7 @@ Widget _buildDiastolicPressureChart(int age) {
               ],
               extraLinesData: ExtraLinesData(
                 horizontalLines: [
+                 if (age > 0) ...[
                   HorizontalLine(
                     y: 60,
                     color: Colors.blue.withOpacity(0.2),
@@ -1023,7 +1026,8 @@ Widget _buildDiastolicPressureChart(int age) {
                       labelResolver: (line) => '\n\nLow', 
                     ),
                   ),
-                  if (age < 30) ...[
+                   ],
+                  if (age < 30 && age > 0) ...[
                     HorizontalLine(
                       y: 80,
                       color: Colors.green.withOpacity(0.2),

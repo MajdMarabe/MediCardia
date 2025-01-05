@@ -113,23 +113,27 @@ class _ReviewsPageState extends State<ReviewsPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F5FF),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF2F5FF),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        centerTitle: true,
+      backgroundColor: const Color(0xFFF2F5FF),
+      elevation: 0,
+      centerTitle: true,
         title: const Text(
-          'Reviews',
+          "Reviews",
           style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xff613089),
-            letterSpacing: 1.5,
-          ),
+          fontWeight: FontWeight.bold,
+          color: Color(0xff613089),
+          letterSpacing: 1.5,
         ),
+        ),
+
+           automaticallyImplyLeading: !kIsWeb,
+      leading: kIsWeb
+          ? null
+          : IconButton(
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
       ),
     body: isLoading
     ? const Center(child: CircularProgressIndicator())

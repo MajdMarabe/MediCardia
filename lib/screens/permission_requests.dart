@@ -5,6 +5,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_application_3/screens/constants.dart';
 import 'package:flutter_application_3/services/notification_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 
 
@@ -57,6 +58,7 @@ class _PermissionRequestsPageState extends State<PermissionRequestsPage> {
                     'doctorId': value['doctorid']?? 'No Title',
                     'selectedPriority': value['selectedPriority']?? 'No Title',
                     'name' : value['name']?? 'No Title',
+                    'image': value['image'] ?? ''
         });
       });
 
@@ -126,10 +128,10 @@ Widget build(BuildContext context) {
             width: width, 
             padding: const EdgeInsets.all(8.0),
             child: permissions.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
                       'No permission requests found.',
-                      style: TextStyle(fontSize: 16),
+                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
                     ),
                   )
                 : ListView.builder(
@@ -158,8 +160,8 @@ Widget build(BuildContext context) {
                                     backgroundColor:
                                         Color.fromARGB(255, 185, 160, 205),
                                     child: Icon(
-                                      Icons.person,
-                                      size: 35.0,
+                                      FontAwesomeIcons.userMd,
+                                      size: 30.0,
                                       color: Color(0xff613089),
                                     ),
                                   ),

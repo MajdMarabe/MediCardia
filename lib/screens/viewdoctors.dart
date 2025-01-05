@@ -120,6 +120,8 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
 
   final Map<String, Widget> specialtiesWithIcons = {
     "All": const Icon(Icons.clear_all, color: Color(0xFF613089), size: 18),
+    "General": const Icon(FontAwesomeIcons.stethoscope, color: Color(0xFF613089), size: 16),
+    "Plastic Surgery": const Icon(FontAwesomeIcons.faceSmile, color: Color(0xFF613089), size: 16),
     "Eye": const Icon(Icons.visibility, color: Color(0xFF613089), size: 18),
     "Nose": Image.asset(
       'assets/images/nose.png',
@@ -127,16 +129,26 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
       height: 15,
       color: const Color(0xFF613089),
     ),
-    "General": const Icon(Icons.person, color: Color(0xFF613089), size: 18),
-    "Pediatrics":
-        const Icon(Icons.child_friendly, color: Color(0xFF613089), size: 18),
-    "Cardiology": const Icon(FontAwesomeIcons.heartbeat,
-        color: Color(0xFF613089), size: 18),
+       
     "Dentistry":
         const Icon(FontAwesomeIcons.tooth, color: Color(0xFF613089), size: 18),
-    "Orthopedics":
-        const Icon(Icons.accessibility_new, color: Color(0xFF613089), size: 18),
+        "Cardiology": const Icon(FontAwesomeIcons.heartbeat,
+        color: Color(0xFF613089), size: 18),
+        "Endocrinology": const Icon(FontAwesomeIcons.dna,
+        color: Color(0xFF613089), size: 16),
+                "Nephrology":  const Icon(FontAwesomeIcons.droplet,
+        color: Color(0xFF613089), size: 16),
+            "Psychiatry": const Icon(Icons.psychology,
+        color: Color(0xFF613089), size: 20),
+         "Gynecology":
+        const Icon(FontAwesomeIcons.personDress, color: Color(0xFF613089), size: 18),
+
+    "Pediatrics":
+        const Icon(Icons.child_friendly, color: Color(0xFF613089), size: 18),
+
+     
   };
+
 
   @override
   Widget build(BuildContext context) {
@@ -250,7 +262,8 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
                       child: isLoading
                           ? const Center(child: CircularProgressIndicator())
                           : displayedDoctors.isEmpty
-                              ? const Center(child: Text("No doctors found."))
+                              ? Center(child: Text("No doctors found.",
+                              style: TextStyle(fontSize: 16, color: Colors.grey[500])))
                               : LayoutBuilder(
                                   builder: (context, constraints) {
                                     final bool isWeb =
@@ -379,7 +392,7 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
     return Align(
       alignment: Alignment.centerRight,
       child: SizedBox(
-        width: 150,
+        width: 117,
         child: DropdownButtonFormField<String>(
           value: selectedSpecialty,
           items: specialtiesWithIcons.entries.map((entry) {

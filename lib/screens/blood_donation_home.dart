@@ -124,7 +124,7 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
                       child: Padding(
                         padding: EdgeInsets.only(left: 20.0),
                         child: Text(
-                          "Your Donation History",
+                          "Your Donation Records",
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,

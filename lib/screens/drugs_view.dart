@@ -742,9 +742,10 @@ Widget buildSearchSection() {
                                           children: [
                                             Container(
                                               alignment: Alignment.center,
+                                              
                                               child: const Icon(
-                                                Icons.medical_services,
-                                                size: 48,
+                                               FontAwesomeIcons.capsules,
+                                                size: 45,
                                                 color: Color(0xff613089),
                                               ),
                                             ),
@@ -809,7 +810,8 @@ Widget buildSearchSection() {
                                     );
                                   },
                                 )
-                              : const Center(child: Text('No drugs available'));
+                              :  Center(child: Text('No drugs available.',
+                              style: TextStyle(fontSize: 16, color: Colors.grey[500])));
                         },
                       ),
                     ),

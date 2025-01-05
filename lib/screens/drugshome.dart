@@ -219,7 +219,7 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
                   controller: _searchController,
                   decoration: const InputDecoration(
                     border: InputBorder.none,
-                    hintText: "Search for drugs.",
+                    hintText: "Search for drugs...",
                     hintStyle: TextStyle(color: Colors.grey),
                   ),
                   onChanged: (value) {
@@ -323,14 +323,6 @@ class _OnlineMedicineHomePageState extends State<OnlineMedicineHomePage> {
           children: [
             Row(
               children: [
-                if (_drugData!['image'] != null)
-                  Image.network(
-                    _drugData!['image'],
-                    height: 50,
-                    width: 50,
-                    fit: BoxFit.cover,
-                  ),
-                const SizedBox(width: 16),
                 Text(
                   "Name: ${_drugData!['Drugname']}",
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF6A4C9C)),

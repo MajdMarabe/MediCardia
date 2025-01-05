@@ -168,14 +168,14 @@ class _DrugInfoPageState extends State<DrugInfoPage> {
             const SizedBox(height: 20),
 
             // Instruction Text
-            const Center(
+           Center(
               child: Text(
                 "Scan any drug barcode to view details.",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black54,
+                  color: Colors.grey[500],
                 ),
               ),
             ),

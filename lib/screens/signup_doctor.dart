@@ -440,14 +440,22 @@ GestureDetector(
             },
           ),
           const SizedBox(height: 25.0),
-          _buildTextField(_phoneController, 'Phone', 'Enter Phone',
-              Icons.phone, validator: (value) {
-            if (value == null || value.isEmpty) return 'Please enter Phone';
-            if (!RegExp(r'^\+?[0-9]{10,15}$').hasMatch(value)) {
-              return 'Please enter a valid Phone number';
-            }
-            return null;
-          }),
+          
+         _buildTextField(
+  _phoneController, 
+  'Phone', 
+  'Enter Phone',
+  Icons.phone, 
+  validator: (value) {
+    if (value == null || value.isEmpty) return 'Please enter Phone';
+    if (!RegExp(r'^\+?[0-9]{10,15}$').hasMatch(value)) {
+      return 'Please enter a valid Phone number';
+    }
+    return null;
+  },
+  keyboardType: TextInputType.phone, 
+),
+
           const SizedBox(height: 25.0),
           _buildTextField(_specializationController, 'Specialization',
               'Enter Specialization', Icons.work),
@@ -523,37 +531,44 @@ GestureDetector(
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label,
-      String hint, IconData icon,
-      {String? Function(String?)? validator}) {
-    return TextFormField(
-      controller: controller,
-      validator: validator ??
-          (value) =>
-              value == null || value.isEmpty ? 'Please enter $label' : null,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Color(0xff613089)),
-        hintText: hint,
-        hintStyle: TextStyle(
-          color: Colors.grey.shade400, 
-          fontSize: 14,
-          fontStyle: FontStyle.italic,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        prefixIcon: Icon(icon, color: const Color(0xff613089)),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(
-            color: Color(0xffb41391),
-            width: 2.0,
-          ),
-          borderRadius: BorderRadius.circular(10),
-        ),
+ Widget _buildTextField(
+  TextEditingController controller, 
+  String label,
+  String hint, 
+  IconData icon, 
+  { 
+    String? Function(String?)? validator, 
+    TextInputType keyboardType = TextInputType.text, 
+  }) {
+  return TextFormField(
+    controller: controller,
+    keyboardType: keyboardType, 
+    validator: validator ?? 
+        (value) => value == null || value.isEmpty ? 'Please enter $label' : null,
+    decoration: InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Color(0xff613089)),
+      hintText: hint,
+      hintStyle: TextStyle(
+        color: Colors.grey.shade400, 
+        fontSize: 14,
+        fontStyle: FontStyle.italic,
       ),
-    );
-  }
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      prefixIcon: Icon(icon, color: const Color(0xff613089)),
+      focusedBorder: OutlineInputBorder(
+        borderSide: const BorderSide(
+          color: Color(0xffb41391),
+          width: 2.0,
+        ),
+        borderRadius: BorderRadius.circular(10),
+      ),
+    ),
+  );
+}
+
 
   Widget _buildPasswordField() {
     return TextFormField(

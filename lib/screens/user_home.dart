@@ -34,7 +34,7 @@ class _HomePageState extends State<HomePage> {
   String bloodType = 'Unknown'; 
   int age = 0; 
   String phoneNumber = 'N/A'; 
-
+ String idNumber = 'Unknown'; 
 String? base64Image ='';
   
   List<String> chronicDiseases = []; 
@@ -83,9 +83,9 @@ bool _isExpanded = false;
     final response = await http
         .get(Uri.parse('${ApiConstants.baseUrl}/rating/top/rated'));
 
-    if (kDebugMode) {
-      print("The response is: ${response.body}");
-    }
+    // if (kDebugMode) {
+    //   print("The response is: ${response.body}");
+    // }
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
@@ -140,6 +140,7 @@ bool _isExpanded = false;
         gender = data['medicalCard']?['publicData']?['gender'] ?? 'Unknown';
         bloodType = data['medicalCard']?['publicData']?['bloodType'] ?? 'Unknown';
         age = data['medicalCard']?['publicData']?['age'] ?? 0;
+        idNumber = data['medicalCard']?['publicData']?['idNumber'] ?? 'Unknown';
          base64Image=data['medicalCard']?['publicData']?['image'] ?? 'Unknown';
 
 
@@ -178,6 +179,229 @@ bool _isExpanded = false;
 
 
   //////////////////////////////////
+
+
+
+
+
+void _showAddChronicDialog(BuildContext context, Function(String) onAdd) {
+  // Sample list of chronic diseases
+  final List<Map<String, dynamic>> allDiseases = [
+    {'name': 'Diabetes', 'icon': Icons.bloodtype},
+    {'name': 'Blood Pressure', 'icon': Icons.monitor_heart},
+    {'name': 'Asthma', 'icon': Icons.air},
+    {'name': 'Cancer', 'icon': Icons.coronavirus},
+    {'name': 'Kidney Failure', 'icon': Icons.opacity},
+  ];
+
+  List<String> selectedDiseases = [];
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      double dialogWidth = MediaQuery.of(context).size.width > 600
+          ? 600
+          : MediaQuery.of(context).size.width * 0.9;
+
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        child: Center(
+          child: Container(
+            width: dialogWidth,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Add Chronic Disease",
+                  style: TextStyle(
+                    color: Color(0xff613089),
+                    fontSize: 20,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Wrap(
+                  spacing: 10.0, // Spacing between chips
+                  runSpacing: 10.0,
+                  children: allDiseases.map((disease) {
+                    final isSelected = selectedDiseases.contains(disease['name']);
+                    return FilterChip(
+                      label: Text(
+                        disease['name'],
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : const Color(0xff613089),
+                        ),
+                      ),
+                      avatar: Icon(
+                        disease['icon'],
+                        color: isSelected ? Colors.white : const Color(0xff613089),
+                      ),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            selectedDiseases.add(disease['name']);
+                          } else {
+                            selectedDiseases.remove(disease['name']);
+                          }
+                        });
+                      },
+                      selectedColor: const Color(0xffb41391),
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        "Cancel",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (selectedDiseases.isNotEmpty) {
+                          // Pass the selected diseases to the onAdd function
+                          onAdd(selectedDiseases.join(', '));
+                          Navigator.pop(context);
+                        } else {
+                          // Show a message if no disease is selected
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please select a disease')),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xff613089),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                      child: const Text("Add"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+
+
+
+void _showAddAllergyDialog(BuildContext context, Function(String) onAdd) {
+  TextEditingController allergyController = TextEditingController();
+   double dialogWidth = MediaQuery.of(context).size.width > 600
+          ? 600
+          : MediaQuery.of(context).size.width * 0.9;
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        child: Center(
+          child: Container(
+            width: dialogWidth,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Add Allergy",
+                  style: TextStyle(
+                    color: Color(0xff613089),
+                    fontSize: 20,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: allergyController,
+                  decoration: InputDecoration(
+                    labelText: 'Enter allergy',
+                    labelStyle: const TextStyle(color: Color(0xff613089)),
+                    hintText: 'Enter allergy',
+                    hintStyle: TextStyle(
+                      color: Colors.grey.shade400,
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    prefixIcon: const Icon(Icons.warning, color: Color(0xff613089)),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        color: Color(0xffb41391),
+                        width: 2.0,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        "Cancel",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (allergyController.text.isNotEmpty) {
+                          // Add the entered allergy to the list
+                          onAdd(allergyController.text);
+                          Navigator.pop(context);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please enter an allergy')),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xff613089),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                      child: const Text("Add"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
 
 
 
@@ -365,29 +589,29 @@ Widget buildUserInfo() {
             ),
             if (_isExpanded) ...[
               const SizedBox(height: 16),
-              buildInfoRow(Icons.credit_card, 'ID Number: 123456789'),
+              buildInfoRow(Icons.badge, 'ID Number: $idNumber'),
            
-             
-              buildEditableListRow(FontAwesomeIcons.heartbeat,
-                  'Chronic diseases:', chronicDiseases, (newValue) {
-                setState(() {
-                  chronicDiseases.add(newValue);
-                });
-              }, (index) {
-                setState(() {
-                  chronicDiseases.removeAt(index);
-                });
-              }),
-              buildEditableListRow(Icons.warning, 'Allergies:', allergies,
-                  (newValue) {
-                setState(() {
-                  allergies.add(newValue);
-                });
-              }, (index) {
-                setState(() {
-                  allergies.removeAt(index);
-                });
-              }),
+
+buildEditableListRow(FontAwesomeIcons.heartbeat, 'Chronic Diseases:', chronicDiseases, (newValue) {
+  setState(() {
+    chronicDiseases.add(newValue);
+  });
+}, (index) {
+  setState(() {
+    chronicDiseases.removeAt(index);
+  });
+}, 'chronic'),
+
+buildEditableListRow(Icons.warning, 'Allergies:', allergies, (newValue) {
+  setState(() {
+    allergies.add(newValue);
+  });
+}, (index) {
+  setState(() {
+    allergies.removeAt(index);
+  });
+}, 'allergy'),
+
             ],
             const SizedBox(height: 5),
             Align(
@@ -438,265 +662,188 @@ Widget buildUserInfo() {
   
 
 
-  Widget buildEditableRow(IconData icon, String text, Function(String) onSave,
-      {bool isDate = false}) {
-    TextEditingController controller = TextEditingController(text: text);
+ 
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(4),
+
+
+Widget buildEditableListRow(IconData icon, String title, List<String> list,
+    Function(String) onAdd, Function(int) onRemove, String type) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontSize: 16, color: Colors.white70),
+        ),
+        ...list.map((item) {
+          int index = list.indexOf(item);
+          return Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 24, color: Colors.white),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  item,
+                  style: const TextStyle(fontSize: 14, color: Colors.white70),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.white),
+                onPressed: () {
+                  onRemove(index);
+                },
+              ),
+            ],
+          );
+        }),
+        IconButton(
+          icon: const Icon(Icons.add, color: Colors.white),
+          onPressed: () {
+            if (type == 'chronic') {
+              _showAddChronicDialog(context, onAdd);
+            } else if (type == 'allergy') {
+              _showAddAllergyDialog(context, onAdd);
+            }
+          },
+        ),
+      ],
+    ),
+  );
+}
+
+
+
+ void _showAddchronicDialog(BuildContext context, Function(String) onAdd) {
+  // Sample list of chronic diseases
+  final List<Map<String, dynamic>> allDiseases = [
+{'name': 'Diabetes', 'icon': Icons.bloodtype},
+{'name': 'Blood Pressure', 'icon': Icons.monitor_heart},
+{'name': 'Asthma', 'icon': Icons.air},
+{'name': 'Cancer', 'icon': Icons.coronavirus},
+{'name': 'Kidney Failure', 'icon': Icons.opacity},
+
+  ];
+
+
+  List<String> selectedDiseases = [];
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      double dialogWidth = MediaQuery.of(context).size.width > 600
+          ? 600
+          : MediaQuery.of(context).size.width * 0.9;
+
+
+
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        child: Center(
+          child: Container(
+            width: dialogWidth,
+
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
             ),
-            child: Icon(icon, size: 24, color: Colors.white),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 14, color: Colors.white70),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.edit, color: Colors.white),
-            onPressed: () {
-            
-                _showEditDialog(context, controller.text, onSave);
-          
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-
-
-  Widget buildEditableListRow(IconData icon, String title, List<String> list,
-      Function(String) onAdd, Function(int) onRemove) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 16, color: Colors.white70),
-          ),
-          ...list.map((item) {
-            int index = list.indexOf(item);
-            return Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, size: 24, color: Colors.white),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    item,
-                    style: const TextStyle(fontSize: 14, color: Colors.white70),
+                const Text(
+                  "Add Chronic Disease",
+                  style: TextStyle(
+                    color: Color(0xff613089),
+                    fontSize: 20,
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.white),
-                  onPressed: () {
-                    onRemove(index);
-                  },
+                const SizedBox(height: 20),
+                Wrap(
+                  spacing: 10.0, // Spacing between chips
+                  runSpacing: 10.0,
+                  children: allDiseases.map((disease) {
+                    final isSelected = selectedDiseases.contains(disease['name']);
+                    return FilterChip(
+                      label: Text(
+                        disease['name'],
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : const Color(0xff613089),
+                        ),
+                      ),
+                      avatar: Icon(disease['icon'], color: isSelected ? Colors.white : const Color(0xff613089)),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            selectedDiseases.add(disease['name']);
+                          } else {
+                            selectedDiseases.remove(disease['name']);
+                          }
+                        });
+                      },
+                      selectedColor: const Color(0xffb41391),
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        "Cancel",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (selectedDiseases.isNotEmpty) {
+                          // Pass the selected diseases to the onAdd function
+                          onAdd(selectedDiseases.join(', '));
+                          Navigator.pop(context);
+                        } else {
+                          // Show a message if no disease is selected
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please select a disease')),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xff613089),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                      child: const Text("Add"),
+                    ),
+                  ],
                 ),
               ],
-            );
-          }),
-          IconButton(
-            icon: const Icon(Icons.add, color: Colors.white),
-            onPressed: () {
-              _showAddDialog(context, onAdd);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-
-
-  void _showAddDialog(BuildContext context, Function(String) onAdd) {
-    TextEditingController controller = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        double dialogWidth = MediaQuery.of(context).size.width > 600
-          ? 600
-          : MediaQuery.of(context).size.width * 0.9;
-
-      double dialogHeight = MediaQuery.of(context).size.height > 900
-          ? 200
-          : MediaQuery.of(context).size.height * 0.3;
-
-        return Dialog(
-  backgroundColor: Colors.transparent,
-  child: Center(
-    child: Container(
-      width: dialogWidth,
-      height: dialogHeight,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Add Information",
-            style: TextStyle(
-              color: Color(0xff613089),
-              fontSize: 20,
             ),
           ),
-          const SizedBox(height: 20),
-          TextField(
-            controller: controller,
-            decoration: const InputDecoration(
-              labelText: 'Enter new value',
-              labelStyle: TextStyle(color: Color(0xff613089)),
-              prefixIcon: Icon(Icons.edit, color: Color(0xff613089)),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xff613089)),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text(
-                  "Cancel",
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  onAdd(controller.text);
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff613089),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-                child: const Text("Add"),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ),
-  ),
-);
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
 
 
-
-  void _showEditDialog(
-      BuildContext context, String initialValue, Function(String) onSave) {
-    TextEditingController controller = TextEditingController(text: '');
-
-    showDialog(
-      context: context,
-      builder: (context) {
-                double dialogWidth = MediaQuery.of(context).size.width > 600
-          ? 600
-          : MediaQuery.of(context).size.width * 0.9;
-
-      double dialogHeight = MediaQuery.of(context).size.height > 900
-          ? 200
-          : MediaQuery.of(context).size.height * 0.3;
-
-       return Dialog(
-  backgroundColor: Colors.transparent,
-  child: Center(
-    child: Container(
-      width: dialogWidth,
-      height: dialogHeight,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Edit Information",
-            style: TextStyle(
-              color: Color(0xff613089),
-              fontSize: 20,
-            ),
-          ),
-          const SizedBox(height: 20),
-          TextField(
-            controller: controller,
-            decoration: const InputDecoration(
-              labelText: 'Enter new value',
-              labelStyle: TextStyle(color: Color(0xff613089)),
-              prefixIcon: Icon(Icons.edit, color: Color(0xff613089)),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xff613089)),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text(
-                  "Cancel",
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  onSave(controller.text); 
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff613089),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-                child: const Text("Save"),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ),
-  ),
-);
-      },
-    );
-  }
 
 
 
@@ -705,40 +852,40 @@ Widget buildUserInfo() {
 
  
 
-  // Function to build search section
-  Widget buildSearchSection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            spreadRadius: 2,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.search, size: 30, color: Color(0xff613089)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: TextField(
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Search for doctor,  etc.',
-                hintStyle: TextStyle(color: Colors.grey[400]),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // // Function to build search section
+  // Widget buildSearchSection() {
+  //   return Container(
+  //     margin: const EdgeInsets.symmetric(horizontal: 20),
+  //     padding: const EdgeInsets.all(15),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(15),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.black.withOpacity(0.1),
+  //           blurRadius: 10,
+  //           spreadRadius: 2,
+  //           offset: const Offset(0, 5),
+  //         ),
+  //       ],
+  //     ),
+  //     child: Row(
+  //       children: [
+  //         const Icon(Icons.search, size: 30, color: Color(0xff613089)),
+  //         const SizedBox(width: 10),
+  //         Expanded(
+  //           child: TextField(
+  //             decoration: InputDecoration(
+  //               border: InputBorder.none,
+  //               hintText: 'Search for doctor,  etc.',
+  //               hintStyle: TextStyle(color: Colors.grey[400]),
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
 
 
@@ -854,10 +1001,10 @@ Widget build(BuildContext context) {
                     const SizedBox(height: 20),
 
                     buildUserInfo(),
-                    const SizedBox(height: 20),
+                    // const SizedBox(height: 20),
 
                
-                    buildSearchSection(),
+                    // buildSearchSection(),
                     const SizedBox(height: 20),
 
                  
@@ -925,58 +1072,8 @@ Widget build(BuildContext context) {
                               },
                             ),
                           const SizedBox(width: 20),
-                          buildCircleButton(
-                            icon: Icons.fact_check,
-                            label: 'Medical History',
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MedicalHistoryPage(),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 20),
-                          buildCircleButton(
-                            icon: Icons.science,
-                            label: 'Lab Tests',
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => LabTestsPage(),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 20),
-                          buildCircleButton(
-                            icon: Icons.note_alt,
-                            label: 'Medical Notes',
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MedicalNotesPage(),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 20),
-                          buildCircleButton(
-                            icon: Icons.medication,
-                            label: 'Treatment Plans',
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => TreatmentPlansPage(),
-                                ),
-                              );
-                            },
-                          ),
-                               const SizedBox(width: 20),                       
+
+                                                 
                             GestureDetector(
   onTap: () {
     Navigator.push(
@@ -1038,11 +1135,63 @@ Widget build(BuildContext context) {
                               );
                             },
                           ),
+                          const SizedBox(width: 20),
+                          buildCircleButton(
+                            icon: Icons.fact_check,
+                            label: 'Medical History',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MedicalHistoryPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 20),
+                          buildCircleButton(
+                            icon: Icons.science,
+                            label: 'Lab Tests',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => LabTestsPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 20),
+                          buildCircleButton(
+                            icon: Icons.note_alt,
+                            label: 'Medical Notes',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MedicalNotesPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 20),
+                          buildCircleButton(
+                            icon: Icons.medication,
+                            label: 'Treatment Plans',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => TreatmentPlansPage(),
+                                ),
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
 
                     // Popular Doctor Section
                     buildPopularDoctorSection(),
@@ -1079,7 +1228,7 @@ Widget buildDoctorCard(String name, String distance, String? base64Image, VoidCa
   try {
     if (base64Image != null && base64Image.isNotEmpty && base64Image != 'Unknown') {
       backgroundImage = buildImageFromBase64(base64Image).image;
-      print(" image: $base64Image");
+      // print(" image: $base64Image");
     } else {
       backgroundImage = const AssetImage('assets/images/default_person.jpg');
     }
@@ -1161,12 +1310,12 @@ Widget buildPopularDoctorSection() {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+      const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Popular Doctors',
               style: TextStyle(
                 fontSize: 20,
@@ -1174,19 +1323,19 @@ Widget buildPopularDoctorSection() {
                 color: Color(0xff613089),
               ),
             ),
-            GestureDetector(
-              onTap: () {
-                // Handle "See more" action
-              },
-              child: const Text(
-                'See more',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xff613089),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+            // GestureDetector(
+            //   onTap: () {
+            //     // Handle "See more" action
+            //   },
+            //   child: const Text(
+            //     'See more',
+            //     style: TextStyle(
+            //       fontSize: 14,
+            //       color: Color(0xff613089),
+            //       fontWeight: FontWeight.bold,
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),
@@ -1196,10 +1345,10 @@ Widget buildPopularDoctorSection() {
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : allDoctors.isEmpty
-                ? const Center(
+                ?  Center(
                     child: Text(
-                      'No doctors available',
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                      'No doctors available.',
+                      style: TextStyle(fontSize: 16, color: Colors.grey[500])
                     ),
                   )
                 : ListView.builder(

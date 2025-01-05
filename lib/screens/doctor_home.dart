@@ -28,7 +28,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   final List<Widget> _pages = [
     HomePageContent(),
     DoctorCalendarPage(),
-    NotificationPage(),
+    const NotificationPage(),
     DoctorProfilePage(),
   ];
 
@@ -445,52 +445,69 @@ Widget buildBloodDonationTile(BuildContext context) {
 
 
 Widget buildReviewsTile(BuildContext context) {
+  double screenWidth = MediaQuery.of(context).size.width;
+
+  double BoxHeight = (screenWidth > 600) ? 130 : 150; 
+
   return GestureDetector(
     onTap: () {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => ReviewsPage(doctorid: doctorid as String,)),
+        MaterialPageRoute(builder: (context) => ReviewsPage(doctorid: doctorid as String)),
       );
     },
-    child: Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            spreadRadius: 1,
-            offset: const Offset(0, 4),
-          ),
-        ],
+    child: ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: 200,  
+        maxHeight: BoxHeight, 
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: const Color(0xff613089).withOpacity(0.15),
-            child: const Icon(Icons.star, size: 28, color: Color(0xff613089)),
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            "Reviews \n",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color(0xff613089),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              spreadRadius: 1,
+              offset: const Offset(0, 4),
             ),
-          ),
-        
-        ],
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 60,  
+              height: 60,
+              decoration: BoxDecoration(
+                color: const Color(0xff613089).withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: Icon(Icons.star, size: 40, color: Color(0xff613089)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              "Reviews",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xff613089),
+              ),
+            ),
+          ],
+        ),
       ),
     ),
   );
 }
+
+
 
 
 
@@ -579,7 +596,7 @@ Widget buildReviewsTile(BuildContext context) {
               children: [
                  Text(
                  "Dr.$username",
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -588,7 +605,7 @@ Widget buildReviewsTile(BuildContext context) {
                 const SizedBox(height: 5),
                  Text(
                   "Specialist:$speciality",
-                  style: TextStyle(fontSize: 16, color: Colors.white70),
+                  style: const TextStyle(fontSize: 16, color: Colors.white70),
                 ),
                 const SizedBox(height: 10),
                 Row(

@@ -140,7 +140,8 @@ Widget build(BuildContext context) {
             ),
           ),
     body: _donationRequests.isEmpty
-        ? const Center(child: CircularProgressIndicator())
+        ?  Center(child: Text('No blood donation requests found.', 
+        style: TextStyle(fontSize: 16, color: Colors.grey[500])))
         : Center(
             child: Container(
               width: MediaQuery.of(context).size.width > 600

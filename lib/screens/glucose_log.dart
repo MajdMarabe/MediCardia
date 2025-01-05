@@ -257,8 +257,6 @@ void _showShareDialog(BuildContext context) {
 **Today:** $todayAvg mg/dl ${(todayAvg > 130) ? '😟' : '👌'}
 **Week:** $weekAvg mg/dl ${(weekAvg > 130) ? '😟' : '👌'}
 **Month:** $monthAvg mg/dl ${(monthAvg > 130) ? '😟' : '👌'}
-
-Stay healthy and consult your doctor for further advice.
 """;
   }
 }

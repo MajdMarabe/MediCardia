@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_application_3/screens/welcome_screen.dart';
 import 'constants.dart';
@@ -18,7 +17,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  File? _image;
 
   // Function to handle log out
   Future<void> _logOut() async {
@@ -86,21 +84,25 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Column(
                   children: [
                     const SizedBox(height: 40),
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        CircleAvatar(
-                          radius: 70,
-                          backgroundColor: Colors.grey[300],
-                          backgroundImage:
-                              _image != null ? FileImage(_image!) : null,
-                          child: _image == null
-                              ? const Icon(Icons.person,
-                                  size: 70, color: Colors.white)
-                              : null,
-                        ),
-                      ],
-                    ),
+                    Column(
+          children: [
+            Image.asset(
+              'assets/images/appLogo.png',
+              height: 90,
+              color: const Color(0xff613089),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'MediCardia',
+              style: TextStyle(
+                fontSize: 35.0,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'BAUHS93',
+                color: Color(0xff613089),
+              ),
+            ),
+          ],
+        ),
                     const SizedBox(height: 30),
                     _itemProfile(
                       'Edit Profile',
@@ -196,7 +198,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _locationController = TextEditingController();
 
   final _formProfileKey = GlobalKey<FormState>();
-  XFile? _imageFile;
 
 String? base64Image ='';
 
@@ -259,7 +260,6 @@ String? base64Image ='';
 
   if (pickedFile != null) {
     setState(() {
-      _imageFile = pickedFile;
     });
 
     // Convert picked image to base64 and update the avatar
@@ -372,7 +372,7 @@ Widget _buildUserAvatar() {
 
       if (response.statusCode == 200) {
         // Successfully updated the profile
-        final responseData = json.decode(response.body);
+        //final responseData = json.decode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Profile updated successfully!"),
@@ -1170,7 +1170,7 @@ Widget build(BuildContext context) {
                     leadingWidget: const Icon(
                       Icons.notifications_active,
                       size: 40,
-                      color: Color.fromARGB(255, 109, 8, 137),
+                      color: Color(0xff613089),
                     ),
                     title: 'Reminders',
                     description: 'Enable or disable notifications for reminders',
@@ -1186,7 +1186,7 @@ Widget build(BuildContext context) {
                     leadingWidget: const Icon(
                       Icons.message,
                       size: 40,
-                      color: Color.fromARGB(255, 109, 8, 137),
+                      color: Color(0xff613089),
                     ),
                     title: 'Messages',
                     description: 'Enable or disable notifications for messages',
@@ -1203,7 +1203,7 @@ Widget build(BuildContext context) {
                       'assets/images/subsidiary.png',
                       width: 40,
                       height: 50,
-                      color: const Color.fromARGB(255, 109, 8, 137),
+                      color: const Color(0xff613089),
                     ),
                     title: 'Permission requests',
                     description:
@@ -1221,7 +1221,7 @@ Widget build(BuildContext context) {
                       'assets/images/blood-donation.png',
                       width: 40,
                       height: 35,
-                      color: const Color.fromARGB(255, 109, 8, 137),
+                      color: const Color(0xff613089),
                     ),
                     title: 'Blood donation requests',
                     description:
@@ -1293,7 +1293,7 @@ Widget build(BuildContext context) {
             Switch(
               value: value,
               onChanged: onChanged,
-              activeColor: const Color.fromARGB(255, 137, 19, 180),
+              activeColor: const Color(0xff613089),
             ),
           ],
         ),

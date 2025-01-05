@@ -89,21 +89,25 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
                 child: Column(
                   children: [
                     const SizedBox(height: 40),
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        CircleAvatar(
-                          radius: 70,
-                          backgroundColor: Colors.grey[300],
-                          backgroundImage:
-                              _image != null ? FileImage(_image!) : null,
-                          child: _image == null
-                              ? const Icon(Icons.person,
-                                  size: 70, color: Colors.white)
-                              : null,
-                        ),
-                      ],
-                    ),
+                         Column(
+          children: [
+            Image.asset(
+              'assets/images/appLogo.png',
+              height: 90,
+              color: const Color(0xff613089),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'MediCardia',
+              style: TextStyle(
+                fontSize: 35.0,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'BAUHS93',
+                color: Color(0xff613089),
+              ),
+            ),
+          ],
+        ),
                     const SizedBox(height: 30),
                     _itemProfile(
                       'Edit Profile',
@@ -210,9 +214,8 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
   final _licenseNumberController = TextEditingController();
   final _workplaceNameController = TextEditingController();
   final _workplaceAddressController = TextEditingController();
-  
-  bool _isPasswordVisible = false;
-  XFile? _imageFile;
+  final _aboutController = TextEditingController();
+
   String? base64Image ='';
 
   // Add focus nodes for all fields
@@ -224,6 +227,7 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
   final licenseFocusNode = FocusNode();
   final workplaceNameFocusNode = FocusNode();
   final workplaceAddressFocusNode = FocusNode();
+  final aboutFocusNode = FocusNode();
   String? doctorid; 
 
   @override
@@ -232,6 +236,8 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
     //_loadDoctorId();
     _loadDoctorProfile();
   }
+
+
 Future<void> _loadDoctorId() async {
     doctorid = await storage.read(key: 'userid'); 
   }
@@ -259,6 +265,7 @@ Future<void> _loadDoctorId() async {
         _licenseNumberController.text = doctor['licenseNumber'] ?? '';
         _workplaceNameController.text = doctor['workplace']['name'] ?? '';
         _workplaceAddressController.text = doctor['workplace']['address'] ?? '';
+        _aboutController.text = doctor['about'] ?? '';
                         base64Image=doctor['image'] ?? '';
 
       });
@@ -287,6 +294,7 @@ Image buildImageFromBase64(String? base64Image) {
 }
 
 
+
 Future<void> _selectImage() async {
   final ImagePicker picker = ImagePicker();
   final XFile? pickedFile = await picker.pickImage(
@@ -296,10 +304,8 @@ Future<void> _selectImage() async {
 
   if (pickedFile != null) {
     setState(() {
-      _imageFile = pickedFile;
     });
 
-    // Convert picked image to base64 and update the avatar
     final bytes = await pickedFile.readAsBytes();
     base64Image = base64Encode(bytes);
   }
@@ -427,19 +433,21 @@ void _saveProfile() async {
     final String licenseNumber = _licenseNumberController.text;
     final String workplaceName = _workplaceNameController.text;
     final String workplaceAddress = _workplaceAddressController.text;
-
+    final String about = _aboutController.text;
     
-    final Map<String, dynamic> requestData = {
-      'fullName': fullName,
-      'email': email,
-      'phone': phone,
-      'specialization': specialization,
-      'licenseNumber': licenseNumber,
-      'workplaceName': workplaceName,
-      'workplaceAddress': workplaceAddress,
-            'image': base64Image,
+  
 
-    };
+final Map<String, dynamic> requestData = {
+  'fullName': fullName,
+  'email': email,
+  'phone': phone,
+  'specialization': specialization,
+  'licenseNumber': licenseNumber,
+  'workplaceName': workplaceName,
+  'workplaceAddress': workplaceAddress,
+  'about': about,
+  'image': base64Image,
+};
 
     try {
         doctorid = await storage.read(key: 'userid'); 
@@ -484,6 +492,69 @@ void _saveProfile() async {
     }
   }
 }
+
+Widget _buildAboutField({
+  required TextEditingController controller,
+  required FocusNode focusNode,
+  String label = "About",
+  int maxLines = 4,
+  String? Function(String?)? validator,
+}) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Expanded(
+        child: TextFormField(
+          controller: controller,
+          focusNode: focusNode,
+          keyboardType: TextInputType.multiline,
+          maxLines: maxLines,
+          validator: validator ??
+              (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please provide some information about yourself';
+                }
+                return null;
+              },
+          decoration: InputDecoration(
+            labelText: label,
+            labelStyle: const TextStyle(color: Color(0xff613089)),
+            hintText: 'Write a brief description about yourself',
+            hintStyle: TextStyle(
+              color: Colors.grey.shade400,
+              fontSize: 14,
+              fontStyle: FontStyle.italic,
+            ),
+            prefixIcon: const Icon(Icons.info, color: Color(0xff613089)),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: const BorderSide(
+                color: Color(0xffb41391),
+                width: 2.0,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(width: 10), 
+      IconButton(
+        icon: const Icon(Icons.edit, color: Color(0xff613089)),
+        onPressed: () {
+          setState(() {
+            controller.clear();
+            focusNode.requestFocus();
+          });
+        },
+      ),
+    ],
+  );
+}
+
+
+
 
 
   @override
@@ -595,18 +666,17 @@ void _saveProfile() async {
                         ],
                       ),
                     ),
-                  /*  const SizedBox(height: 30),
-                    ElevatedButton(
-  onPressed: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChangePasswordPage(),
-      ),
-    );
+                   const SizedBox(height: 15),
+         _buildAboutField(
+  controller: _aboutController,
+  focusNode: aboutFocusNode,
+  validator: (value) {
+    if (value == null || value.isEmpty) {
+      return 'Please provide some information about yourself';
+    }
+    return null;
   },
-  child: const Text("Change Password"),
-),*/
+),
                     const SizedBox(height: 30),
 
                     SizedBox(
@@ -634,11 +704,6 @@ void _saveProfile() async {
       ),
     );
   }
-
-
-
-
-
 }
 
 
@@ -1029,7 +1094,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                     leadingWidget: const Icon(
                       Icons.message,
                       size: 40,
-                      color: Color.fromARGB(255, 109, 8, 137),
+                      color: Color(0xff613089),
                     ),
                     title: 'Messages',
                     description: 'Enable or disable notifications for messages',
@@ -1044,9 +1109,9 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
               _buildNotificationCard(
                     leadingWidget: Image.asset(
                       'assets/images/permission_request.png',
-                      width: 40,
+                      width: 45,
                       height: 50,
-                      color: const Color.fromARGB(255, 109, 8, 137),
+                      color: const Color(0xff613089),
                     ),
                     title: 'Permission requests',
                     description:
@@ -1115,7 +1180,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
             Switch(
               value: value,
               onChanged: onChanged,
-              activeColor: const Color.fromARGB(255, 137, 19, 180),
+              activeColor: const Color(0xff613089),
             ),
           ],
         ),
