@@ -68,10 +68,10 @@ class _BloodDonationPageState extends State<BloodDonationPage> {
         }
       }
     } catch (e) {
-      print("Error: $e");
+   /*   print("Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Location not found')),
-      );
+      );*/
     }
   }
 

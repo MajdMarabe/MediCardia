@@ -56,7 +56,7 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
               'id': doc['_id'],
               'name': doc['fullName'] ?? 'Unknown',
               'specialty': doc['specialization'] ?? 'Unknown',
-              'rating': doc['rating'] ?? 0.0,
+              'rating': doc['averageRating'] ?? 0.0,
               'image': (doc['image']?.isNotEmpty == true)
                   ? doc['image']
                   : 'Unknown',
@@ -392,7 +392,7 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
     return Align(
       alignment: Alignment.centerRight,
       child: SizedBox(
-        width: 117,
+        width: 150,
         child: DropdownButtonFormField<String>(
           value: selectedSpecialty,
           items: specialtiesWithIcons.entries.map((entry) {

@@ -443,7 +443,7 @@ void _submitReview() async {
 
   // Prepare data for the API
   final reviewData = {
-    'doctorId':'676d98880702b1a05a386acd',
+    'doctorId':widget.doctorid,
     'rating': _selectedStars,
     'review': _feedback ?? '',
    // 'recommend': _recommend ?? false,
@@ -534,7 +534,7 @@ void _submitReview() async {
       // Handle server errors
       print('Error: ${response.body}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to submit the review. Please try again.')),
+        SnackBar(content: Text(response.body)),
       );
     }
   } catch (e) {

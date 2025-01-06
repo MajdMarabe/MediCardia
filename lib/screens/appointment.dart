@@ -145,7 +145,7 @@ availableTimes = (data['slots'] as List<dynamic>)
                         ),
                         child: TableCalendar(
                           focusedDay: selectedDate,
-                          firstDay: DateTime(2023),
+                          firstDay: DateTime(2025),
                           lastDay: DateTime(2030),
                           calendarFormat: CalendarFormat.month,
                           selectedDayPredicate: (day) =>
@@ -291,45 +291,105 @@ Future<void> bookAppointment(
 
   // عرض نافذة حوارية للمريض لكتابة ملاحظات
   TextEditingController notesController = TextEditingController();
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text("Add Notes (Optional)"),
-      content: TextField(
-        controller: notesController,
-        decoration: InputDecoration(hintText: "Enter notes here..."),
-        maxLines: 3,
+
+  // استخدام rootNavigator لتجنب السياق غير الصالح
+  Navigator.of(context, rootNavigator: true).push(
+    DialogRoute(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15), // زوايا دائرية
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                blurRadius: 10,
+                spreadRadius: 5,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Add Notes (Optional)",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF6A1B9A),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: notesController,
+                decoration: InputDecoration(
+                  hintText: "Enter notes here...",
+                  hintStyle: TextStyle(color: Colors.grey[500]),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context); // إغلاق الـ dialog
+                      _proceedToBookAppointment(
+                        context,
+                        selectedTime,
+                        selectedDate,
+                        notesController.text,
+                        formattedDate,
+                        token,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6A1B9A),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      "Submit",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context); // إغلاق الـ dialog
+                      _proceedToBookAppointment(
+                        context,
+                        selectedTime,
+                        selectedDate,
+                        '', // بدون ملاحظات
+                        formattedDate,
+                        token,
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.grey[600],
+                    ),
+                    child: const Text("Skip"),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);  // Close the dialog
-            _proceedToBookAppointment(
-              context,
-              selectedTime,
-              selectedDate,
-              notesController.text,
-              formattedDate,
-              token,
-            );
-          },
-          child: Text("Submit"),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);  // Close the dialog without notes
-            _proceedToBookAppointment(
-              context,
-              selectedTime,
-              selectedDate,
-              '',  // No notes
-              formattedDate,
-              token,
-            );
-          },
-          child: Text("Skip"),
-        ),
-      ],
     ),
   );
 }
@@ -373,13 +433,13 @@ Future<void> _proceedToBookAppointment(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
+                const Icon(
                   Icons.check_circle_outline,
                   size: 50,
                   color: Colors.green,
                 ),
-                SizedBox(height: 16),
-                Text(
+                const SizedBox(height: 16),
+                const Text(
                   "Appointment Booked",
                   style: TextStyle(
                     fontSize: 20,
@@ -387,31 +447,31 @@ Future<void> _proceedToBookAppointment(
                     color: Colors.green,
                   ),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
                   "with Dr. ${widget.name}",
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                  style: const TextStyle(fontSize: 16, color: Colors.black54),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
                   "Date: , ${formattedDate}",
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                  style: const TextStyle(fontSize: 16, color: Colors.black54),
                 ),
                 Text(
                   "Time: $selectedTime",
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                  style: const TextStyle(fontSize: 16, color: Colors.black54),
                 ),
                 if (notes.isNotEmpty)
                   Column(
                     children: [
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Text(
                         "Notes: $notes",
-                        style: TextStyle(fontSize: 16, color: Colors.black54),
+                        style: const TextStyle(fontSize: 16, color: Colors.black54),
                       ),
                     ],
                   ),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);  
@@ -419,12 +479,12 @@ Future<void> _proceedToBookAppointment(
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
-                    padding: EdgeInsets.symmetric(vertical: 14, horizontal: 35),
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 35),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: Text(
+                  child: const Text(
                     "OK",
                     style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
@@ -450,13 +510,13 @@ Future<void> _proceedToBookAppointment(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
+                const Icon(
                   Icons.error_outline,
                   size: 50,
                   color: Colors.red,
                 ),
-                SizedBox(height: 16),
-                Text(
+                const SizedBox(height: 16),
+                const Text(
                   "Error",
                   style: TextStyle(
                     fontSize: 20,
@@ -464,24 +524,24 @@ Future<void> _proceedToBookAppointment(
                     color: Colors.red,
                   ),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
                   errorBody['message'],
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                  style: const TextStyle(fontSize: 16, color: Colors.black54),
                 ),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);  
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
-                    padding: EdgeInsets.symmetric(vertical: 14, horizontal: 35),
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 35),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: Text(
+                  child: const Text(
                     "OK",
                     style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
@@ -507,13 +567,13 @@ Future<void> _proceedToBookAppointment(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
+              const Icon(
                 Icons.error_outline,
                 size: 50,
                 color: Colors.red,
               ),
-              SizedBox(height: 16),
-              Text(
+              const SizedBox(height: 16),
+              const Text(
                 "Error",
                 style: TextStyle(
                   fontSize: 20,
@@ -521,24 +581,24 @@ Future<void> _proceedToBookAppointment(
                   color: Colors.red,
                 ),
               ),
-              SizedBox(height: 12),
-              Text(
+              const SizedBox(height: 12),
+              const Text(
                 "Failed to book the appointment.",
                 style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);  
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
-                  padding: EdgeInsets.symmetric(vertical: 14, horizontal: 35),
+                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 35),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   "OK",
                   style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
