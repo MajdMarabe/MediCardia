@@ -81,11 +81,20 @@ module.exports.fetchPressureData = asyncHandler(async (req, res) => {
     const readings = pressure.readings;
 
     const today = moment().startOf('day');
-    const weekStart = moment().startOf('week');
+    //const weekStart = moment().startOf('week');
     const monthStart = moment().startOf('month');
 
     const todayReadings = readings.filter(reading => moment(reading.date).isSame(today, 'day'));
-    const weekReadings = readings.filter(reading => moment(reading.date).isSameOrAfter(weekStart, 'day') && moment(reading.date).isBefore(today, 'day'));
+    //const weekStart = moment().startOf('week');
+    const weekEnd = moment().endOf('week');
+    
+    const weekStart = moment().subtract(7, 'days').startOf('day');
+    
+    const weekReadings = readings.filter(reading =>
+        moment(reading.date).isSameOrAfter(weekStart) &&
+        moment(reading.date).isBefore(today)
+    );
+    
     const monthReadings = readings.filter(reading => moment(reading.date).isSameOrAfter(monthStart, 'day') && moment(reading.date).isBefore(today, 'day'));
 
     const calculateAverage = (readings) => {

@@ -283,11 +283,12 @@ module.exports.getDoctorbooked = asyncHandler(async (req, res) => {
             message: 'No booked slots for this doctor on the specified date.',
         });
     }
-
     res.status(200).json({
         message: 'Slots retrieved successfully.',
         slots: bookedSlots.map(slot => ({
             time: slot.time,
+            notes: slot.appointmentId?.notes, 
+
             appointmentId: slot.appointmentId?._id,
             status: slot.status,
             patientName: slot.appointmentId?.patientId?.username,
