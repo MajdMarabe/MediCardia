@@ -142,7 +142,7 @@ class _HomePageContentState extends State<HomePageContent> {
   String username='';
   String speciality='';
   int totalpatients=0;
-int averageRating=0;
+double? averageRating;
   bool _isLoading = true;
   bool _showMyPatients = true;
   String? base64ImageDoctor ='';
@@ -172,7 +172,7 @@ int averageRating=0;
         base64ImageDoctor=data['image'] ?? 'Unknown';
        
   totalpatients=   data['numberOfPatients'] ?? 'Unknown';
-  averageRating= data['averageRating'] ?? 'Unknown';
+  averageRating= data['averageRating'] as double?;
       });
     } else {
       _showMessage('Failed to load user information');
@@ -199,32 +199,41 @@ if(mounted){
   Future<void> _loadDoctorId() async {
     doctorid = await storage.read(key: 'userid'); // Use await inside async method
     setState(() {}); // Update the UI when the doctorid is loaded
-  }
-  Future<void> _fetchAllPatients() async {
-    try {
-      final doctorId = await storage.read(key: 'userid');
-      final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/users'),
-        headers: {'Content-Type': 'application/json'},
-      );
+  }Future<void> _fetchAllPatients() async {
+  try {
+    final doctorId = await storage.read(key: 'userid');
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/users'),
+      headers: {'Content-Type': 'application/json'},
+    );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      // Validate the structure and extract the users array
+      if (data is Map<String, dynamic> &&
+          data.containsKey('data') &&
+          data['data'] is Map<String, dynamic> &&
+          data['data'].containsKey('users') &&
+          data['data']['users'] is List<dynamic>) {
         setState(() {
-          _Allpatients = data;
-          _filteredPatients = data;
+          _Allpatients = data['data']['users'] as List<dynamic>;
+          _filteredPatients = _Allpatients;
           _isLoading = false;
         });
       } else {
-        throw Exception('Failed to load all patients');
+        throw Exception('Unexpected response structure: "users" key not found.');
       }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      print('Error fetching all patients: $e');
+    } else {
+      throw Exception('Failed to load all patients');
     }
+  } catch (e) {
+    setState(() {
+      _isLoading = false;
+    });
+    print('Error fetching all patients: $e');
   }
+}
 
   Future<void> _fetchPatients() async {
     try {

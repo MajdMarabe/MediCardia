@@ -490,7 +490,10 @@ class _BloodDonationPageState extends State<BloodDonationPage> {
     final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/users'));
 
     if (response.statusCode == 200) {
-      final List<dynamic> users = jsonDecode(response.body);
+      //final List<dynamic> users = jsonDecode(response.body);
+      final Map<String, dynamic> decodedJson = jsonDecode(response.body);
+final List<dynamic> users = decodedJson['data']['users'];
+
       String? requiredBloodType = selectedBloodType;
       String? requiredLocation = _hospitalCity;
 

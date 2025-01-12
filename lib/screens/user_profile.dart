@@ -33,9 +33,10 @@ class _ProfilePageState extends State<ProfilePage> {
     } catch (e) {
       print('Error clearing storage: $e');
     }
+    if(mounted){
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Logged out successfully!")),
-    );
+    );}
   }
 
   // Widget to create profile items

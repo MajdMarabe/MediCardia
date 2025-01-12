@@ -57,6 +57,7 @@ class _SignInScreenState extends State<SignInScreen> {
           final userid = responseData['_id'];
           final token = responseData['token'];
           final role = responseData['role'];
+          
           if (role == 'patient') {
             final age = responseData['medicalCard']['publicData']['age'];
             await storage.write(
@@ -121,15 +122,18 @@ class _SignInScreenState extends State<SignInScreen> {
                       'username']; // Extract the role from the response
                   storage.write(key: 'username', value: name);
 
-                  //return HomePage();
-                  return AdminDashboard();
+                  return HomePage();
                 } else if (role == 'doctor') {
                   final name = responseData[
                       'fullName']; // Extract the role from the response
                   storage.write(key: 'username', value: name);
 
                   return DoctorHomePage();
-                } else {
+                } else if(role == 'admin'){
+                  return AdminDashboard();
+
+                }
+                else {
                   return HomePage();
                 }
               },

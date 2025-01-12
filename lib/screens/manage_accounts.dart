@@ -1,6 +1,9 @@
+import 'dart:convert';  // لاستعمال jsonDecode
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_3/screens/constants.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:http/http.dart' as http;  // إضافة حزمة http
 
 class ManageAccountsPage extends StatefulWidget {
   const ManageAccountsPage({Key? key}) : super(key: key);
@@ -10,49 +13,99 @@ class ManageAccountsPage extends StatefulWidget {
 }
 
 class _ManageAccountsPageState extends State<ManageAccountsPage> {
-  List<Map<String, String>> accounts = [
-    {'name': 'Anwar Aqraa', 'email': 'anwaraqraa@gmail.com', 'role': 'Doctor'},
-    {'name': 'Majd Marabe', 'email': 'majdMarabe@gmail.com', 'role': 'Patient'},
-    {'name': 'Ahmad Yasin', 'email': 'ahmadyasin@gmail.com', 'role': 'Patient'},
-  ];
+  List<Map<String, String>> accounts = [];
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFFF2F5FF),
-    appBar: AppBar(
-      title: const Text(
-        'User Management',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-          letterSpacing: 1.5,
-        ),
-      ),
-      centerTitle: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(35),
-        ),
-      ),
-      flexibleSpace: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xff9C27B0), Color(0xff6A1B9A)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+  @override
+  void initState() {
+    super.initState();
+    _fetchAccounts();
+  }
+
+  // استدعاء الـ API لتحميل المستخدمين
+  Future<void> _fetchAccounts() async {
+    final url = '${ApiConstants.baseUrl}/users';  // هنا ضع رابط الـ API
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final List<Map<String, String>> users = [];
+
+        // دمج الأطباء مع المستخدمين في قائمة واحدة
+        for (var user in data['data']['users']) {
+          users.add({
+            'name': user['username'],
+            'phone': user['medicalCard']['publicData']['phoneNumber'],
+
+            'location': user['location'],
+            'email': user['email'],
+            'role': 'User',
+
+          });
+        }
+
+        for (var doctor in data['data']['doctors']) {
+         users.add({
+            'name': doctor['fullName'],
+            'email': doctor['email'],
+      'phone': doctor['phone'] ?? '', // تحقق من أن الحقل موجود
+   'specialization': doctor['specialization'] ?? '', // تحقق من الحقول الإضافية
+   'licenseNumber': doctor['licenseNumber'] ?? '',
+   'workplaceName': doctor['workplace']?['name'] ?? '', // تحقق من وجود الحقل الفرعي
+   'workplaceAddress': doctor['workplace']?['address'] ?? '', // اسم الحقل هنا يبدو خطأ (adress -> address)
+   'role': 'Doctor',
+          });
+        }
+
+        setState(() {
+          accounts = users;
+        });
+      } else {
+        throw Exception('Failed to load accounts');
+      }
+    } catch (error) {
+      print(error);
+      // يمكنك إضافة معالجة للأخطاء مثل عرض رسالة للمستخدم في حالة حدوث خطأ
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF2F5FF),
+      appBar: AppBar(
+        title: const Text(
+          'User Management',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            letterSpacing: 1.5,
           ),
         ),
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.search, color: Colors.white),
-          onPressed: () {
-            // Search functionality
-          },
+        centerTitle: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(35),
+          ),
         ),
-      ],
-      automaticallyImplyLeading: !kIsWeb,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xff9C27B0), Color(0xff6A1B9A)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.white),
+            onPressed: () {
+              // Search functionality
+            },
+          ),
+        ],
+        automaticallyImplyLeading: !kIsWeb,
         leading: kIsWeb
             ? null
             : IconButton(
@@ -61,137 +114,137 @@ Widget build(BuildContext context) {
                   Navigator.pop(context);
                 },
               ),
-    ),
-    body: LayoutBuilder(
-      builder: (context, constraints) {
-        final double pageWidth = constraints.maxWidth > 600 ? 1000 : double.infinity;
-        return Center(
-          child: SizedBox(
-            width: pageWidth,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: ListView.builder(
-                itemCount: accounts.length,
-                itemBuilder: (context, index) {
-                  final account = accounts[index];
-                  return Card(
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    elevation: 3,
-                    margin: const EdgeInsets.symmetric(vertical: 5.0),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 8.0,
-                        horizontal: 16.0,
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final double pageWidth = constraints.maxWidth > 600 ? 1000 : double.infinity;
+          return Center(
+            child: SizedBox(
+              width: pageWidth,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ListView.builder(
+                  itemCount: accounts.length,
+                  itemBuilder: (context, index) {
+                    final account = accounts[index];
+                    return Card(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
                       ),
-                      leading: CircleAvatar(
-                        backgroundColor: const Color(0xff6A1B9A),
-                        child: Text(
-                          account['name']![0].toUpperCase(),
+                      elevation: 3,
+                      margin: const EdgeInsets.symmetric(vertical: 5.0),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 8.0,
+                          horizontal: 16.0,
+                        ),
+                        leading: CircleAvatar(
+                          backgroundColor: const Color(0xff6A1B9A),
+                          child: Text(
+                            account['name']![0].toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          account['name']!,
                           style: const TextStyle(
-                            color: Colors.white,
                             fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.black,
                           ),
                         ),
-                      ),
-                      title: Text(
-                        account['name']!,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.black,
-                        ),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            account['email']!,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          Text(
-                            account['role']!,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xff613089),
-                            ),
-                          ),
-                        ],
-                      ),
-                      isThreeLine: true,
-                      trailing: PopupMenuButton<String>(
-                        icon: const Icon(
-                          Icons.more_vert,
-                          color: Color(0xff6A1B9A),
-                        ),
-                        onSelected: (value) {
-                          if (value == 'Edit') {
-                            if (account['role'] == 'Doctor') {
-                              _showEditDoctorDialog(context, account);
-                            } else {
-                              _showEditPatientDialog(context, account);
-                            }
-                          } else if (value == 'Delete') {
-                            setState(() {
-                              accounts.removeAt(index);
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('${account['name']} deleted'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              account['email']!,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
                               ),
-                            );
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'Edit',
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit, color: Color(0xff6A1B9A)),
-                                SizedBox(width: 8),
-                                Text('Edit'),
-                              ],
                             ),
-                          ),
-                          const PopupMenuItem(
-                            value: 'Delete',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete, color: Color(0xff6A1B9A)),
-                                SizedBox(width: 8),
-                                Text('Delete'),
-                              ],
+                            Text(
+                              account['role']!,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xff613089),
+                              ),
                             ),
+                          ],
+                        ),
+                        isThreeLine: true,
+                        trailing: PopupMenuButton<String>(
+                          icon: const Icon(
+                            Icons.more_vert,
+                            color: Color(0xff6A1B9A),
                           ),
-                        ],
+                          onSelected: (value) {
+                            if (value == 'Edit') {
+                              if (account['role'] == 'Doctor') {
+                                _showEditDoctorDialog(context, account);
+                              } else {
+                                _showEditPatientDialog(context, account);
+                              }
+                            } else if (value == 'Delete') {
+                              setState(() {
+                                accounts.removeAt(index);
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('${account['name']} deleted'),
+                                ),
+                              );
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'Edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit, color: Color(0xff6A1B9A)),
+                                  SizedBox(width: 8),
+                                  Text('Edit'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: Color(0xff6A1B9A)),
+                                  SizedBox(width: 8),
+                                  Text('Delete'),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-        );
-      },
-    ),
-    floatingActionButton: FloatingActionButton(
-      backgroundColor: const Color(0xff6A1B9A),
-      onPressed: () {
-        _showAddAccountDialog(context);
-      },
-      child: const Icon(Icons.add),
-    ),
-  );
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xff6A1B9A),
+        onPressed: () {
+          _showAddAccountDialog(context);
+        },
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  // يمكنك إضافة طرق للتحكم في المحادثات مثل _showEditDoctorDialog أو _showAddAccountDialog حسب الحاجة
 }
-
-
-
 
 
 Widget _buildTextField({
@@ -236,12 +289,11 @@ void _showEditDoctorDialog(BuildContext context, Map<String, String> account) {
   final TextEditingController fullNameController = TextEditingController(text: account['name']);
   final TextEditingController emailController = TextEditingController(text: account['email']);
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
-  final TextEditingController specializationController = TextEditingController();
-  final TextEditingController licenseNumberController = TextEditingController();
-  final TextEditingController workplaceNameController = TextEditingController();
-  final TextEditingController workplaceAddressController = TextEditingController();
-
+  final TextEditingController phoneController = TextEditingController(text: account['phone']);
+  final TextEditingController specializationController = TextEditingController(text: account['specialization']);
+  final TextEditingController licenseNumberController = TextEditingController(text: account['licenseNumber']);
+  final TextEditingController workplaceNameController = TextEditingController(text: account['workplaceName']);
+  final TextEditingController workplaceAddressController = TextEditingController(text: account['workplaceAddress']);
   showDialog(
     context: context,
           builder: (context) {
@@ -339,7 +391,8 @@ void _showEditPatientDialog(BuildContext context, Map<String, String> account) {
   final TextEditingController fullNameController = TextEditingController(text: account['name']);
   final TextEditingController emailController = TextEditingController(text: account['email']);
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController locationController = TextEditingController();
+  final TextEditingController locationController = TextEditingController(text: account['location']);
+  final TextEditingController phoneController = TextEditingController(text: account['phone']);
 
   showDialog(
     context: context,
@@ -386,6 +439,9 @@ void _showEditPatientDialog(BuildContext context, Map<String, String> account) {
                 const SizedBox(height: 10),
                 _buildTextField(controller: locationController, label: 'Location',hint: 'Please enter location'),
                 const SizedBox(height: 20),
+                _buildTextField(controller: phoneController, label: 'phone',hint: 'Please enter location'),
+                const SizedBox(height: 20),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -565,19 +621,19 @@ void _showAddAccountDialog(BuildContext context) {
                           onPressed: () {
                             if (selectedRole == 'Doctor') {
                               setState(() {
-                                accounts.add({
+                               /* accounts.add({
                                   'name': fullNameController.text.isEmpty ? 'New Doctor' : fullNameController.text,
                                   'email': emailController.text.isEmpty ? 'newdoctor@example.com' : emailController.text,
                                   'role': selectedRole,
-                                });
+                                });*/
                               });
                             } else {
                               setState(() {
-                                accounts.add({
+                                /*accounts.add({
                                   'name': fullNameController.text.isEmpty ? 'New Patient' : fullNameController.text,
                                   'email': emailController.text.isEmpty ? 'newpatient@example.com' : emailController.text,
                                   'role': selectedRole,
-                                });
+                                });*/
                               });
                             }
 
@@ -614,6 +670,6 @@ void _showAddAccountDialog(BuildContext context) {
 
 
 
-}
+
 
 
