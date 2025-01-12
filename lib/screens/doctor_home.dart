@@ -1,3 +1,4 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -90,9 +91,9 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                   onPressed: () => _onItemTapped(0),
                 ),
                 IconButton(
-                  icon: const Icon(FontAwesomeIcons.search,
+                  icon: const Icon(Icons.calendar_today_rounded,
                       color: Color(0xff613089), size: 20),
-                  tooltip: 'Search',
+                  tooltip: 'Calender',
                   onPressed: () => _onItemTapped(1),
                 ),
                 IconButton(
@@ -142,7 +143,7 @@ class _HomePageContentState extends State<HomePageContent> {
   String username='';
   String speciality='';
   int totalpatients=0;
-double? averageRating;
+double averageRating=0.0;
   bool _isLoading = true;
   bool _showMyPatients = true;
   String? base64ImageDoctor ='';
@@ -172,7 +173,7 @@ double? averageRating;
         base64ImageDoctor=data['image'] ?? 'Unknown';
        
   totalpatients=   data['numberOfPatients'] ?? 'Unknown';
-  averageRating= data['averageRating'] as double?;
+   averageRating= data['averageRating'] ?? 'Unknown';
       });
     } else {
       _showMessage('Failed to load user information');
@@ -302,89 +303,126 @@ Widget build(BuildContext context) {
           children: [
             SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Column(
-                  // crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 30),
-                    _buildDoctorProfile(),
-                    const SizedBox(height: 30),
-                    buildSearchSection(),
-                    const SizedBox(height: 30),
-                         Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                padding: const EdgeInsets.only(top: 20),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(child: buildBloodDonationTile(context)),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => DoctorSchedulePage()),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 8,
-                                    spreadRadius: 1,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                        Center(
+                          child: AnimatedTextKit(
+                            animatedTexts: [
+                              TyperAnimatedText(
+                                'Welcome to MediCardia',
+                                textStyle: const TextStyle(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff613089),
+                                  fontFamily: 'ScriptMTBold',
+                                ),
+                                speed: const Duration(milliseconds: 100),
                               ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 60,
-                                    height: 60,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xff613089).withOpacity(0.15),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.access_time,  
-                                        color: Color(0xff613089),
-                                        size: 30,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  const Text(
-                                    "Set Your Schedule",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xff613089),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                            ],
+                            totalRepeatCount: 1,
+                            pause: const Duration(milliseconds: 500),
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(child: buildReviewsTile(context)),
+                        const SizedBox(height: 30),
+                        _buildDoctorProfile(),
+                        const SizedBox(height: 30),
+                        buildSearchSection(),
+                        const SizedBox(height: 30),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(child: buildBloodDonationTile(context)),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          DoctorSchedulePage(),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 8,
+                                        spreadRadius: 1,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 60,
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xff613089)
+                                              .withOpacity(0.15),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Center(
+                                          child: Icon(
+                                            Icons.access_time,
+                                            color: Color(0xff613089),
+                                            size: 30,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      const Text(
+                                        "Set Your Schedule",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xff613089),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(child: buildReviewsTile(context)),
+                          ],
+                        ),
+                        const SizedBox(height: 30),
+                      //  _buildToggleButtons(),
+                        _isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : SizedBox(
+  height: MediaQuery.of(context).size.height * 0.4,
+  child: Column(
+    children: [
+      Center(
+        child: _buildToggleButtons(),
+      ),
+      Expanded(
+        child: _buildPatientList(),
+      ),
+    ],
+  ),
+),
+
                       ],
                     ),
-                    const SizedBox(height: 30),
-                 
-                    _buildToggleButtons(),
-                    Expanded(
-                      child: _isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : _buildPatientList(),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -714,9 +752,9 @@ Widget _buildPatientList() {
         if (_showMyPatients) {
           final name = patientData['patientId']?['username'] ?? 'Unknown';
           final details =
-              "ID Number: ${patientData['patientId']?['medicalCard']?['publicData']?['idNumber'] ?? 'N/A'} Location: ${patientData['patientId']?['location'] ?? 'N/A'}";
+              "ID Number: ${patientData['patientId']?['medicalCard']?['publicData']?['idNumber'] ?? 'N/A'} \nLocation: ${patientData['patientId']?['location'] ?? 'N/A'}";
           final patientId = patientData['patientId']?['_id'] ?? '';
-          final base64Image = patientData['patientId']?['image'] ?? '';
+          final base64Image = patientData['patientId']?['medicalCard']?['publicData']?['image'] ?? '';
 
           return _buildPatientInfoTile(
             name,
@@ -727,7 +765,7 @@ Widget _buildPatientList() {
         } else {
           final name = patientData['username'] ?? 'Unknown';
           final details =
-              "ID Number: ${patientData['medicalCard']?['publicData']?['idNumber'] ?? 'N/A'} Location: ${patientData['location'] ?? 'N/A'}";
+              "ID Number: ${patientData['medicalCard']?['publicData']?['idNumber'] ?? 'N/A'} \nLocation: ${patientData['location'] ?? 'N/A'}";
           final patientId = patientData['_id'] ?? '';
           final base64Image = patientData['medicalCard']?['publicData']?['image'] ?? '';
 

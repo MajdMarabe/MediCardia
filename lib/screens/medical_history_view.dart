@@ -500,107 +500,132 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage> {
     );
   }
 
-  Widget buildMedicalHistoryCard(Map<String, dynamic> item, int index) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        double cardWidth = constraints.maxWidth > 600
-            ? constraints.maxWidth * 0.6
-            : constraints.maxWidth * 1;
+Widget buildMedicalHistoryCard(Map<String, dynamic> item, int index) {
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      double cardWidth = constraints.maxWidth > 600
+          ? constraints.maxWidth * 0.6
+          : constraints.maxWidth * 1;
 
-        return Center(
-          child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 10),
-            padding: const EdgeInsets.all(15),
-            width: cardWidth,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.3),
-                  spreadRadius: 2,
-                  blurRadius: 5,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-              border:
-                  Border.all(color: const Color(0xff613089).withOpacity(0.5)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      item['conditionName'] ?? "Unknown Condition",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xff613089),
+      return Center(
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.all(15),
+          width: cardWidth,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3),
+                spreadRadius: 2,
+                blurRadius: 5,
+                offset: const Offset(0, 3),
+              ),
+            ],
+            border: Border.all(color: const Color(0xff613089).withOpacity(0.5)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    item['conditionName'] ?? "Unknown Condition",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xff613089),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      PopupMenuButton<String>(
+                        
+                        icon: const Icon(Icons.more_vert, color: Color(0xff613089)),
+                        onSelected: (value) {
+                          if (value == 'edit') {
+                            showEditDialog(index);
+                          } else if (value == 'delete') {
+                            deleteMedicalHistory(index);
+                          }
+                        },
+                        itemBuilder: (BuildContext context) {
+                          return [
+                            const PopupMenuItem<String>(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit, color: Color(0xff613089)),
+                                  SizedBox(width: 8),
+                                  Text('Edit'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem<String>(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: Color(0xff613089)),
+                                  SizedBox(width: 8),
+                                  Text('Delete'),
+                                ],
+                              ),
+                            ),
+                          ];
+                        },
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                       ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Icon(Icons.calendar_today, size: 16, color: Color(0xff613089)),
+                  const SizedBox(width: 5),
+                  Text(
+                    "Diagnosis Date: ${formatDate(item['diagnosisDate'])}",
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black87,
                     ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon:
-                              const Icon(Icons.edit, color: Color(0xff613089)),
-                          onPressed: () => showEditDialog(index),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete,
-                              color: Color(0xff613089)),
-                          onPressed: () => deleteMedicalHistory(index),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                Row(
-                  children: [
-                    const Icon(Icons.calendar_today,
-                        size: 16, color: Color(0xff613089)),
-                    const SizedBox(width: 5),
-                    Text(
-                      "Diagnosis Date: ${formatDate(item['diagnosisDate'])}",
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              // Details
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.notes, size: 16, color: Color(0xff613089)),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: Text(
+                      "Condition Details: " +
+                          (item['conditionDetails'] ?? "No additional details provided."),
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black87,
                       ),
+                      softWrap: true,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                // Details
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.notes, size: 16, color: Color(0xff613089)),
-                    const SizedBox(width: 5),
-                    Expanded(
-                      child: Text(
-                        "Condition Details: " +
-                            (item['conditionDetails'] ??
-                                "No additional details provided."),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
-                        ),
-                        softWrap: true,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
+
 
 /////////////////////////////////////
 

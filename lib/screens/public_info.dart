@@ -313,7 +313,8 @@ Future<void> _selectDate(BuildContext context, bool isStartDate) async {
         style: TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 20,
-          letterSpacing: 1.5
+          letterSpacing: 1.5,
+          color: Colors.white,
         ),
       ),
      
@@ -356,7 +357,7 @@ Future<void> _selectDate(BuildContext context, bool isStartDate) async {
                       controller: _idNumberController,
                       label: 'ID Number',
                       hint: 'Enter ID Number',
-                      
+                      keyboardType: TextInputType.number,
                       icon: Icons.badge,
                       validator: (value) {
                         if (value == null || value.isEmpty || value.length != 9) {
@@ -370,6 +371,7 @@ Future<void> _selectDate(BuildContext context, bool isStartDate) async {
                       controller: _ageController,
                       label: 'Age',
                       hint: 'Enter Age',
+                      keyboardType: TextInputType.number,
                       icon: Icons.mood,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -382,6 +384,7 @@ Future<void> _selectDate(BuildContext context, bool isStartDate) async {
                      _buildDropdownField(
         label: 'Gender',
         hint: 'Select Gender',
+        
         items: ['Male', 'Female'],
         selectedValue: _selectedGender,
         onChanged: (String? newValue) {
@@ -415,7 +418,7 @@ Future<void> _selectDate(BuildContext context, bool isStartDate) async {
                     _buildSectionTitle('Medical Info'),
                     const SizedBox(height: 10),
                  
-                  FormField<String>(
+                            FormField<String>(
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please select a blood type';
@@ -469,7 +472,7 @@ Future<void> _selectDate(BuildContext context, bool isStartDate) async {
                       );
                     },
                   ),
-                      const SizedBox(height: 20),                    const SizedBox(height: 20),
+                      const SizedBox(height: 30),                  
                     const Text(
                       'Select Chronic Diseases',
                       style: TextStyle(
@@ -484,7 +487,7 @@ Future<void> _selectDate(BuildContext context, bool isStartDate) async {
                       controller: _sensitivityController,
                       label: 'Allergies',
                       hint: 'Enter Allergies',
-                      icon: Icons.safety_check,
+                      icon: Icons.warning,
                     ),
                     const SizedBox(height: 20),
 
@@ -582,6 +585,7 @@ Widget _buildDrugForm() {
 
      // Drug Type Dropdown
 DropdownButtonFormField<String>(
+  dropdownColor: Colors.white,
   value: _selectedDrugType,
   items: ['Permanent', 'Temporary']
       .map((type) => DropdownMenuItem(value: type, child: Row(
@@ -608,6 +612,11 @@ DropdownButtonFormField<String>(
     labelText: 'Drug Type',
     labelStyle: const TextStyle(color: Color(0xff613089)),
     hintText: 'Select Drug Type', 
+     hintStyle: TextStyle(
+                color: Colors.grey.shade400,
+                fontSize: 14,
+                fontStyle: FontStyle.italic,
+              ),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(15), 
       borderSide: const BorderSide(color: Colors.grey),
@@ -647,10 +656,10 @@ Expanded(
         borderRadius: BorderRadius.circular(12.0),
         borderSide: const BorderSide(color: Color(0xff613089), width: 1.5),
       ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        borderSide: const BorderSide(color: Color(0xff613089), width: 2.0),
-      ),
+        enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15),
+      borderSide: const BorderSide(color: Colors.grey),
+    ),
     ),
     onTap: () async {
       
@@ -675,10 +684,10 @@ Expanded(
         borderRadius: BorderRadius.circular(12.0),
         borderSide: const BorderSide(color: Color(0xff613089), width: 1.5),
       ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        borderSide: const BorderSide(color: Color(0xff613089), width: 2.0),
-      ),
+         enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15),
+      borderSide: const BorderSide(color: Colors.grey),
+    ),
     ),
     onTap: () async {
       
@@ -849,7 +858,7 @@ Widget _buildProfileHeader() {
                   ? kIsWeb
                       ? ClipOval(
                         child: Image.network(
-                          _imageFile!.path, // Web uses Image.network
+                          _imageFile!.path,
                           width: 100,
                           height: 100,
                           fit: BoxFit.cover,
@@ -857,13 +866,13 @@ Widget _buildProfileHeader() {
                       )
                       : ClipOval(
                           child: Image.file(
-                            File(_imageFile!.path), // For mobile 
+                            File(_imageFile!.path),
                             width: 100,
                             height: 100,
                             fit: BoxFit.cover,
                           ),
                         )
-                  : const SizedBox.shrink(), // Placeholder for image
+                  : const SizedBox.shrink(), 
             ),
             // Only show the icon and text if there is no image
             if (_imageFile == null) ...[
@@ -892,7 +901,7 @@ Widget _buildProfileHeader() {
       ),
       const SizedBox(height: 10),
       Text(
-        _userName, // Display fetched username
+        _userName, 
         style: const TextStyle(
           fontWeight: FontWeight.bold, 
           fontSize: 22, 
@@ -904,7 +913,7 @@ Widget _buildProfileHeader() {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildInfoCard(
-            'Please fill it\nyou should know that every doctor can see this', 
+            'Please fill it,\nyou should know that every doctor can see this.', 
             'Your MediCard public information', 
             
             Icons.favorite,
@@ -987,7 +996,7 @@ Widget _buildTextFormField({
   required IconData icon,
   int maxLines = 1,
   String? Function(String?)? validator,
-  Widget? suffixIcon, // Change type to Widget
+  Widget? suffixIcon, 
   TextInputType? keyboardType, 
 }) {
   return TextFormField(
@@ -1033,19 +1042,24 @@ Widget _buildDropdownField({
   required List<String> items,
   required String? selectedValue,
   required void Function(String?) onChanged,
-  required String? Function(String?) validator, // Add a validator
+  required String? Function(String?) validator, 
 }) {
   return DropdownButtonFormField<String>(
     decoration: InputDecoration(
       prefixIcon: const Padding(
-        padding: EdgeInsets.only(left: 10.0, top: 8.0), // Add padding before the icon
+        padding: EdgeInsets.only(left: 10.0, top: 8.0), 
         child: FaIcon(
           FontAwesomeIcons.venusMars,
           color: Color(0xff613089),
         ),
-      ), // Icon before the label
+      ), 
       labelText: label,
       hintText: hint,
+       hintStyle: TextStyle(
+                color: Colors.grey.shade400,
+                fontSize: 14,
+                fontStyle: FontStyle.italic,
+              ),
       labelStyle: const TextStyle(color: Color(0xff613089)),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
@@ -1064,9 +1078,9 @@ Widget _buildDropdownField({
     ),
     value: selectedValue,
     onChanged: onChanged,
-    validator: validator, // Apply validator here
+    validator: validator, 
     items: items.map((String value) {
-      IconData icon = value == 'Male' ? Icons.male : Icons.female; // Determine the icon based on gender
+      IconData icon = value == 'Male' ? Icons.male : Icons.female; 
 
       return DropdownMenuItem<String>(
         value: value,
@@ -1113,6 +1127,7 @@ Widget _buildChronicDiseasesChips() {
         backgroundColor: Colors.white, 
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
+          
         ),
       );
     }).toList(),
@@ -1134,6 +1149,11 @@ Widget _buildDatePickerField() {
     decoration: InputDecoration(
       labelText: 'Last Donation Date',
       hintText: 'Select Last Donation Date',
+          hintStyle: TextStyle(
+        color: Colors.grey.shade400, 
+        fontSize: 14,
+        fontStyle: FontStyle.italic,
+      ),
        labelStyle: const TextStyle(color: Color(0xff613089)),
       prefixIcon: const Icon(Icons.calendar_today, color: Color(0xff613089)), 
       border: OutlineInputBorder(

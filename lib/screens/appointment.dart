@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_3/screens/constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'dart:convert'; // For JSON decoding
+import 'dart:convert'; 
 import 'package:table_calendar/table_calendar.dart';
+
+
 
 class AppointmentPage extends StatefulWidget {
     final String doctorid;
@@ -21,11 +23,15 @@ class _AppointmentPageState extends State<AppointmentPage> {
   List<String> availableTimes = [];
   bool isLoading = false;
   String? doctorid;
+
+
 @override
   /*void initState() {
     super.initState();
     _fetchDoctorId();
   }*/
+
+
 
   Future<void> _fetchDoctorId() async {
     doctorid = await storage.read(key: 'userid');
@@ -245,7 +251,6 @@ availableTimes = (data['slots'] as List<dynamic>)
   child: ElevatedButton(
     onPressed: selectedTime != null
         ? () {
-            // استدعاء دالة حجز الموعد
             bookAppointment(context, selectedTime!, selectedDate);
           }
         : null,
@@ -286,22 +291,25 @@ Future<void> bookAppointment(
   String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
   final String? token = await storage.read(key: 'token');
   
-  // طباعة المعلومات
+
   print("Appointment booked on $dayName at $selectedTime");
 
-  // عرض نافذة حوارية للمريض لكتابة ملاحظات
   TextEditingController notesController = TextEditingController();
 
-  // استخدام rootNavigator لتجنب السياق غير الصالح
+  double dialogWidth = MediaQuery.of(context).size.width > 600
+      ? 600
+      : MediaQuery.of(context).size.width * 0.9;
+
   Navigator.of(context, rootNavigator: true).push(
     DialogRoute(
       context: context,
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15), // زوايا دائرية
+          borderRadius: BorderRadius.circular(15), 
         ),
         child: Container(
           padding: const EdgeInsets.all(20),
+          width: dialogWidth,  
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
@@ -346,7 +354,7 @@ Future<void> bookAppointment(
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pop(context); // إغلاق الـ dialog
+                      Navigator.pop(context); 
                       _proceedToBookAppointment(
                         context,
                         selectedTime,
@@ -369,12 +377,12 @@ Future<void> bookAppointment(
                   ),
                   TextButton(
                     onPressed: () {
-                      Navigator.pop(context); // إغلاق الـ dialog
+                      Navigator.pop(context); 
                       _proceedToBookAppointment(
                         context,
                         selectedTime,
                         selectedDate,
-                        '', // بدون ملاحظات
+                        '', 
                         formattedDate,
                         token,
                       );
@@ -393,6 +401,8 @@ Future<void> bookAppointment(
     ),
   );
 }
+
+
 
 Future<void> _proceedToBookAppointment(
   BuildContext context,
@@ -454,7 +464,7 @@ Future<void> _proceedToBookAppointment(
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  "Date: , ${formattedDate}",
+                  "Date: ${formattedDate}",
                   style: const TextStyle(fontSize: 16, color: Colors.black54),
                 ),
                 Text(

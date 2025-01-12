@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/services/notification_service.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
@@ -286,6 +287,7 @@ class _BloodDonationPageState extends State<BloodDonationPage> {
                   _buildLabel("Units required"),
                   DropdownButtonFormField<int>(
                     value: selectedUnit,
+                    dropdownColor: Colors.white,
                     items: availableUnits.map((unit) {
                       return DropdownMenuItem<int>(
                         value: unit,
@@ -377,7 +379,7 @@ class _BloodDonationPageState extends State<BloodDonationPage> {
                         controller: controller,
                         focusNode: focusNode,
                         decoration: _inputDecoration(
-                            "Enter hospital name", Icons.local_hospital),
+                            "Enter hospital name", FontAwesomeIcons.hospital),
                       );
                     },
                   ),
@@ -452,6 +454,11 @@ class _BloodDonationPageState extends State<BloodDonationPage> {
         fontSize: 14,
         fontStyle: FontStyle.italic,
       ),
+          prefixIcon: Icon(
+      icon,
+      color: const Color(0xff613089), 
+      size: 19,
+    ),
       labelStyle: const TextStyle(color: Color(0xff613089)),
 
       border: OutlineInputBorder(

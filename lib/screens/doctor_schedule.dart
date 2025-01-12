@@ -303,7 +303,7 @@ Widget _buildDurationSelector() {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      elevation: 5,
+      elevation: 10,
       color: Colors.white,
       shadowColor: Colors.grey.withOpacity(0.3),
       child: Padding(
@@ -311,9 +311,9 @@ Widget _buildDurationSelector() {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Schedule for ${_formatDate(selectedDay)}",
-              style: const TextStyle(
+            Text( 
+              "Schedule for ${_formatDate(selectedDay)}                       ",
+              style: const TextStyle( 
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF6A1B9A),

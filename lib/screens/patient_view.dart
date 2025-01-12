@@ -492,7 +492,8 @@ Future<void> _loadDonationDates() async {
         ),
         const SizedBox(height: 5),
         donationDates.isEmpty
-            ? const Text('No donation records available.')
+            ?  Text('No donation records available.',
+             style: TextStyle(fontSize: 14, color: Colors.grey[500]))
             : Column(
                 children: [
                   _buildDonationRow(donationDates.last, isLatest: true),

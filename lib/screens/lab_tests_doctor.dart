@@ -504,22 +504,51 @@ class _LabTestsPageState extends State<LabTestsPage> {
                         color: Color(0xff613089),
                       ),
                     ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon:
-                              const Icon(Icons.edit, color: Color(0xff613089)),
-                          onPressed: () => showEditDialog(index),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete,
-                              color: Color(0xff613089)),
-                          onPressed: () => deleteLabTest(index),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                                                  Row(
+                    children: [
+                      PopupMenuButton<String>(
+                        
+                        icon: const Icon(Icons.more_vert, color: Color(0xff613089)),
+                        onSelected: (value) {
+                          if (value == 'edit') {
+                            showEditDialog(index);
+                          } else if (value == 'delete') {
+                            deleteLabTest(index);
+                          }
+                        },
+                        itemBuilder: (BuildContext context) {
+                          return [
+                            const PopupMenuItem<String>(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit, color: Color(0xff613089)),
+                                  SizedBox(width: 8),
+                                  Text('Edit'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem<String>(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: Color(0xff613089)),
+                                  SizedBox(width: 8),
+                                  Text('Delete'),
+                                ],
+                              ),
+                            ),
+                          ];
+                        },
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                      ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
                 const SizedBox(height: 10),
                 Row(
                   children: [

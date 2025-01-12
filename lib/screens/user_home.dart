@@ -722,129 +722,6 @@ Widget buildEditableListRow(IconData icon, String title, List<String> list,
 
 
 
- void _showAddchronicDialog(BuildContext context, Function(String) onAdd) {
-  // Sample list of chronic diseases
-  final List<Map<String, dynamic>> allDiseases = [
-{'name': 'Diabetes', 'icon': Icons.bloodtype},
-{'name': 'Blood Pressure', 'icon': Icons.monitor_heart},
-{'name': 'Asthma', 'icon': Icons.air},
-{'name': 'Cancer', 'icon': Icons.coronavirus},
-{'name': 'Kidney Failure', 'icon': Icons.opacity},
-
-  ];
-
-
-  List<String> selectedDiseases = [];
-
-  showDialog(
-    context: context,
-    builder: (context) {
-      double dialogWidth = MediaQuery.of(context).size.width > 600
-          ? 600
-          : MediaQuery.of(context).size.width * 0.9;
-
-
-
-      return Dialog(
-        backgroundColor: Colors.transparent,
-        child: Center(
-          child: Container(
-            width: dialogWidth,
-
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Add Chronic Disease",
-                  style: TextStyle(
-                    color: Color(0xff613089),
-                    fontSize: 20,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Wrap(
-                  spacing: 10.0, // Spacing between chips
-                  runSpacing: 10.0,
-                  children: allDiseases.map((disease) {
-                    final isSelected = selectedDiseases.contains(disease['name']);
-                    return FilterChip(
-                      label: Text(
-                        disease['name'],
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : const Color(0xff613089),
-                        ),
-                      ),
-                      avatar: Icon(disease['icon'], color: isSelected ? Colors.white : const Color(0xff613089)),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          if (selected) {
-                            selectedDiseases.add(disease['name']);
-                          } else {
-                            selectedDiseases.remove(disease['name']);
-                          }
-                        });
-                      },
-                      selectedColor: const Color(0xffb41391),
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text(
-                        "Cancel",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (selectedDiseases.isNotEmpty) {
-                          // Pass the selected diseases to the onAdd function
-                          onAdd(selectedDiseases.join(', '));
-                          Navigator.pop(context);
-                        } else {
-                          // Show a message if no disease is selected
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please select a disease')),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xff613089),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                      child: const Text("Add"),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    },
-  );
-}
-
-
-
-
 
 
 /////////////////////////
@@ -964,7 +841,7 @@ Widget build(BuildContext context) {
           )
         : null,
     body: Center(
-      child: Container(
+      child: SizedBox(
       
        width: MediaQuery.of(context).size.width > 600 
           ? MediaQuery.of(context).size.width * 0.75 
@@ -1345,12 +1222,14 @@ Widget buildPopularDoctorSection() {
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : allDoctors.isEmpty
-                ?  Center(
-                    child: Text(
-                      'No doctors available.',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[500])
-                    ),
-                  )
+                ? 
+                //  Center(
+                //     child: Text(
+                //       'No doctors available.',
+                //       style: TextStyle(fontSize: 16, color: Colors.grey[500])
+                //     ),
+                //   )
+                const Center(child: CircularProgressIndicator())
                 : ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 20),

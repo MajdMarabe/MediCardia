@@ -307,39 +307,48 @@ class _MedicineListPageState extends State<MedicineListPage> {
                       const SizedBox(height: 20),
 
                       // Drug Type Dropdown
-                      DropdownButtonFormField<String>(
-                        value: _selectedDrugType,
-                        items: ['Permanent', 'Temporary']
-                            .map((type) => DropdownMenuItem(
-                                value: type, child: Text(type)))
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedDrugType = value!;
-                            _isTemporary = _selectedDrugType == 'Temporary';
-                          });
-                        },
-                        decoration: InputDecoration(
-                          labelText: 'Drug Type',
-                          labelStyle: const TextStyle(color: Color(0xff613089)),
-                          prefixIcon: const Icon(Icons.category,
-                              color: Color(0xff613089)),
-                          contentPadding: const EdgeInsets.symmetric(
-                              vertical: 16.0, horizontal: 12.0),
-                          filled: true,
-                          fillColor: const Color(0xFFF3F3F3),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            borderSide: const BorderSide(
-                                color: Color(0xff613089), width: 1.5),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            borderSide: const BorderSide(
-                                color: Color(0xff613089), width: 2.0),
-                          ),
-                        ),
-                      ),
+Theme(
+  data: Theme.of(context).copyWith(
+    popupMenuTheme: PopupMenuThemeData(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+    ),
+  ),
+  child: DropdownButtonFormField<String>(
+    dropdownColor: Colors.white,
+    value: _selectedDrugType,
+    items: ['Permanent', 'Temporary']
+        .map((type) => DropdownMenuItem(
+            value: type, child: Text(type)))
+        .toList(),
+    onChanged: (value) {
+      setState(() {
+        _selectedDrugType = value!;
+        _isTemporary = _selectedDrugType == 'Temporary';
+      });
+    },
+    decoration: InputDecoration(
+      labelText: 'Drug Type',
+      labelStyle: const TextStyle(color: Color(0xff613089)),
+      prefixIcon: const Icon(Icons.category, color: Color(0xff613089)),
+      contentPadding: const EdgeInsets.symmetric(
+          vertical: 16.0, horizontal: 12.0),
+      filled: true,
+      fillColor: const Color(0xFFF3F3F3),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: const BorderSide(color: Color(0xff613089), width: 1.5),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: const BorderSide(color: Color(0xff613089), width: 2.0),
+      ),
+    ),
+  ),
+),
+
+
                       const SizedBox(height: 16.0),
 
                       if (_isTemporary)

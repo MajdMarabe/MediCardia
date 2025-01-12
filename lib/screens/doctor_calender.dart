@@ -64,7 +64,7 @@ class _DoctorCalendarPageState extends State<DoctorCalendarPage> {
           double pageWidth = screenWidth > 800 ? 900 : screenWidth * 1;
 
           return Center(
-            child: Container(
+            child: SizedBox(
               width: pageWidth,  
               child: Column(
                 children: [
@@ -81,58 +81,73 @@ class _DoctorCalendarPageState extends State<DoctorCalendarPage> {
     );
   }
 
-  Widget _buildCalendar() {
-    return Container(
-      margin: const EdgeInsets.all(15),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: TableCalendar(
-        firstDay: DateTime.utc(2020, 1, 1),
-        lastDay: DateTime.utc(2030, 12, 31),
-        focusedDay: _focusedDay,
-        selectedDayPredicate: (day) {
-          return isSameDay(_selectedDay, day);
-        },
-        onDaySelected: (selectedDay, focusedDay) {
-          setState(() {
-            _selectedDay = selectedDay;
-            _focusedDay = focusedDay;
-            _fetchBookedSlots();
-          });
-        },
-        eventLoader: (day) => _events,
-        calendarStyle: const CalendarStyle(
-          selectedDecoration: BoxDecoration(
-            color: Color(0xff613089),
-            shape: BoxShape.circle,
-          ),
-          todayDecoration: BoxDecoration(
-            color: Colors.orange,
-            shape: BoxShape.circle,
-          ),
-          markerDecoration: BoxDecoration(
-            color: Colors.green,
-            shape: BoxShape.circle,
-          ),
+Widget _buildCalendar() {
+  return Container(
+    margin: const EdgeInsets.all(15),
+    padding: const EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(15),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          blurRadius: 10,
+          spreadRadius: 2,
         ),
-        headerStyle: const HeaderStyle(
-          formatButtonVisible: false,
-          titleCentered: true,
-          titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+      ],
+    ),
+    child: TableCalendar(
+      firstDay: DateTime.utc(2020, 1, 1),
+      lastDay: DateTime.utc(2030, 12, 31),
+      focusedDay: _focusedDay,
+      selectedDayPredicate: (day) {
+        return isSameDay(_selectedDay, day);
+      },
+      onDaySelected: (selectedDay, focusedDay) {
+        setState(() {
+          _selectedDay = selectedDay;
+          _focusedDay = focusedDay;
+          _fetchBookedSlots();
+        });
+      },
+     eventLoader: (day) {
+  return _events.where((event) {
+    if (event['date'] == null || event['date'] is! String) {
+      return false;
+    }
+    try {
+      DateTime eventDate = DateFormat('yyyy-MM-dd').parse(event['date']);
+      return isSameDay(eventDate, day);
+    } catch (e) {
+      return false;
+    }
+  }).toList();
+},
+calendarStyle: const CalendarStyle(
+  selectedDecoration: BoxDecoration(
+    color: Color(0xff613089),
+    shape: BoxShape.circle,
+  ),
+  todayDecoration: BoxDecoration(
+    color: Colors.orange,
+    shape: BoxShape.circle,
+  ),
+  markerDecoration: BoxDecoration(
+    color: Colors.green, 
+    shape: BoxShape.circle,
+  ),
+  markersMaxCount: 3, 
+),
+
+      headerStyle: const HeaderStyle(
+        formatButtonVisible: false,
+        titleCentered: true,
+        titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   Widget _buildEventList() {
     return Container(
@@ -198,7 +213,11 @@ class _DoctorCalendarPageState extends State<DoctorCalendarPage> {
                       size: 18,
                       color: Colors.grey.withOpacity(0.7),
                     ),
+                    
                     onTap: () {
+                        double dialogWidth = MediaQuery.of(context).size.width > 600
+      ? 600
+      : MediaQuery.of(context).size.width * 0.9;
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
@@ -206,7 +225,8 @@ class _DoctorCalendarPageState extends State<DoctorCalendarPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
                             ),
-                            child: Padding(
+                             child: Container(
+                               width: dialogWidth, 
                               padding: const EdgeInsets.all(25),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,

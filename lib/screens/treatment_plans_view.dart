@@ -298,12 +298,12 @@ Future<void> deleteTreatmentPlan(int index) async {
 }
 
 
-  
- void showEditDialog({Map<String, dynamic>? treatmentPlan, int? index}) {
-  final medicationsController = TextEditingController(text: treatmentPlan?['prescribedMedications'] ?? '');
-  final durationController = TextEditingController(text: treatmentPlan?['treatmentDuration'] ?? '');
-  final goalsController = TextEditingController(text: treatmentPlan?['treatmentGoals'] ?? '');
-  final therapiesController = TextEditingController(text: treatmentPlan?['alternativeTherapies'] ?? '');
+ void showEditDialog(int index) {
+  final treatmentPlan = treatmentPlans[index];
+  final medicationsController = TextEditingController(text: treatmentPlan['prescribedMedications'] ?? '');
+  final durationController = TextEditingController(text: treatmentPlan['treatmentDuration'] ?? '');
+  final goalsController = TextEditingController(text: treatmentPlan['treatmentGoals'] ?? '');
+  final therapiesController = TextEditingController(text: treatmentPlan['alternativeTherapies'] ?? '');
 
   showDialog(
     context: context,
@@ -405,11 +405,7 @@ Future<void> deleteTreatmentPlan(int index) async {
                           'alternativeTherapies': therapiesController.text,
                         };
 
-                        if (treatmentPlan != null) {
-                          await editTreatmentPlan(updatedPlan, index!);
-                        } else {
-                          await addTreatmentPlan([updatedPlan]);
-                        }
+                        await editTreatmentPlan(updatedPlan, index);
 
                         Navigator.pop(context);
                       },
@@ -431,6 +427,8 @@ Future<void> deleteTreatmentPlan(int index) async {
     },
   );
 }
+
+
 
 
 
@@ -517,21 +515,49 @@ Widget buildTreatmentPlanCard(Map<String, dynamic> item, int index) {
               ),
 
               // Action Buttons (Edit, Delete)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Color(0xff613089)),
-                    onPressed: () => showEditDialog(treatmentPlan: item, index: index),
-                    tooltip: 'Edit Treatment Plan',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Color(0xff613089)),
-                    onPressed: () => deleteTreatmentPlan(index),
-                    tooltip: 'Delete Treatment Plan',
-                  ),
-                ],
-              ),
+          Row(
+  mainAxisAlignment: MainAxisAlignment.start,
+  children: [
+    PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert, color: Color(0xff613089)),
+      onSelected: (value) {
+        if (value == 'edit') {
+          showEditDialog(index);
+        } else if (value == 'delete') {
+          deleteTreatmentPlan(index);
+        }
+      },
+      itemBuilder: (BuildContext context) {
+        return [
+          const PopupMenuItem<String>(
+            value: 'edit',
+            child: Row(
+              children: [
+                Icon(Icons.edit, color: Color(0xff613089)),
+                SizedBox(width: 8),
+                Text('Edit'),
+              ],
+            ),
+          ),
+          const PopupMenuItem<String>(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(Icons.delete, color: Color(0xff613089)),
+                SizedBox(width: 8),
+                Text('Delete'),
+              ],
+            ),
+          ),
+        ];
+      },
+          color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+      ),
+                      ),
+                    ],
+)
             ],
           ),
         ),

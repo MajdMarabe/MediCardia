@@ -439,6 +439,7 @@ Future<void> _selectDate(BuildContext context) async {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 20,
+            color: Colors.white
           ),
         ),
         
@@ -670,7 +671,7 @@ Future<void> _selectDate(BuildContext context) async {
                   controller: _alternativeTherapiesController,
                   label: 'Additional Notes',
                   hint: 'Enter additional notes',
-                  icon: Icons.local_hospital,
+                  icon: Icons.note_add,
                   maxLines: 2,
                 ),
               

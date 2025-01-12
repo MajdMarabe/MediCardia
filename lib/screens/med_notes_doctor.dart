@@ -431,21 +431,50 @@ Widget buildMedicalNoteCard(Map<String, dynamic> item, int index) {
               ),
 
               // Action Buttons (Edit, Delete)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Color(0xff613089)),
-                    onPressed: () => showEditDialog(index),
-                    tooltip: 'Edit Note',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Color(0xff613089)),
-                    onPressed: () => deleteMedicalNote(index),
-                    tooltip: 'Delete Note',
-                  ),
-                ],
-              ),
+           Row(
+  mainAxisAlignment: MainAxisAlignment.start,
+  children: [
+    PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert, color: Color(0xff613089)),
+      onSelected: (value) {
+        if (value == 'edit') {
+          showEditDialog(index);
+        } else if (value == 'delete') {
+          deleteMedicalNote(index);
+        }
+      },
+      itemBuilder: (BuildContext context) {
+        return [
+          const PopupMenuItem<String>(
+            value: 'edit',
+            child: Row(
+              children: [
+                Icon(Icons.edit, color: Color(0xff613089)),
+                SizedBox(width: 8),
+                Text('Edit'),
+              ],
+            ),
+          ),
+          const PopupMenuItem<String>(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(Icons.delete, color: Color(0xff613089)),
+                SizedBox(width: 8),
+                Text('Delete'),
+              ],
+            ),
+          ),
+        ];
+      },
+          color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+      ),
+                      ),
+                    ],
+)
+
             ],
           ),
         ),
