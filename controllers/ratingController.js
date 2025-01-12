@@ -48,8 +48,11 @@ module.exports.getDoctorReviewSummary = asyncHandler(async (req, res) => {
 
     // Fetch all active reviews for the doctor
     const reviews = await Review.find({ doctorId })
-        .populate('userId', 'username profileImage')
-        .sort({ createdAt: -1 });
+  .populate({
+    path: 'userId',
+    select: 'username medicalCard.publicData.image',
+  })
+  .sort({ createdAt: -1 });
 
     if (!reviews.length) {
         return res.status(200).json({
@@ -73,11 +76,12 @@ module.exports.getDoctorReviewSummary = asyncHandler(async (req, res) => {
         belowAverage: reviews.filter((r) => r.rating === 2).length,
         poor: reviews.filter((r) => r.rating === 1).length,
     };
+   //s console.log(review.userId.medicalCard.publicData.image );
 
     // Limit recent reviews to the latest 5
     const recentReviews = reviews.slice(0, 5).map((review) => ({
         username: review.userId.username,
-        //imageUrl: review.userId.image || 'https://via.placeholder.com/150',
+        image: review.userId.medicalCard.publicData.image ,
         rating: review.rating,
         date: review.createdAt.toDateString(),
         comment: review.review,

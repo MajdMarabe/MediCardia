@@ -36,25 +36,27 @@ const DoctorSchema = new mongoose.Schema({
     },
     specialization: {
         type: String,
-        required: true,
+        required: function() { return this.role === 'doctor'; }, 
         trim: true,
     },
     licenseNumber: {
         type: String,
-        required: true,
+        required: function() { return this.role === 'doctor'; }, 
         trim: true,
         unique: true,
     },
     workplace: {
-        name: { type: String, required: true, trim: true }, // اسم المستشفى أو العيادة
+        name: { type: String,         
+          required: function() { return this.role === 'doctor'; }, 
+             trim: true }, // اسم المستشفى أو العيادة
         address: { type: String, trim: true }, // العنوان التفصيلي
-    },
-    isAdmin: {
-        type: Boolean,
-        default: false,
     },
     verificationCode: {
         type: String,
+    },
+    about: {
+        type: String,
+        default:null,
     },
     verificationCodeExpires: {
         type: Date,
@@ -71,18 +73,18 @@ const DoctorSchema = new mongoose.Schema({
        /// reminders: {type: Boolean, default: true} ,
         messages: {type: Boolean, default: true} ,
         requests: {type: Boolean, default: true} ,
-      },
+    },
       numberOfPatients: {
         type: Number,
         default: 0,
     },
     averageRating: {
         type: Number,
-        default: 0, // يبدأ بـ 0 حتى يتم تحديثه
+        default: 0, 
     },
     numberOfReviews: {
         type: Number,
-        default: 0, // لحساب عدد المراجعات المرتبطة بالطبيب
+        default: 0, 
     },
 }, { timestamps: true });
 
@@ -129,7 +131,7 @@ function validateUpdateDoctor(obj) {
         workplaceName: joi.string().trim(),
         workplaceAddress: joi.string().trim(),
         image: joi.string().optional() ,
-
+about:joi.string().optional(),
     });
     return schema.validate(obj);
 }

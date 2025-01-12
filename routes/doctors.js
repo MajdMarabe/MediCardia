@@ -1,6 +1,6 @@
 const express = require ("express");
 const router = express.Router();
-const {register,getAllDoctors,getSettings,updateSettings,getDoctorById,updateProfile,getProfile,changePassword}=require("../controllers/doctorController");
+const {register,getAllDoctors,getSettings,updateSettings,getDoctorById,updateProfile,getProfile,changePassword,registerAdmin}=require("../controllers/doctorController");
 
 const { verifyToken ,verifyTokenAndAdmin} = require("../middlewares/verifyToken");
 
@@ -11,6 +11,7 @@ router.put("/:id/setsetting", updateSettings);
 router.get("/:id", getDoctorById);
 router.put("/update/:doctorId", updateProfile);
 router.get("/profile/:doctorId", getProfile);
+router.post("/admin/register",registerAdmin);
 
 router.put("/change-password",verifyToken, changePassword);
 

@@ -33,10 +33,7 @@ const UserSchema = new mongoose.Schema({
         minlength: 3,
         trim: true
     },
-    isAdmin: {
-        type: Boolean,
-        default: false
-    },
+  
     verificationCode: {
         type: String
     },
@@ -63,7 +60,7 @@ const UserSchema = new mongoose.Schema({
             idNumber: { type: String, trim: true, default: null }, 
             gender: { type: String, enum: ['Male', 'Female'], trim: true, default: null }, 
             age: { type: Number, default: null }, 
-            bloodType: { type: String, trim: true, default: null },
+            bloodType: { type: String,enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],trim: true, default: null },
             chronicConditions: { type: [String], trim: true, default: [] }, 
             allergies: { type: [String], trim: true, default: [] },
             BloodDonationDate: [{

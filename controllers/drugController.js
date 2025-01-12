@@ -80,7 +80,109 @@ module.exports.addDrug = asyncHandler(async (req, res) => {
        res.status(500).json({ message: "Error adding the drug" });
    }
 });
+/**
+ * @desc Get all drugs
+ * @route /api/drugs
+ * @method GET
+ * @access public
+ */
+module.exports.getAllDrugs = asyncHandler(async (req, res) => {
+  try {
+    // Fetch all drugs from the database
+    const drugs = await Drug.find();
 
+    // Check if no drugs are found
+    if (!drugs || drugs.length === 0) {
+      return res.status(404).json({ message: "No drugs found" });
+    }
+
+    // Return the list of drugs
+    res.status(200).json({ drugs });
+  } catch (err) {
+    console.error(err); // Log the error message
+    res.status(500).json({ message: "Error fetching drugs" });
+  }
+});
+/**
+ * @desc Update a drug by ID
+ * @route /api/drugs/:id
+ * @method PUT
+ * @access public
+ */
+module.exports.updateDrug = asyncHandler(async (req, res) => {
+  const { id } = req.params; // Get the drug ID from the URL parameter
+  const { Drugname, Barcode, details } = req.body; // Get the updated details from the request body
+
+  try {
+    // Find the drug by ID
+    let drug = await Drug.findById(id);
+    
+    // Check if the drug exists
+    if (!drug) {
+      return res.status(404).json({ message: "Drug not found" });
+    }
+
+    // Update the drug details
+    if (Drugname) drug.Drugname = Drugname; // Update Drugname if provided
+    if (Barcode) drug.Barcode = Barcode; // Update Barcode if provided
+    if (details) drug.details = details; // Update details if provided
+
+    // Save the updated drug to the database
+    const updatedDrug = await drug.save();
+
+    // Return the updated drug details
+    res.status(200).json({
+      message: "Drug updated successfully",
+      drug: updatedDrug
+    });
+  } catch (err) {
+    console.error(err); // Log the error message
+    res.status(500).json({ message: "Error updating the drug" });
+  }
+});
+
+/**
+ * @desc Add new drug with details
+ * @route /api/drugs/admin
+ * @method POST
+ * @access public
+ */
+module.exports.addDrugByAdmin = asyncHandler(async (req, res) => {
+  // Validate the input fields
+  const { error } = validateDrug(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.details[0].message });
+  }
+
+  // Check if drug with the same barcode already exists
+  let drug = await Drug.findOne({ Barcode: req.body.Barcode });
+  if (drug) {
+    return res.status(400).json({ message: "Drug with this barcode already exists" });
+  }
+
+  // Create a new drug object with the details
+  drug = new Drug({
+    Drugname: req.body.Drugname,
+    Barcode: req.body.Barcode,
+    details: [
+      {
+        Use: req.body.Use,
+        Dose: req.body.Dose,
+        Time: req.body.Time,
+        Notes: req.body.Notes,
+      },
+    ],
+  });
+
+  try {
+    // Save the new drug to the database
+    const result = await drug.save();
+    res.status(201).json({ message: "Drug added successfully", drug: result });
+  } catch (err) {
+    console.error(err); // Log the error message
+    res.status(500).json({ message: "Error adding the drug" });
+  }
+});
 
 /**
  * @desc Search for drug interactions by query

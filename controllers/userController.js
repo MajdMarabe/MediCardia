@@ -2,6 +2,10 @@ const jwt =require("jsonwebtoken");
 const asyncHandler= require("express-async-handler"); 
 const {Doctor}= require("../models/Doctor");
 const { Drug } = require("../models/Drug");
+const {DonationRequest,validateDonationRequest} = require('../models/DonationRequest');
+const {BloodSugar}= require("../models/BloodSugar");
+const Appointment = require('../models/Appointment');
+const {Pressure}= require("../models/Pressure");
 
 const {validateCreatUser,validateLoginUser,validateUpdateUser,validatePublicData,validateHistory,validatelabTests,User}= require("../models/User");
 const bcrypt = require('bcryptjs');
@@ -59,7 +63,7 @@ module.exports.register = asyncHandler(async (req, res, next) => {
     });
 });
 /**
- * @desc Get doctor's profile before update
+ * @desc Get user's profile before update
  * @route /api/users/profile/:userid
  * @method GET
  * @access private (requires authentication)
@@ -294,15 +298,34 @@ module.exports.login= asyncHandler(async(req,res) =>{
     });*/
     ////
     /**
- * @desc get all users 
+ * @desc Get all users and doctors
  * @route /api/users
- * @method get
- * @access public 
-*/
-    module.exports.getAllUsers=asyncHandler(async(req,res)=>{
-        const users = await User.find().select("-password_hash");  
-        res.status(200).json(users);
-    });
+ * @method GET
+ * @access public
+ */
+module.exports.getAllUsers = asyncHandler(async (req, res) => {
+    try {
+        // Fetch users and doctors
+        const users = await User.find().select("-password_hash");
+        const doctors = await Doctor.find({ role: { $ne: "admin" } }).select("-password_hash");
+
+        // Combine the results in a single response object
+        res.status(200).json({
+            success: true,
+            data: {
+                users,
+                doctors
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch users and doctors"
+        });
+    }
+});
+
 /**
  * @desc get users by id
  * @route /api/users/:id
@@ -1404,4 +1427,53 @@ module.exports.addTreatmentPlan = asyncHandler(async (req, res) => {
         message: 'Treatment plans added successfully.',
         treatmentPlans: user.medicalCard.privateData.treatmentPlans
     });
+});
+/////// Statistics //////
+/**
+ * @desc Get the number of users and doctors with role 'doctor'
+ * @route /api/users/stats/count
+ * @method GET
+ * @access public
+ */
+module.exports.getCounts = asyncHandler(async (req, res) => {
+    try {
+        const Pressurecount = await Pressure.countDocuments(); // Count all users
+
+        const BloodSugarcount = await BloodSugar.countDocuments(); // Count all users
+        
+        const Appointmentcount = await Appointment.countDocuments(); // Count all users
+
+        const DonationRequestcount = await DonationRequest.countDocuments(); // Count all users
+        const userCount = await User.countDocuments(); // Count all users
+        const doctorCount = await Doctor.countDocuments({ role: 'doctor' }); // Count doctors with role 'doctor'
+         // Calculate blood type percentages
+         const bloodTypeAggregation = await User.aggregate([
+            { 
+                $match: { "medicalCard.publicData.bloodType": { $ne: null } } // Match users with defined blood types
+            },
+            { 
+                $group: { 
+                    _id: "$medicalCard.publicData.bloodType", 
+                    count: { $sum: 1 } 
+                } 
+            },
+            {
+                $project: { 
+                    bloodType: "$_id", 
+                    percentage: { 
+                        $multiply: [{ $divide: ["$count", userCount] }, 100] 
+                    },
+                    _id: 0
+                }
+            }
+        ]);
+
+        res.status(200).json({ userCount, doctorCount,DonationRequestcount,BloodSugarcount,Appointmentcount,Pressurecount,
+            bloodTypeDistribution: bloodTypeAggregation
+
+         });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Error fetching counts" });
+    }
 });

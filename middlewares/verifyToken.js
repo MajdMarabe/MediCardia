@@ -40,7 +40,7 @@ function verifyTokenAndAuthorization(req,res,next){
 //verifyToken & Admin
 function verifyTokenAndAdmin(req, res, next){
     verifyToken(req,res, () => {
-        if( req.user.isAdmin){
+        if( req.user.role === 'admin'){
 
             next(); 
             

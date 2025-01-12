@@ -3,6 +3,52 @@ const asyncHandler = require("express-async-handler");
 const bcrypt = require('bcryptjs');
 const { Doctor, validateCreateDoctor ,validateUpdateDoctor} = require('../models/Doctor');
 const sendEmail = require("../middlewares/email");
+/**
+ * @desc Register a new admin
+ * @route /api/admins/register
+ * @method POST
+ * @access public
+ */
+module.exports.registerAdmin = asyncHandler(async (req, res, next) => {
+    const { fullName, email, password_hash, phone } = req.body;
+
+    if (!fullName || !email || !password_hash || !phone) {
+        return res.status(400).json({ message: "All fields are required" });
+    }
+
+    let admin = await Doctor.findOne({ email });
+    if (admin) {
+        return res.status(400).json({ message: "This email is already registered" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password_hash, salt);
+
+    admin = new Doctor({
+        fullName,
+        email,
+        password_hash: hashedPassword,
+        phone,
+        role: "admin", 
+    });
+
+    try {
+        const result = await admin.save();
+
+        const token = admin.generateToken();
+
+        const { password_hash, ...other } = result._doc;
+
+        res.status(201).json({
+            ...other,
+            token,
+            message: "Admin registered successfully",
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "There was an error registering the admin" });
+    }
+});
 
 /**
  * @desc Sign up a new doctor
@@ -11,30 +57,25 @@ const sendEmail = require("../middlewares/email");
  * @access public
  */
 module.exports.register = asyncHandler(async (req, res, next) => {
-    // Validate input data
     const { error } = validateCreateDoctor(req.body);
     console.log(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
     }
 
-    // Check if doctor already exists by email
     let doctor = await Doctor.findOne({ email: req.body.email });
     if (doctor) {
         return res.status(400).json({ message: "This email is already registered" });
     }
 
-    // Check if doctor already exists by license number
     doctor = await Doctor.findOne({ licenseNumber: req.body.licenseNumber });
     if (doctor) {
         return res.status(400).json({ message: "This license number is already registered" });
     }
 
-    // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(req.body.password_hash, salt);
 
-    // Create new doctor object
     doctor = new Doctor({
         fullName: req.body.fullName,
         image: req.body.image,
@@ -163,7 +204,9 @@ module.exports.updateProfile = asyncHandler(async (req, res, next) => {
 
     doctor.fullName = req.body.fullName || doctor.fullName;
     doctor.image = req.body.image || doctor.image;
+    doctor.about = req.body.about || doctor.about;
 
+    
     doctor.email = req.body.email || doctor.email;
     doctor.phone = req.body.phone || doctor.phone;
     doctor.specialization = req.body.specialization || doctor.specialization;
