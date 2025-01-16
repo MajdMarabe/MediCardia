@@ -440,8 +440,8 @@ module.exports.updateSettings = asyncHandler(async (req, res) => {
  * @access public
  */
 
-    module.exports.deleteUserById=verifyTokenAndAuthorization,verifyTokenAndAdmin,asyncHandler(async(req,res)=>{ 
-   
+    module.exports.deleteUserById=asyncHandler(async(req,res)=>{ 
+console.log(req.params.id);
    
         const user= await User.findByIdAndDelete(req.params.id) ;
         
@@ -1430,50 +1430,272 @@ module.exports.addTreatmentPlan = asyncHandler(async (req, res) => {
 });
 /////// Statistics //////
 /**
- * @desc Get the number of users and doctors with role 'doctor'
+ * @desc Get the number of users and doctors with role 'doctor' within a date range
  * @route /api/users/stats/count
  * @method GET
  * @access public
  */
 module.exports.getCounts = asyncHandler(async (req, res) => {
     try {
-        const Pressurecount = await Pressure.countDocuments(); // Count all users
+        const { startDate, endDate } = req.query;
 
-        const BloodSugarcount = await BloodSugar.countDocuments(); // Count all users
-        
-        const Appointmentcount = await Appointment.countDocuments(); // Count all users
+        const start = startDate ? new Date(startDate) : new Date(0); 
+        const end = endDate ? new Date(endDate) : new Date(); 
 
-        const DonationRequestcount = await DonationRequest.countDocuments(); // Count all users
-        const userCount = await User.countDocuments(); // Count all users
-        const doctorCount = await Doctor.countDocuments({ role: 'doctor' }); // Count doctors with role 'doctor'
-         // Calculate blood type percentages
-         const bloodTypeAggregation = await User.aggregate([
-            { 
-                $match: { "medicalCard.publicData.bloodType": { $ne: null } } // Match users with defined blood types
-            },
-            { 
-                $group: { 
-                    _id: "$medicalCard.publicData.bloodType", 
-                    count: { $sum: 1 } 
-                } 
+        const Pressurecount = await Pressure.countDocuments({
+            createdAt: { $gte: start, $lte: end } 
+        });
+
+        const BloodSugarcount = await BloodSugar.countDocuments({
+            createdAt: { $gte: start, $lte: end }
+        });
+
+        const Appointmentcount = await Appointment.countDocuments({
+            createdAt: { $gte: start, $lte: end }
+        });
+
+        const DonationRequestcount = await DonationRequest.countDocuments({
+            createdAt: { $gte: start, $lte: end }
+        });
+
+        const userCount = await User.countDocuments({
+            createdAt: { $gte: start, $lte: end }
+        });
+
+        const doctorCount = await Doctor.countDocuments({
+            role: 'doctor',
+            createdAt: { $gte: start, $lte: end }
+        });
+
+        const bloodTypeAggregation = await User.aggregate([
+            {
+                $match: {
+                    "medicalCard.publicData.bloodType": { $ne: null },
+                    createdAt: { $gte: start, $lte: end } // Filter by created date within range
+                }
             },
             {
-                $project: { 
-                    bloodType: "$_id", 
-                    percentage: { 
-                        $multiply: [{ $divide: ["$count", userCount] }, 100] 
+                $group: {
+                    _id: "$medicalCard.publicData.bloodType",
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    bloodType: "$_id",
+                    percentage: {
+                        $multiply: [{ $divide: ["$count", userCount] }, 100]
                     },
                     _id: 0
                 }
             }
         ]);
 
-        res.status(200).json({ userCount, doctorCount,DonationRequestcount,BloodSugarcount,Appointmentcount,Pressurecount,
+        res.status(200).json({
+            userCount,
+            doctorCount,
+            DonationRequestcount,
+            BloodSugarcount,
+            Appointmentcount,
+            Pressurecount,
             bloodTypeDistribution: bloodTypeAggregation
-
-         });
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Error fetching counts" });
     }
+});
+
+/**
+ * @desc Get patient statistics
+ * @route /api/users/stats/patients
+ * @method GET
+ * @access Admin
+ */
+module.exports.getPatientStatistics = asyncHandler(async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+
+        const start = startDate ? new Date(startDate) : new Date(0); 
+        const end = endDate ? new Date(endDate) : new Date(); 
+
+        const patientFilter = {
+            role: 'patient',
+            createdAt: { $gte: start, $lte: end },
+        };
+
+        const totalPatients = await User.countDocuments(patientFilter);
+
+    
+const ageDistribution = await User.aggregate([
+    { $match: patientFilter },
+    {
+        $addFields: {
+            ageGroup: {
+                $switch: {
+                    branches: [
+                        { case: { $lt: ["$medicalCard.publicData.age", 18] }, then: "0-17" },
+                        { case: { $and: [{ $gte: ["$medicalCard.publicData.age", 18] }, { $lte: ["$medicalCard.publicData.age", 25] }] }, then: "18-25" },
+                        { case: { $and: [{ $gte: ["$medicalCard.publicData.age", 26] }, { $lte: ["$medicalCard.publicData.age", 35] }] }, then: "25-35" },
+                        { case: { $and: [{ $gte: ["$medicalCard.publicData.age", 36] }, { $lte: ["$medicalCard.publicData.age", 50] }] }, then: "35-50" },
+
+                        { case: { $gte: ["$medicalCard.publicData.age", 51] }, then: "50+" }
+                    ],
+                    default: "Unknown"
+                }
+            }
+        }
+    },
+    {
+        $group: {
+            _id: "$ageGroup",
+            count: { $sum: 1 }
+        }
+    }
+]);
+
+
+        const genderDistribution = await User.aggregate([
+            { $match: patientFilter },
+            {
+                $group: {
+                    _id: "$medicalCard.publicData.gender",
+                    count: { $sum: 1 },
+                },
+            },
+        ]);
+
+        const bloodTypeDistribution = await User.aggregate([
+            { $match: { ...patientFilter, "medicalCard.publicData.bloodType": { $ne: null } } },
+            {
+                $group: {
+                    _id: "$medicalCard.publicData.bloodType",
+                    count: { $sum: 1 },
+                },
+            },
+        ]);
+const chronicConditionsDistribution = await User.aggregate([
+    { $match: { ...patientFilter, "medicalCard.publicData.chronicConditions": { $exists: true, $ne: [] } } },
+    { $unwind: "$medicalCard.publicData.chronicConditions" }, 
+    {
+        $group: {
+            _id: "$medicalCard.publicData.chronicConditions", 
+            count: { $sum: 1 } 
+        }
+    },
+    { $sort: { count: -1 } } 
+]);
+
+        const allergiesCount = await User.countDocuments({
+            ...patientFilter,
+            "medicalCard.publicData.allergies": { $exists: true, $ne: [] },
+        });
+
+        // Format the response
+        res.status(200).json({
+            totalPatients,
+            ageDistribution,
+            genderDistribution,
+            bloodTypeDistribution,
+            chronicConditionsDistribution,
+            allergiesCount,
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Error fetching patient statistics" });
+    }
+});
+
+/**
+ * @desc Update user by Admin
+ * @route PUT /api/users/admin/update/:userid
+ * @method PUT
+ * @access Private (requires authentication)
+ */
+module.exports.updateUserbyAdmin = asyncHandler(async (req, res) => {
+    const { username, email, phoneNumber, location, password } = req.body;
+///console.log(image);
+    const user = await User.findById(req.params.userid);
+
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
+    if (email && email !== user.email) {
+        const emailExists = await User.findOne({ email });
+        if (emailExists) {
+            return res.status(400).json({ message: "This email is already registered" });
+        }
+    }
+
+    if (phoneNumber && phoneNumber !== user.medicalCard?.publicData?.phoneNumber) {
+        const phoneNumberExists = await User.findOne({
+            "medicalCard.publicData.phoneNumber": phoneNumber,
+        });
+        if (phoneNumberExists) {
+            return res.status(400).json({ message: "This phone number is already registered" });
+        }
+    }
+
+    if (username) user.username = username;
+    if (email) user.email = email;
+    if (phoneNumber) user.medicalCard.publicData.phoneNumber = phoneNumber;
+    if (location) user.location = location;
+    
+    if (password) user.password_hash = password;
+
+    try {
+        await user.save();
+
+        res.status(200).json({
+            message: "User profile updated successfully",
+            user: {
+                username: user.username,
+                email: user.email,
+                phoneNumber: user.medicalCard.publicData.phoneNumber,
+                location: user.location,
+                password :user.password_hash 
+            },
+        });
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        res.status(500).json({ message: "There was an error updating the profile." });
+    }
+});
+
+/**
+ * @desc Add new user by admin
+ * @route /api/users/addUser/admin
+ * @method POST
+ * @access public 
+ */
+module.exports.AddUserByAdmin = asyncHandler(async (req, res, next) => {
+    const { error } = validateCreatUser(req.body);
+    if (error) {
+        return res.status(400).json({ message: error.details[0].message });
+    }
+
+    let user = await User.findOne({ email: req.body.email });
+    if (user) {
+        return res.status(400).json({ message: "This email is already registered" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    req.body.password_hash = await bcrypt.hash(req.body.password_hash, salt);
+
+    user = new User({
+        username: req.body.username,
+        email: req.body.email,
+        location: req.body.location,
+        password_hash: req.body.password_hash,
+    });
+
+    await user.save();
+
+    const token = user.generateToken();
+
+    res.status(201).json({
+        token,
+        _id: user._id, 
+    });
 });

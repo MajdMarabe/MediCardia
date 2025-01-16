@@ -75,7 +75,7 @@ module.exports.getDoctorsForPatient =  asyncHandler(async (req, res) => {
     const { patientId } = req.params;
 
     const relations = await DoctorPatientRelation.find({ patientId, isActive: true })
-        .populate('doctorId', 'fullName email specialization image');
+        .populate('doctorId', 'fullName email about workplace numberOfPatients numberOfReviews averageRating specialization image');
 
     res.status(200).json(relations);
 });

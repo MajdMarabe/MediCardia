@@ -39,7 +39,10 @@ const {
     updateProfile,
     getBloodDonationDates,
     addBloodDonationDate,
-    getCounts
+    getCounts,
+    getPatientStatistics,
+    updateUserbyAdmin,
+    AddUserByAdmin
     
 } = require("../controllers/userController");
 
@@ -93,5 +96,8 @@ router.post("/addTreatmentPlan",addTreatmentPlan);
 //router.post('/verifyCode', verifyCodeAndResetPassword);
 //router.patch("/verifyCode", passwordReset);
 router.get("/stats/count",getCounts);
+router.get("/stats/patients",getPatientStatistics);
+router.put("/admin/update/:userid", updateUserbyAdmin);
+router.post("/addUser/admin",AddUserByAdmin);
 
 module.exports = router;

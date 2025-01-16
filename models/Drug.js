@@ -41,6 +41,11 @@ function validateDrug (obj) {
     const schema = joi.object({
         Drugname: joi.string().min(3).max(250).required(),
         Barcode: joi.string().min(3).max(250).required(),
+        Use: joi.string().min(3).max(250).required(),
+        Dose: joi.string().min(3).max(250).required(),
+        Time: joi.string().min(3).max(250).required(),
+        Notes: joi.string().min(3).max(250).required(),
+
     });
     return schema.validate(obj);
 }

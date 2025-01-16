@@ -61,14 +61,15 @@ const UserSchema = new mongoose.Schema({
             gender: { type: String, enum: ['Male', 'Female'], trim: true, default: null }, 
             age: { type: Number, default: null }, 
             bloodType: { type: String,enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],trim: true, default: null },
-            chronicConditions: { type: [String], trim: true, default: [] }, 
+            chronicConditions: { type: [String],enum: ['Diabetes', 'Blood Pressure', 'Asthma', 'Cancer', 'Kidney Failure'], trim: true, default: [] }, 
             allergies: { type: [String], trim: true, default: [] },
             BloodDonationDate: [{
             lastBloodDonationDate: { type: Date, default: null },
             },
             ],
            DonationDateForCheck: { type: Date, default: null },
-
+         
+           
 
             phoneNumber: { type: String, trim: true, default: null },
           /*  Drugs:[
@@ -80,10 +81,10 @@ const UserSchema = new mongoose.Schema({
 
             Drugs: [
                 { 
-                    drug: { type: mongoose.Schema.Types.ObjectId, ref: "Drug" }, // الربط مع جدول الأدوية
-                   isPermanent: { type: Boolean, default: false }, // دائم أم مؤقت
-                usageStartDate: { type: Date, default: null }, // تاريخ البدء
-                    usageEndDate: { type: Date, default: null } // تاريخ الانتهاء (للأدوية المؤقتة)
+                    drug: { type: mongoose.Schema.Types.ObjectId, ref: "Drug" },
+                   isPermanent: { type: Boolean, default: false }, 
+                usageStartDate: { type: Date, default: null }, 
+                    usageEndDate: { type: Date, default: null } 
                 },
             ],
              //{ type: [String], trim: true, default: [] },

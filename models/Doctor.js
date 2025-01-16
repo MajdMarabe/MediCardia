@@ -37,6 +37,19 @@ const DoctorSchema = new mongoose.Schema({
     specialization: {
         type: String,
         required: function() { return this.role === 'doctor'; }, 
+        enum: [
+            "General",
+            "Plastic Surgery",
+            "Eye",
+            "Nose",
+            "Dentistry",
+            "Cardiology",
+            "Endocrinology",
+            "Nephrology",
+            "Psychiatry",
+            "Gynecology",
+            "Pediatrics",
+          ],
         trim: true,
     },
     licenseNumber: {
@@ -131,6 +144,7 @@ function validateUpdateDoctor(obj) {
         workplaceName: joi.string().trim(),
         workplaceAddress: joi.string().trim(),
         image: joi.string().optional() ,
+        
 about:joi.string().optional(),
     });
     return schema.validate(obj);

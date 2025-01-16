@@ -108,7 +108,7 @@ module.exports.getTopRatedDoctors = asyncHandler(async (req, res) => {
         const topDoctors = await Doctor.find()
             .sort({ averageRating: -1 }) // Sort by averageRating descending
             .limit(5) // Limit to top 5 doctors
-            .select('fullName image phone specialization workplace numberOfPatients averageRating numberOfReviews'); // Select required fields
+            .select('fullName image phone about specialization workplace numberOfPatients averageRating numberOfReviews'); // Select required fields
 
         // Check if doctors are found
         if (!topDoctors.length) {
@@ -121,6 +121,7 @@ module.exports.getTopRatedDoctors = asyncHandler(async (req, res) => {
             data: topDoctors.map((doctor) => ({
                 id: doctor._id,
                 name: doctor.fullName,
+                about: doctor.about,
                 speciality: doctor.specialization,
                 image: doctor.image,
                 averageRating: doctor.averageRating,

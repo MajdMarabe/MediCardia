@@ -88,21 +88,32 @@ module.exports.addDrug = asyncHandler(async (req, res) => {
  */
 module.exports.getAllDrugs = asyncHandler(async (req, res) => {
   try {
-    // Fetch all drugs from the database
-    const drugs = await Drug.find();
+    // تحديد الصفحة وعدد العناصر في الصفحة
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-    // Check if no drugs are found
+    // جلب الأدوية مع الـ Pagination
+    const drugs = await Drug.find().skip(skip).limit(limit);
+    const drugnum = await Drug.countDocuments();
     if (!drugs || drugs.length === 0) {
       return res.status(404).json({ message: "No drugs found" });
     }
 
-    // Return the list of drugs
-    res.status(200).json({ drugs });
+    // إرجاع البيانات مع المعلومات الخاصة بالصفحات
+    const totalDrugs = await Drug.countDocuments();
+    res.status(200).json({
+      drugnum,
+      drugs,
+      currentPage: page,
+      totalPages: Math.ceil(totalDrugs / limit),
+    });
   } catch (err) {
-    console.error(err); // Log the error message
+    console.error(err);
     res.status(500).json({ message: "Error fetching drugs" });
   }
 });
+
 /**
  * @desc Update a drug by ID
  * @route /api/drugs/:id
@@ -138,6 +149,31 @@ module.exports.updateDrug = asyncHandler(async (req, res) => {
   } catch (err) {
     console.error(err); // Log the error message
     res.status(500).json({ message: "Error updating the drug" });
+  }
+});
+/**
+ * @desc Delete a drug by ID
+ * @route /api/drugs/:id
+ * @method DELETE
+ * @access public
+ */
+module.exports.deleteDrug = asyncHandler(async (req, res) => {
+  const { id } = req.params; // Get the drug ID from the URL parameter
+
+  try {
+    // Find and delete the drug by ID
+    let drug = await Drug.findByIdAndDelete(id);
+
+    // Check if the drug exists
+    if (!drug) {
+      return res.status(404).json({ message: "Drug not found" });
+    }
+
+    // Return a success message
+    res.status(200).json({ message: "Drug deleted successfully" });
+  } catch (err) {
+    console.error(err); // Log the error message
+    res.status(500).json({ message: "Error deleting the drug" });
   }
 });
 

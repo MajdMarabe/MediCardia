@@ -2,6 +2,8 @@ const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const bcrypt = require('bcryptjs');
 const { Doctor, validateCreateDoctor ,validateUpdateDoctor} = require('../models/Doctor');
+const DoctorSchedule = require('../models/DoctorSchedule');
+
 const sendEmail = require("../middlewares/email");
 /**
  * @desc Register a new admin
@@ -363,4 +365,315 @@ if (user) {
   res.status(404).json({ message: "Doctor not found" });
 }
 });
+//////////admin
+/**
+ * @desc Search for doctors by name and get their statistics
+ * @route /api/doctors/admin
+ * @method GET
+ * @access private (requires authentication)
+ */
+module.exports.searchDoctors = asyncHandler(async (req, res, next) => {
+    try {
+        const { name } = req.query;
 
+        // Validate that name is provided
+        if (!name) {
+            return res.status(400).json({ message: "Name query parameter is required" });
+        }
+
+        // Search for doctors with names that match or partially match the query
+        const doctors = await Doctor.find({
+            fullName: { $regex: name, $options: 'i' } // Case-insensitive search
+        }).select('fullName numberOfPatients averageRating numberOfReviews');
+
+        // Return the matching doctors with their statistics
+        res.status(200).json({
+            message: "Doctors fetched successfully",
+            doctors,
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+/**
+ * @desc Get statistics for a specific doctor by ID
+ * @route /api/doctors/:id/stats
+ * @method GET
+ * @access private (requires authentication)
+ */
+module.exports.getDoctorStatsById = asyncHandler(async (req, res, next) => {
+    try {
+        const { doctorid } = req.params; // Get the doctor's ID from the URL parameter
+        const { startDate, endDate } = req.query; // Get startDate and endDate from query parameters
+
+        // Validate if the ID is provided
+        if (!doctorid) {
+            return res.status(400).json({ message: "Doctor ID is required" });
+        }
+
+        // Find the doctor by ID
+        const doctor = await Doctor.findById(doctorid);
+
+        // Check if the doctor exists
+        if (!doctor) {
+            return res.status(404).json({ message: "Doctor not found" });
+        }
+
+        // Build the filter for appointments if startDate and endDate are provided
+        let appointmentFilter = {};
+        if (startDate && endDate) {
+            appointmentFilter = {
+                date: {
+                    $gte: new Date(startDate),
+                    $lte: new Date(endDate),
+                },
+            };
+        }
+
+        // Count booked and available slots based on the filter
+        const schedules = await DoctorSchedule.find({ doctorId: doctorid });
+
+        let bookedSlots = 0;
+        let availableSlots = 0;
+        let appointmentCount = 0;
+
+        schedules.forEach(schedule => {
+            schedule.slots.forEach(slot => {
+                // If a time frame is specified, filter by it
+                if (appointmentFilter.date) {
+                    // Assuming you have a property 'date' in the slot or schedule
+                    if (new Date(slot.date) >= new Date(startDate) && new Date(slot.date) <= new Date(endDate)) {
+                        if (slot.status === 'booked') {
+                            bookedSlots++;
+                        } else {
+                            availableSlots++;
+                        }
+                    }
+                } else {
+                    // If no time frame, count all slots
+                    if (slot.status === 'booked') {
+                        bookedSlots++;
+                    } else {
+                        availableSlots++;
+                    }
+                }
+            });
+        });
+
+        // Calculate the statistics
+        const doctorStats = {
+            patientCount: doctor.numberOfPatients,
+            appointmentCount: bookedSlots, // Total booked slots
+            availableSlotsCount: availableSlots, // Total available slots
+            averageRating: doctor.averageRating,
+            numberOfReviews: doctor.numberOfReviews,
+            specialization: doctor.specialization,
+        };
+
+        // Return the doctor's statistics
+        res.status(200).json({
+            message: "Doctor statistics fetched successfully",
+            statistics: doctorStats,
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/////////admin
+/**
+ * @desc Get the number of doctors by specialization within a date range
+ * @route /api/doctors/stats/count
+ * @method GET
+ * @access public
+ */
+module.exports.getDoctorCountsBySpecialization = asyncHandler(async (req, res) => {
+    try {
+        // Get startDate and endDate from query params
+        const { startDate, endDate } = req.query;
+
+        // Convert the dates from string to Date object
+        const start = startDate ? new Date(startDate) : new Date(0); // Default to 1970-01-01 if no start date
+        const end = endDate ? new Date(endDate) : new Date(); // Default to the current date if no end date
+
+        // Aggregate doctor counts by specialization within the given date range
+        const doctorCounts = await Doctor.aggregate([
+            {
+                $match: {
+                    role: 'doctor',
+                    createdAt: { $gte: start, $lte: end } // Filter by created date within range
+                }
+            },
+            {
+                $group: {
+                    _id: "$specialization", // Group by specialization
+                    count: { $sum: 1 } // Count the number of doctors in each specialization
+                }
+            },
+            {
+                $project: {
+                    specialization: "$_id", // Rename _id to specialization
+                    count: 1,
+                    _id: 0 // Remove _id from the output
+                }
+            }
+        ]);
+
+        // Send the response with the counts for each specialization
+        res.status(200).json(doctorCounts);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Error fetching doctor counts by specialization" });
+    }
+});
+
+/**
+ * @desc Delete a user
+ * @route /api/doctors/:id
+ * @method DELETE
+ * @access public
+ */
+
+module.exports.deleteDoctorById=asyncHandler(async(req,res)=>{ 
+    console.log(req.params.id);
+       
+            const user= await Doctor.findByIdAndDelete(req.params.id) ;
+            
+            if(user){
+            res.status(200).json({ message:"user has been deleted"});
+        }
+        else{
+            res.status(404).json({ message:"user not found"});
+        }
+        });
+        
+/**
+ * @desc Update doctpr by Admin
+ * @route PUT /api/users/admin/update/:userid
+ * @method PUT
+ * @access Private (requires authentication)
+ */
+module.exports.updateDoctorbyAdmin = asyncHandler(async (req, res) => {
+    const { fullName, email, phone, password,specialization,licenseNumber,workplacename,workplaceadress } = req.body;
+///console.log(image);
+    const user = await Doctor.findById(req.params.userid);
+
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
+    if (email && email !== user.email) {
+        const emailExists = await Doctor.findOne({ email });
+        if (emailExists) {
+            return res.status(400).json({ message: "This email is already registered" });
+        }
+    }
+    if (licenseNumber && licenseNumber !== user.licenseNumber) {
+        const licenseNumberExists = await Doctor.findOne({ licenseNumber });
+        if (licenseNumberExists) {
+            return res.status(400).json({ message: "This licenseNumber is already registered" });
+        }
+    }
+
+    if (phone && phone !== user.phone) {
+        const phoneNumberExists = await Doctor.findOne({
+            "phone": phone,
+        });
+        if (phoneNumberExists) {
+            return res.status(400).json({ message: "This phone number is already registered" });
+        }
+    }
+    const hashedPassword = await bcrypt.hash(req.body.password_hash, salt);
+
+    if (fullName) user.fullName = fullName;
+    if (email) user.email = email;
+    if (phone) user.phone = phone;
+    if (workplacename) user.workplace.name = workplacename;
+    if (workplacename) user.workplace.address = workplaceadress;
+    if (specialization) user.specialization = specialization;
+    if (licenseNumber) user.licenseNumber = licenseNumber;
+
+    if (password) user.password_hash = hashedPassword;
+
+    try {
+        await user.save();
+
+        res.status(200).json({
+            message: "User profile updated successfully",
+            user: {
+                username: user.fullName,
+                email: user.email,
+                phone: user.phone ,
+                password_hash :user.password_hash ,
+                workplacename:user.workplace.name,
+                workplaceadress : user.workplace.address ,
+               specialization:user.specialization ,
+                licenseNumber: user.licenseNumber ,
+            
+            },
+        });
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        res.status(500).json({ message: "There was an error updating the profile." });
+    }
+});
+
+
+/**
+ * @desc add a new doctor by admin
+ * @route /api/doctors/addDoctor/admin
+ * @method POST
+ * @access public
+ */
+module.exports.AddDoctorByAdmin = asyncHandler(async (req, res, next) => {
+    const { error } = validateCreateDoctor(req.body);
+    console.log(req.body);
+    if (error) {
+        return res.status(400).json({ message: error.details[0].message });
+    }
+
+    let doctor = await Doctor.findOne({ email: req.body.email });
+    if (doctor) {
+        return res.status(400).json({ message: "This email is already registered" });
+    }
+
+    doctor = await Doctor.findOne({ licenseNumber: req.body.licenseNumber });
+    if (doctor) {
+        return res.status(400).json({ message: "This license number is already registered" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(req.body.password_hash, salt);
+
+    doctor = new Doctor({
+        fullName: req.body.fullName,
+        email: req.body.email,
+        password_hash: hashedPassword,
+        phone: req.body.phone,
+        specialization: req.body.specialization,
+        licenseNumber: req.body.licenseNumber,
+        workplace: {
+            name: req.body.workplaceName,
+            address: req.body.workplaceAddress || '',
+        },
+    });
+
+    try {
+        const result = await doctor.save();
+
+      
+
+        const token = doctor.generateToken();
+
+        const { password_hash, ...other } = result._doc;
+
+        res.status(201).json({
+            ...other,
+            token,
+            message: "Doctor registered successfully."
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "There was an error registering the doctor" });
+    }
+});
