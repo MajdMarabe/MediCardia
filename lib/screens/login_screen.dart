@@ -3,6 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_3/screens/admin_home_mobile.dart';
 import 'package:flutter_application_3/screens/doctor_home.dart';
 import 'package:flutter_application_3/screens/forget_passsword_screen.dart';
 import 'package:flutter_application_3/widgets/custom_scaffold.dart';
@@ -81,11 +82,11 @@ class _SignInScreenState extends State<SignInScreen> {
             // للويب
             try {
               FirebaseMessaging messaging = FirebaseMessaging.instance;
-
+/*
               messaging.getToken().then((tokenFCM) {
                 print("FCM Token: $tokenFCM");
               });
-
+*/
               /* NotificationSettings settings = await FirebaseMessaging.instance.requestPermission(
       alert: true,
       badge: true,
@@ -130,7 +131,10 @@ class _SignInScreenState extends State<SignInScreen> {
 
                   return DoctorHomePage();
                 } else if(role == 'admin'){
-                  return AdminDashboard();
+                            if (!kIsWeb) {
+                            return AdminDashboard1();
+                            }else {
+                  return AdminDashboard();}
 
                 }
                 else {

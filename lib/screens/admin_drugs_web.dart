@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_3/screens/admin_home.dart';
 import 'package:flutter_application_3/screens/constants.dart';
+import 'package:flutter_application_3/screens/statistics.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 
 class ManageDrugsPage extends StatefulWidget {
@@ -12,7 +15,7 @@ class ManageDrugsPage extends StatefulWidget {
 
 class _ManageDrugsPageState extends State<ManageDrugsPage> {
   List<Map<String, dynamic>> drugs = [];
-
+int number =0;
   @override
   void initState() {
     super.initState();
@@ -27,6 +30,7 @@ class _ManageDrugsPageState extends State<ManageDrugsPage> {
       if (response.statusCode == 200) {
         final List<dynamic> drugList = json.decode(response.body)['drugs'];
         setState(() {
+          number=json.decode(response.body)['drugnum'];
           drugs = drugList.map((drug) {
             final details = drug['details'][0];
             return {
@@ -101,130 +105,121 @@ class _ManageDrugsPageState extends State<ManageDrugsPage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF2F5FF),
-      appBar: AppBar(
-        title: const Text(
-          'Drug Management',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        centerTitle: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(35),
-          ),
-        ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xff9C27B0), Color(0xff6A1B9A)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final double pageWidth = constraints.maxWidth > 600 ? 1000 : double.infinity;
-          return Center(
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Row(
+      children: [
+        Sidebar(),
+        Expanded(
+          child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: pageWidth),
-                child: drugs.isEmpty
-                    ? const Center(child: CircularProgressIndicator())
-                    : ListView.builder(
-                        itemCount: drugs.length,
-                        itemBuilder: (context, index) {
-                          final drug = drugs[index];
-                          return Card(
-                            color: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                            elevation: 3,
-                            margin: const EdgeInsets.symmetric(vertical: 5.0),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                              leading: const CircleAvatar(
-                                radius: 30,
-                                backgroundColor: Color(0xff613089),
-                                child: Icon(
-                                  Icons.medical_services,
-                                  size: 30,
-                                  color: Colors.white,
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Manage Drugs",
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                      InfoCard(
+
+                        title: "Drugs Number",
+              value: number.toString() ,
+              icon: FontAwesomeIcons.userMd,
+              iconColor: Colors.orange,
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          _showAddDrugDialog(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xff6A1B9A),
+                          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+                        ),
+                        child: const Text("Add New Drug"),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  drugs.isEmpty
+                      ? const Center(child: CircularProgressIndicator())
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: drugs.length,
+                          itemBuilder: (context, index) {
+                            final drug = drugs[index];
+                            return Card(
+                              color: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              elevation: 3,
+                              margin: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.all(16.0),
+                                leading: const CircleAvatar(
+                                  backgroundColor: Color(0xff613089),
+                                  child: Icon(Icons.medical_services, color: Colors.white),
+                                ),
+                                title: Text(
+                                  drug['name'],
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  'Barcode: ${drug['barcode']}',
+                                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                                ),
+                                trailing: PopupMenuButton<String>(
+                                
+                                  icon: const Icon(Icons.more_vert, color: Color(0xff6A1B9A)),
+                                  onSelected: (value) {
+                                    if (value == 'Edit') {
+                                      _showEditDrugDialog(context, drug, index);
+                                    } else if (value == 'Delete') {
+                                      _deleteDrug(drug['id'], index);
+                                    }else if (value == 'Details') {
+                                      _showDrugDetailsDialog(context, drug);
+                                    }
+                                  },
+
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(
+                                      value: 'Edit',
+                                      child: Text('Edit'),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'Delete',
+                                      child: Text('Delete'),
+                                    ),
+                                      const PopupMenuItem(
+                                      value: 'Details',
+                                      child: Text('Details'),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              title: Text(
-                                drug['name'],
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black),
-                              ),
-                              subtitle: Text(
-                                'Barcode: ${drug['barcode']}',
-                                style: const TextStyle(fontSize: 14, color: Colors.grey),
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.info_outline, color: Color(0xff6A1B9A)),
-                                    onPressed: () {
-                                      _showDrugDetailsDialog(context, drug);
-                                    },
-                                  ),
-                                  PopupMenuButton<String>(
-                                    icon: const Icon(Icons.more_vert, color: Color(0xff6A1B9A)),
-                                    onSelected: (value) {
-                                      if (value == 'Edit') {
-                                        _showEditDrugDialog(context, drug, index);
-                                      } else if (value == 'Delete') {
-                                        _deleteDrug(drug['id'], index);
-                                      }
-                                    },
-                                    itemBuilder: (context) => [
-                                      const PopupMenuItem(
-                                        value: 'Edit',
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.edit, color: Color(0xff6A1B9A)),
-                                            SizedBox(width: 8),
-                                            Text('Edit'),
-                                          ],
-                                        ),
-                                      ),
-                                      const PopupMenuItem(
-                                        value: 'Delete',
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.delete, color: Color(0xff6A1B9A)),
-                                            SizedBox(width: 8),
-                                            Text('Delete'),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                            );
+                          },
+                        ),
+                ],
               ),
             ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xff6A1B9A),
-        onPressed: () {
-          _showAddDrugDialog(context);
-        },
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
+          ),
+        ),
+        //SidePanel(onDateRangeSelected: (startDate, endDate) {}),
+      ],
+    ),
+  );
+}
+
 
   void _showDrugDetailsDialog(BuildContext context, Map<String, dynamic> drug) {
     showDialog(

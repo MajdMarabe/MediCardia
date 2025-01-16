@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/screens/admin_doctor.dart';
+import 'package:flutter_application_3/screens/admin_home.dart';
 import 'package:flutter_application_3/screens/constants.dart';
 import 'package:flutter_application_3/screens/patient_admin_web.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -12,17 +13,19 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'statistics.dart';
 import 'manage_accounts_web.dart';
+import 'package:flutter_application_3/screens/admin_home.dart';
+
 import 'admin_drugs_web.dart';
 import 'admin_hospitals.dart';//AdminDashboard
 
 import 'package:http/http.dart' as http;
 
-class AdminDashboard extends StatefulWidget {
+class PatientDashboard extends StatefulWidget {
   @override
   _AdminDashboardPageState createState() => _AdminDashboardPageState();
 }
 
-class _AdminDashboardPageState extends State<AdminDashboard> {
+class _AdminDashboardPageState extends State<PatientDashboard> {
   Map<String, dynamic>? statistics;
   bool isLoading = true;
 
@@ -35,7 +38,7 @@ class _AdminDashboardPageState extends State<AdminDashboard> {
   Future<void> fetchStatistics({required String startDate, required String endDate}) async {
     try {
       final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/users/stats/count?startDate=$startDate&endDate=$endDate'),
+        Uri.parse('${ApiConstants.baseUrl}/users/stats/patients?startDate=$startDate&endDate=$endDate'),
       );
       if (response.statusCode == 200) {
         setState(() {
@@ -80,7 +83,8 @@ class _AdminDashboardPageState extends State<AdminDashboard> {
                     isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : StatsCards(statistics: statistics!),
-                   
+                    SizedBox(height: 16),
+                 
                   ],
                 ),
               ),
@@ -94,6 +98,8 @@ class _AdminDashboardPageState extends State<AdminDashboard> {
     );
   }
 }
+
+
 
 
 class Sidebar extends StatelessWidget {
@@ -116,7 +122,7 @@ class Sidebar extends StatelessWidget {
                 SizedBox(height: 10),
                 Image.asset(
                   'assets/images/appLogo.png',
-                  height: 70,
+                  height: 70, 
                        width: 70,
                 color: const Color(0xff613089),
                 ),
@@ -124,7 +130,7 @@ class Sidebar extends StatelessWidget {
             ),
           ),
           ListTile(
-            leading: Icon(Icons.dashboard_customize, color: Colors.purple), 
+            leading: Icon(Icons.dashboard_customize, color: Colors.purple),
             title: Text("Dashboard"),
             onTap: () {
               Navigator.push(
@@ -181,6 +187,7 @@ class Sidebar extends StatelessWidget {
 }
 
 
+
 class StatsCards extends StatelessWidget {
   final Map<String, dynamic> statistics;
 
@@ -196,17 +203,17 @@ class StatsCards extends StatelessWidget {
           children: [
             InfoCard(
               title: "Total Patients",
-              value: statistics['userCount'].toString() ?? '0',
+              value: statistics['totalPatients'].toString() ?? '0',
               icon: Icons.people,
               iconColor: Colors.blue,
             ),
             InfoCard(
-              title: "Registered Doctors",
-              value: statistics['doctorCount'].toString() ?? '0',
+              title: "allergiesCount",
+              value: statistics['allergiesCount'].toString() ?? '0',
               icon: FontAwesomeIcons.userMd,
               iconColor: Colors.orange,
             ),
-            InfoCard(
+           /* InfoCard(
               title: "Blood Donations",
               value: statistics['DonationRequestcount'].toString() ?? '0',
               icon: Icons.bloodtype,
@@ -217,31 +224,173 @@ class StatsCards extends StatelessWidget {
               value: statistics['Appointmentcount'].toString() ?? '0',
               icon: FontAwesomeIcons.calendarAlt,
               iconColor: Colors.purple,
-            ),
+            ),*/
           ],
         ),
         const SizedBox(height: 25), 
         SizedBox(
           height: 300,
-          child: BloodTypeChart(
-            bloodTypeData: statistics['bloodTypeDistribution'],
+          child: GenderChart(
+            bloodTypeData: statistics['genderDistribution'],
           ),
         ),
         SizedBox(height: 20), 
         SizedBox(
           height: 200,
-          child: FeatureUsageChart(statistics: statistics),
+          child: ChronicConditionsChart(statistics: statistics),
+        ),
+        SizedBox(height: 20), 
+        SizedBox(
+          height: 200,
+          child: AgeDistributionBarChart(statistics: statistics),
         ),
       ],
     );
   }
 }
+class ChronicConditionsChart extends StatelessWidget {
+  final Map<String, dynamic> statistics; 
+
+  const ChronicConditionsChart({
+    Key? key,
+    required this.statistics,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final chronicConditions = statistics['chronicConditionsDistribution'] as List<dynamic>? ?? [];
+    final dataSource = chronicConditions.map((condition) {
+      return FeatureUsageData(
+        condition['_id'] as String, 
+        condition['count'] as int, 
+        _generateColor(condition['_id'] as String), 
+      );
+    }).toList();
+
+    return SizedBox(
+      height: 300,
+      width: double.infinity,
+      child: SfCartesianChart(
+        title: ChartTitle(text: 'Chronic Conditions Distribution'),
+        primaryXAxis: CategoryAxis(
+          labelRotation: 45,
+        ),
+        series: <ChartSeries>[
+          ColumnSeries<FeatureUsageData, String>(
+            dataSource: dataSource,
+            xValueMapper: (FeatureUsageData data, _) => data.feature,
+            yValueMapper: (FeatureUsageData data, _) => data.usagePercentage,
+            pointColorMapper: (FeatureUsageData data, _) => data.color,
+            dataLabelSettings: const DataLabelSettings(
+              isVisible: true,
+              labelAlignment: ChartDataLabelAlignment.outer,
+              textStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+            spacing: 0.5,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _generateColor(String condition) {
+    final colors = [
+      const Color(0xff613089),
+      const Color(0xff7A429D),
+      const Color(0xff9361B2),
+      const Color(0xffAD7FC7),
+      const Color(0xffC49EDF),
+    ];
+    return colors[condition.hashCode % colors.length];
+  }
+}
+
+class AgeDistributionBarChart extends StatelessWidget {
+  final Map<String, dynamic> statistics;
+
+  const AgeDistributionBarChart({
+    Key? key,
+    required this.statistics,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final ageDistribution = statistics['ageDistribution'] as List<dynamic>? ?? [];
+    final dataSource = ageDistribution.map((ageGroup) {
+      return AgeDistributionData(
+        ageGroup['_id'] as String, 
+        ageGroup['count'] as int,
+      );
+    }).toList();
+
+    return SizedBox(
+      height: 300,
+      width: double.infinity,
+      child: SfCartesianChart(
+        title: ChartTitle(text: 'Age Distribution'),
+        primaryXAxis: CategoryAxis(
+          labelRotation: 45,
+          title: AxisTitle(text: 'Age Ranges'),
+        ),
+        primaryYAxis: NumericAxis(
+          title: AxisTitle(text: 'Number of Patients'),
+        ),
+        series: <ChartSeries>[
+          ColumnSeries<AgeDistributionData, String>(
+            dataSource: dataSource,
+            xValueMapper: (AgeDistributionData data, _) => data.ageRange,
+            yValueMapper: (AgeDistributionData data, _) => data.count,
+            pointColorMapper: (AgeDistributionData data, _) => _getColorForAgeRange(data.ageRange),
+            dataLabelSettings: const DataLabelSettings(
+              isVisible: true,
+              labelAlignment: ChartDataLabelAlignment.outer,
+              textStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getColorForAgeRange(String ageRange) {
+    switch (ageRange) {
+      case '0-17':
+        return Color(0xff613089);
+      case '18-25':
+        return Color(0xff7A429D);
+      case '25-35':
+        return Color(0xff9361B2);
+      case '35-50':
+        return Color(0xffAD7FC7);
+      case '50+':
+        return Color(0xffC49EDF);
+      default:
+        return Colors.grey; 
+    }
+  } 
+}
+
+class AgeDistributionData {
+  final String ageRange;
+  final int count;
+
+  AgeDistributionData(this.ageRange, this.count);
+}
+
+class FeatureUsageData {
+  final String feature;
+  final int usagePercentage;
+  final Color color;
+
+  FeatureUsageData(this.feature, this.usagePercentage, this.color);
+}
 
 
-class BloodTypeChart extends StatelessWidget {
+
+class GenderChart extends StatelessWidget {
   final List<dynamic>? bloodTypeData;
 
-  const BloodTypeChart({Key? key, this.bloodTypeData}) : super(key: key);
+  const GenderChart({Key? key, this.bloodTypeData}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -249,28 +398,24 @@ class BloodTypeChart extends StatelessWidget {
       return const Center(child: Text("No blood type data available."));
     }
 final Map<String, Color> bloodTypeColors = {
-  'A+': const Color(0xff613089),
-  'O+': const Color(0xff7A429D),
-  'B+': const Color(0xff9361B2),
-  'AB+': const Color(0xffAD7FC7),
-  'A-': const Color(0xffC79EDC),
-  'O-': const Color(0xff8E44AD), 
-  'B-': const Color.fromARGB(255, 56, 21, 69),
-  'AB-': const Color.fromARGB(255, 131, 27, 147),
+  'Male': const Color(0xff613089),
+
+  'Female': const Color(0xffAD7FC7),
+
 };
 
 final chartData = bloodTypeData!
     .map((data) {
-      final bloodType = data['bloodType'];
-      final percentage = data['percentage'];
-      final color = bloodTypeColors[bloodType] ?? const Color(0xff000000); 
-      return BloodTypeData(bloodType, percentage, color);
+      final Gender = data['_id'];
+      final percentage = data['count'];
+      final color = bloodTypeColors[Gender] ?? const Color(0xff000000); 
+      return GenderData(Gender, percentage, color);
     })
     .toList();
 
 
     return SfCircularChart(
-      title: ChartTitle(text: 'Blood Type Distribution'),
+      title: ChartTitle(text: 'Gender Distribution'),
       legend: Legend(
         isVisible: true,
         position: LegendPosition.right,
@@ -278,11 +423,11 @@ final chartData = bloodTypeData!
         alignment: ChartAlignment.center,
       ),
       series: <CircularSeries>[
-        DoughnutSeries<BloodTypeData, String>(
+        DoughnutSeries<GenderData, String>(
           dataSource: chartData,
-          xValueMapper: (BloodTypeData data, _) => data.bloodType,
-          yValueMapper: (BloodTypeData data, _) => data.percentage,
-          pointColorMapper: (BloodTypeData data, _) => data.color,
+          xValueMapper: (GenderData data, _) => data.Gender,
+          yValueMapper: (GenderData data, _) => data.percentage,
+          pointColorMapper: (GenderData data, _) => data.color,
           innerRadius: '60%',
           dataLabelSettings: const DataLabelSettings(isVisible: false),
         ),
@@ -291,12 +436,12 @@ final chartData = bloodTypeData!
   }
 }
 
-class BloodTypeData {
-  final String bloodType;
+class GenderData {
+  final String Gender;
   final double percentage;
   final Color color;
 
-  BloodTypeData(this.bloodType, this.percentage, this.color);
+  GenderData(this.Gender, this.percentage, this.color);
 }
 
 class StatCard extends StatelessWidget {
@@ -338,6 +483,7 @@ class StatCard extends StatelessWidget {
   }
 }
 
+
 class SidePanel extends StatelessWidget {
   final Function(String startDate, String endDate) onDateRangeSelected;
 
@@ -350,7 +496,7 @@ class SidePanel extends StatelessWidget {
       color:const Color.fromARGB(255, 233, 218, 239),
       child: Column(
         children: [
-          CalendarWidget(onDateRangeSelected: onDateRangeSelected), 
+          CalendarWidget(onDateRangeSelected: onDateRangeSelected), // Pass the callback
           Expanded(
             child: ListView(
               children: [
@@ -451,7 +597,7 @@ Widget build(BuildContext context) {
         SizedBox(height: 16), 
         ElevatedButton(
           onPressed: () {
-            widget.onDateRangeSelected('', ''); 
+            widget.onDateRangeSelected('', '');
           },
             style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xff613089),

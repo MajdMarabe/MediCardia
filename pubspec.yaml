@@ -68,6 +68,7 @@ dependencies:
   flutter_map: ^7.0.2
   latlong2: 0.9.1
   geocoding: ^2.0.0
+  syncfusion_flutter_datagrid: ^20.4.54
 
 dev_dependencies:
   flutter_test:
