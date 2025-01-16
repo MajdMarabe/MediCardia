@@ -39,7 +39,7 @@ class _DoctorCalendarPageState extends State<DoctorCalendarPage> {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          "Calender",
+          "Calendar",
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: Color(0xff613089),
@@ -59,13 +59,11 @@ class _DoctorCalendarPageState extends State<DoctorCalendarPage> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           double screenWidth = constraints.maxWidth;
-
-
           double pageWidth = screenWidth > 800 ? 900 : screenWidth * 1;
 
           return Center(
             child: SizedBox(
-              width: pageWidth,  
+              width: pageWidth,
               child: Column(
                 children: [
                   _buildCalendar(),
@@ -81,73 +79,104 @@ class _DoctorCalendarPageState extends State<DoctorCalendarPage> {
     );
   }
 
-Widget _buildCalendar() {
-  return Container(
-    margin: const EdgeInsets.all(15),
-    padding: const EdgeInsets.all(10),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(15),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.1),
-          blurRadius: 10,
-          spreadRadius: 2,
+  bool isPastEvent(DateTime selectedDate) {
+    var now = DateTime.now();
+    return selectedDate.isBefore(now);
+  }
+
+  Widget _buildCalendar() {
+    return Container(
+      margin: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: TableCalendar(
+        firstDay: DateTime.utc(2020, 1, 1),
+        lastDay: DateTime.utc(2030, 12, 31),
+        focusedDay: _focusedDay,
+        selectedDayPredicate: (day) {
+          return isSameDay(_selectedDay, day);
+        },
+        onDaySelected: (selectedDay, focusedDay) {
+          setState(() {
+            _selectedDay = selectedDay;
+            _focusedDay = focusedDay;
+            _fetchBookedSlots();
+          });
+        },
+        eventLoader: (day) {
+          return _events.where((event) {
+            if (event['date'] == null || event['date'] is! String) {
+              return false;
+            }
+            try {
+              DateTime eventDate = DateFormat('yyyy-MM-dd').parse(event['date']);
+              return isSameDay(eventDate, day);
+            } catch (e) {
+              return false;
+            }
+          }).toList();
+        },
+        calendarStyle: const CalendarStyle(
+          selectedDecoration: BoxDecoration(
+            color: Color(0xff613089),
+            shape: BoxShape.circle,
+          ),
+          todayDecoration: BoxDecoration(
+            color: Colors.orange,
+            shape: BoxShape.circle,
+          ),
+          markerDecoration: BoxDecoration(
+            color: Colors.green, 
+            shape: BoxShape.circle,
+          ),
+          markersMaxCount: 3, 
         ),
-      ],
-    ),
-    child: TableCalendar(
-      firstDay: DateTime.utc(2020, 1, 1),
-      lastDay: DateTime.utc(2030, 12, 31),
-      focusedDay: _focusedDay,
-      selectedDayPredicate: (day) {
-        return isSameDay(_selectedDay, day);
-      },
-      onDaySelected: (selectedDay, focusedDay) {
-        setState(() {
-          _selectedDay = selectedDay;
-          _focusedDay = focusedDay;
-          _fetchBookedSlots();
-        });
-      },
-     eventLoader: (day) {
-  return _events.where((event) {
-    if (event['date'] == null || event['date'] is! String) {
-      return false;
-    }
+        headerStyle: const HeaderStyle(
+          formatButtonVisible: false,
+          titleCentered: true,
+          titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
+  bool isPastEventByDayTime(DateTime selectedDay, String eventTime) {
+    var now = DateTime.now();
+    if (eventTime.isEmpty) return false;
+
     try {
-      DateTime eventDate = DateFormat('yyyy-MM-dd').parse(event['date']);
-      return isSameDay(eventDate, day);
+      var eventTimeParsed = DateFormat("HH:mm").parse(eventTime);
+      var eventDateTime = DateTime(
+        selectedDay.year, 
+        selectedDay.month, 
+        selectedDay.day, 
+        eventTimeParsed.hour, 
+        eventTimeParsed.minute,
+      );
+      return eventDateTime.isBefore(now);
     } catch (e) {
       return false;
     }
-  }).toList();
-},
-calendarStyle: const CalendarStyle(
-  selectedDecoration: BoxDecoration(
-    color: Color(0xff613089),
-    shape: BoxShape.circle,
-  ),
-  todayDecoration: BoxDecoration(
-    color: Colors.orange,
-    shape: BoxShape.circle,
-  ),
-  markerDecoration: BoxDecoration(
-    color: Colors.green, 
-    shape: BoxShape.circle,
-  ),
-  markersMaxCount: 3, 
-),
+  }
 
-      headerStyle: const HeaderStyle(
-        formatButtonVisible: false,
-        titleCentered: true,
-        titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-      ),
-    ),
-  );
-}
-
+  String formatEventTime(String time) {
+    try {
+      var parsedTime = DateFormat("HH:mm").parse(time);
+      return DateFormat.jm().format(parsedTime); 
+    } catch (e) {
+      return "Invalid time";
+    }
+  }
 
   Widget _buildEventList() {
     return Container(
@@ -170,13 +199,13 @@ calendarStyle: const CalendarStyle(
           const Text(
             "Scheduled Events",
             style: TextStyle(
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Color(0xff613089),
-              letterSpacing: 1.2,
+              letterSpacing: 0.6,
             ),
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 5),
           if (_events.isEmpty)
             const Center(
               child: Text(
@@ -187,17 +216,21 @@ calendarStyle: const CalendarStyle(
           else
             Expanded(
               child: ListView.builder(
+                physics: const BouncingScrollPhysics(),
                 itemCount: _events.length,
                 itemBuilder: (context, index) {
                   final slotDetails = _events[index];
                   return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 10,
+                      horizontal: 15,
+                    ),
                     leading: CircleAvatar(
-                      backgroundColor: Colors.blueAccent.withOpacity(0.2),
-                      child: const Icon(Icons.event, color: Colors.blueAccent),
+                      backgroundColor: const Color(0xff613089).withOpacity(0.2),
+                      child: const Icon(Icons.event, color: Color(0xff613089)),
                     ),
                     title: Text(
-                      "Time: ${slotDetails['time']}",
+                      "Time: ${formatEventTime(slotDetails['time'])}",
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -208,16 +241,22 @@ calendarStyle: const CalendarStyle(
                       "Patient: ${slotDetails['patientName']}",
                       style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
-                    trailing: Icon(
-                      Icons.arrow_forward_ios,
-                      size: 18,
-                      color: Colors.grey.withOpacity(0.7),
-                    ),
-                    
+                    trailing: isPastEventByDayTime(_selectedDay!, slotDetails['time'])
+                        ? const Text(
+                            "Completed",
+                            style: TextStyle(
+                              color: Colors.green,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : IconButton(
+                            icon: const Icon(Icons.cancel, color: Colors.red),
+                            onPressed: () => _cancelEvent(index),
+                          ),
                     onTap: () {
-                        double dialogWidth = MediaQuery.of(context).size.width > 600
-      ? 600
-      : MediaQuery.of(context).size.width * 0.9;
+                      double dialogWidth = MediaQuery.of(context).size.width > 600
+                          ? 600
+                          : MediaQuery.of(context).size.width * 0.9;
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
@@ -225,15 +264,15 @@ calendarStyle: const CalendarStyle(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
                             ),
-                             child: Container(
-                               width: dialogWidth, 
+                            child: Container(
+                              width: dialogWidth, 
                               padding: const EdgeInsets.all(25),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Time: ${slotDetails['time']}",
+                                    "Time: ${formatEventTime(slotDetails['time'])}",
                                     style: const TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
@@ -250,7 +289,7 @@ calendarStyle: const CalendarStyle(
                                   ),
                                   const SizedBox(height: 10),
                                   Text(
-                                    "Notes: ${slotDetails['notes'] ?? 'No notes'}",
+                                    "Notes: ${slotDetails['notes']?.isEmpty ?? true ? 'no notes.' : slotDetails['notes']}",
                                     style: const TextStyle(
                                       fontSize: 16,
                                       color: Colors.grey,
@@ -294,6 +333,15 @@ calendarStyle: const CalendarStyle(
     );
   }
 
+  void _cancelEvent(int index) {
+    setState(() {
+      _events.removeAt(index);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Appointment canceled")),
+    );
+  }
+
   Future<void> _fetchBookedSlots() async {
     final String apiUrl = '${ApiConstants.baseUrl}/appointment/schedules/$doctorid/booked';
 
@@ -317,9 +365,6 @@ calendarStyle: const CalendarStyle(
       setState(() {
         _events = [];
       });
-     /* ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${response.body}')),
-      );*/
     }
   }
 }

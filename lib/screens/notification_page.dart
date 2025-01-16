@@ -223,7 +223,7 @@ class _NotificationPageState extends State<NotificationPage> {
                     ),
                     elevation: 4,
                     margin:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     child: ListTile(
                       contentPadding: const EdgeInsets.all(16),
                       title: Text(

@@ -179,7 +179,9 @@ Widget build(BuildContext context) {
             width: pageWidth,
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : SingleChildScrollView(
+                : ScrollConfiguration(
+                    behavior: kIsWeb ? TransparentScrollbarBehavior() : const ScrollBehavior(),
+                    child: SingleChildScrollView(
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Center(
@@ -284,6 +286,7 @@ Widget build(BuildContext context) {
                     ),
                   ),
           ),
+           ),
         );
       },
     ),
@@ -424,7 +427,7 @@ void _submitReview() async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Color(0xffF0E5FF),
+        backgroundColor: const Color(0xffF0E5FF),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -438,7 +441,6 @@ void _submitReview() async {
                 color: Color(0xFF613089),
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                fontFamily: 'CuteFont',
               ),
             ),
           ],
@@ -451,7 +453,6 @@ void _submitReview() async {
               style: TextStyle(
                 color: Color(0xFF613089),
                 fontSize: 16,
-                fontFamily: 'CuteFont',
               ),
               textAlign: TextAlign.center,
             ),
@@ -465,7 +466,7 @@ void _submitReview() async {
               Navigator.pop(context);
             },
             style: TextButton.styleFrom(
-              backgroundColor: Color(0xffF0E5FF),
+              backgroundColor: const Color(0xffF0E5FF),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -586,7 +587,7 @@ void _submitReview() async {
     // Handle network errors
     print('Error: $e');
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Network error. Please try again.')),
+      const SnackBar(content: Text('Network error. Please try again.')),
     );
   }
 }
@@ -797,5 +798,25 @@ void _submitReview() async {
         },
       ),
     );
+  }
+}
+
+
+
+//////////////////////////////
+
+class TransparentScrollbarBehavior extends ScrollBehavior {
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;  
+  }
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const AlwaysScrollableScrollPhysics(); 
   }
 }

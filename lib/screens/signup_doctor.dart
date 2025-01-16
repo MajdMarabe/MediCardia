@@ -290,7 +290,9 @@ Widget _buildWebLayout() {
 ),
 
       Center(
-        child: SingleChildScrollView(
+        child: ScrollConfiguration(
+    behavior: kIsWeb ? TransparentScrollbarBehavior() : const ScrollBehavior(),
+
           child: ConstrainedBox(
             constraints: const BoxConstraints(
               maxWidth: 450, 
@@ -611,5 +613,26 @@ GestureDetector(
         ),
       ),
     );
+  }
+}
+
+
+
+///////////////////////////
+
+
+class TransparentScrollbarBehavior extends ScrollBehavior {
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;  
+  }
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const AlwaysScrollableScrollPhysics(); 
   }
 }

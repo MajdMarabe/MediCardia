@@ -151,7 +151,6 @@ Map<String, int> ratingDistribution = {
 
   ////////////////////////////
   
-
 @override
 Widget build(BuildContext context) {
   return LayoutBuilder(
@@ -187,75 +186,79 @@ Widget build(BuildContext context) {
             width: pageWidth,
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          if (reviewCount == 0)
-                            const Center(
-                              child: Text(
-                                'No reviews available yet.',
-                                style: TextStyle(fontSize: 16, color: Colors.grey),
-                              ),
-                            )
-                          else ...[
-                            Column(
-                              children: [
-                                Text(
-                                  averageRating.toStringAsFixed(1),
-                                  style: const TextStyle(
-                                    fontSize: 48,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF613089),
-                                  ),
+                : ScrollConfiguration(
+                    behavior: kIsWeb ? TransparentScrollbarBehavior() : const ScrollBehavior(),
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (reviewCount == 0)
+                              const Center(
+                                child: Text(
+                                  'No reviews available yet.',
+                                  style: TextStyle(fontSize: 16, color: Colors.grey),
                                 ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: List.generate(
-                                    5,
-                                    (index) => Icon(
-                                      Icons.star,
-                                      color: index < averageRating.round()
-                                          ? Colors.amber
-                                          : Colors.grey,
-                                      size: 24,
+                              )
+                            else ...[
+                              Column(
+                                children: [
+                                  Text(
+                                    averageRating.toStringAsFixed(1),
+                                    style: const TextStyle(
+                                      fontSize: 48,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF613089),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'based on $reviewCount reviews',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey,
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: List.generate(
+                                      5,
+                                      (index) => Icon(
+                                        Icons.star,
+                                        color: index < averageRating.round()
+                                            ? Colors.amber
+                                            : Colors.grey,
+                                        size: 24,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'based on $reviewCount reviews',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Column(
+                                children: ratingDistribution.entries.map((entry) {
+                                  return _buildRatingBar(
+                                    entry.key,
+                                    _getRatingColor(entry.key),
+                                    entry.value.toDouble() /
+                                        (reviewCount > 0 ? reviewCount : 1),
+                                  );
+                                }).toList(),
+                              ),
+                              const SizedBox(height: 24),
+                              ...reviews.map((review) => _buildReviewCard(
+                                    imageUrl: review.image,
+                                    username: review.username,
+                                    rating: review.rating,
+                                    date: review.date,
+                                    comment: review.comment,
+                                  )),
+                            ],
                             const SizedBox(height: 16),
-                            Column(
-                              children: ratingDistribution.entries.map((entry) {
-                                return _buildRatingBar(
-                                  entry.key,
-                                  _getRatingColor(entry.key),
-                                  entry.value.toDouble() /
-                                      (reviewCount > 0 ? reviewCount : 1),
-                                );
-                              }).toList(),
-                            ),
-                            const SizedBox(height: 24),
-                            ...reviews.map((review) => _buildReviewCard(
-                                  imageUrl:  review.image,
-                                  username: review.username,
-                                  rating: review.rating,
-                                  date: review.date,
-                                  comment: review.comment,
-                                )),
                           ],
-                          const SizedBox(height: 16),
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -265,6 +268,7 @@ Widget build(BuildContext context) {
     },
   );
 }
+
 
 
 
@@ -377,3 +381,20 @@ Widget _buildReviewCard({
 
 /////////////////////////////////////////////////////////
 
+//////////////////////////////
+
+class TransparentScrollbarBehavior extends ScrollBehavior {
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;  
+  }
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const AlwaysScrollableScrollPhysics(); 
+  }
+}

@@ -17,6 +17,8 @@ class AppointmentPage extends StatefulWidget {
   _AppointmentPageState createState() => _AppointmentPageState();
 }
 
+
+
 class _AppointmentPageState extends State<AppointmentPage> {
   DateTime selectedDate = DateTime.now();
   String? selectedTime;
@@ -81,12 +83,17 @@ availableTimes = (data['slots'] as List<dynamic>)
     }
   }
 
+
+
   @override
   void initState() {
     super.initState();
 
     fetchAvailableTimes(selectedDate); // Fetch times for initial date
   }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -211,31 +218,37 @@ availableTimes = (data['slots'] as List<dynamic>)
                             ? const Center(child: CircularProgressIndicator())
                             : availableTimes.isNotEmpty
                                 ? Wrap(
-                                    spacing: 12,
-                                    runSpacing: 12,
-                                    children: availableTimes
-                                        .map(
-                                          (time) => ChoiceChip(
-                                            label: Text(time),
-                                            selected: selectedTime == time,
-                                            onSelected: (selected) {
-                                              setState(() {
-                                                selectedTime =
-                                                    selected ? time : null;
-                                              });
-                                            },
-                                            selectedColor:
+  spacing: 12,
+  runSpacing: 12,
+  children: availableTimes
+      .map(
+        (time) {
+          DateTime parsedTime = DateFormat("HH:mm").parse(time);
+          String formattedTime = DateFormat("h:mm a").format(parsedTime);  
+
+          return ChoiceChip(
+            backgroundColor: Colors.white,
+            label: Text(formattedTime),  
+            selected: selectedTime == time,
+            onSelected: (selected) {
+              setState(() {
+                selectedTime = selected ? time : null;
+              });
+            },
+             selectedColor:
                                                 const Color(0xFF613089),
                                             labelStyle: TextStyle(
                                               color: selectedTime == time
                                                   ? Colors.white
                                                   : Colors.black87,
                                               fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        )
-                                        .toList(),
-                                  )
+            ),
+          );
+        }
+      )
+      .toList(),
+)
+
                                 : const Center(
                                     child: Text(
                                       "No available times for this day.",
@@ -281,12 +294,15 @@ availableTimes = (data['slots'] as List<dynamic>)
     );
   }
 
+
+
+
+
 Future<void> bookAppointment(
   BuildContext context,
   String selectedTime,
   DateTime selectedDate,
 ) async {
-  // اسم اليوم
   String dayName = _getDayName(selectedDate);
   String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
   final String? token = await storage.read(key: 'token');
@@ -404,6 +420,7 @@ Future<void> bookAppointment(
 
 
 
+
 Future<void> _proceedToBookAppointment(
   BuildContext context,
   String selectedTime,
@@ -431,9 +448,12 @@ Future<void> _proceedToBookAppointment(
       var responseBody = jsonDecode(response.body);
       print("Booking successful: ${responseBody['message']}");
       
+      if (!mounted) return;
       showDialog(
+        
         context: context,
         builder: (context) => Dialog(
+           backgroundColor: const Color(0xffF0E5FF),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -446,7 +466,7 @@ Future<void> _proceedToBookAppointment(
                 const Icon(
                   Icons.check_circle_outline,
                   size: 50,
-                  color: Colors.green,
+                  color:Color(0xff613089),
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -454,7 +474,7 @@ Future<void> _proceedToBookAppointment(
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.green,
+                    color: Color(0xff613089),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -488,7 +508,7 @@ Future<void> _proceedToBookAppointment(
                     Navigator.pop(context);  
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    backgroundColor: const Color(0xff613089),
                     padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 35),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -507,7 +527,7 @@ Future<void> _proceedToBookAppointment(
     } else {
       var errorBody = jsonDecode(response.body);
       print("Error: ${errorBody['message']}");
-
+if (!mounted) return;
       showDialog(
         context: context,
         builder: (context) => Dialog(
@@ -564,7 +584,7 @@ Future<void> _proceedToBookAppointment(
     }
   } catch (error) {
     print("Error booking appointment: $error");
-
+if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -620,6 +640,9 @@ Future<void> _proceedToBookAppointment(
     );
   }
 }
+
+
+
 
   String _getDayName(DateTime date) {
     return [

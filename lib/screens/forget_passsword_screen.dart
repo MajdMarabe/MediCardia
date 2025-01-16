@@ -118,8 +118,8 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
           ),
           const SizedBox(height: 20.0),
           const Text(
-            'Enter your email below and we will send you instructions to reset your password.',
-            style: TextStyle(fontSize: 16.0, color: Colors.black54),
+            'Enter your email below and we will send you verification code to reset your password.',
+            style: TextStyle(fontSize: 14.0, color: Colors.black54),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 30.0),

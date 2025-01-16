@@ -60,12 +60,13 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
               'image': (doc['image']?.isNotEmpty == true)
                   ? doc['image']
                   : 'Unknown',
-              'email': doc['email'] ?? 'No email provided',
-              'phone': doc['phone'] ?? 'No phone number provided',
+              'email': doc['email'] ?? 'No email provided.',
+              'about': doc['about'] ?? 'No about provided.',
+              'phone': doc['phone'] ?? 'No phone number provided.',
               'numberOfPatients': doc['numberOfPatients'] ?? 0,
               'workplace': {
-                'name': doc['workplace']?['name'] ?? 'No workplace name',
-                'address': doc['workplace']?['address'] ?? 'No address',
+                'name': doc['workplace']?['name'] ?? 'No workplace name.',
+                'address': doc['workplace']?['address'] ?? 'No address.',
                 'notificationSettings': {
                   'messages': doc['notificationSettings']?['messages'] ?? true,
                   'requests': doc['notificationSettings']?['requests'] ?? true,
@@ -213,7 +214,9 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
                 ),
               ],
             ),
-      body: LayoutBuilder(
+        body: ScrollConfiguration(
+    behavior: kIsWeb ? TransparentScrollbarBehavior() : const ScrollBehavior(),
+        child: LayoutBuilder(
         builder: (context, constraints) {
           final double maxWidth =
               constraints.maxWidth > 600 ? 1000 : constraints.maxWidth;
@@ -261,14 +264,20 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
                     Expanded(
                       child: isLoading
                           ? const Center(child: CircularProgressIndicator())
-                          : displayedDoctors.isEmpty
-                              ? Center(child: Text("No doctors found.",
+                          : displayedDoctors
+              .where((doc) => doc['name'] != 'Sally Mah')
+              .toList()
+              .isEmpty
+          ?  Center(child: Text("No doctors found.",
                               style: TextStyle(fontSize: 16, color: Colors.grey[500])))
                               : LayoutBuilder(
                                   builder: (context, constraints) {
                                     final bool isWeb =
                                         constraints.maxWidth > 600;
                                     final int crossAxisCount = isWeb ? 3 : 2;
+                                     final filteredDoctors = displayedDoctors
+                    .where((doctor) => doctor['name'] != 'Sally Mah')
+                    .toList();
                                     return SingleChildScrollView(
                                       child: GridView.builder(
                                         physics:
@@ -281,7 +290,7 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
                                           mainAxisSpacing: 16,
                                           childAspectRatio: isWeb ? 1.4 : 0.8,
                                         ),
-                                        itemCount: displayedDoctors.length,
+                                         itemCount: filteredDoctors.length,
                                         itemBuilder: (context, index) {
                                           final doctor =
                                               displayedDoctors[index];
@@ -314,6 +323,7 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
           );
         },
       ),
+       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -754,19 +764,19 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                               value:
                                   widget.doctor['numberOfPatients'].toString(),
                               label: 'Patients',
-                              color: Colors.blue,
+                              color: const Color(0xFF613089),
                             ),
                             _buildStatCard(
                               icon: Icons.star_rate,
                               value: averageRating.toString(),
                               label: 'Ratings',
-                              color: Colors.amber,
+                              color: const Color(0xFF613089),
                             ),
                             _buildStatCard(
                               icon: Icons.reviews,
                               value: reviewCount.toString(),
                               label: 'Reviews',
-                              color: Colors.green,
+                              color: const Color(0xFF613089),
                               onTap: () {
                                 Navigator.push(
                                   context,
@@ -780,26 +790,66 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(
-                          "About",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF613089),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(
-                          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod sapien nec augue eleifend venenatis.",
-                          style: TextStyle(fontSize: 16, color: Colors.black54),
-                        ),
-                      ),
-                      const SizedBox(height: 30),
+                      if (
+    widget.doctor['workplace']['name'] !='No workplace name.' &&
+    widget.doctor['workplace']['address'] != 'No address.') 
+              Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        "Address",
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF613089),
+        ),
+      ),
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          const Icon(Icons.location_on_rounded, color: Color(0xFF613089)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              "${widget.doctor['workplace']['name']} - ${widget.doctor['workplace']['address']}",
+              style: const TextStyle(fontSize: 16, color: Colors.black54),
+            ),
+          ),
+        ],
+      ),
+    ],
+  ),
+),
+
+                       const SizedBox(height: 25),
+                 if (widget.doctor['about'] != 'No about provided.') ...[
+  const Padding(
+    padding: EdgeInsets.symmetric(horizontal: 16.0),
+    child: Text(
+      "About",
+      style: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Color(0xFF613089),
+      ),
+    ),
+  ),
+  const SizedBox(height: 8),
+  Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+    child: Text(
+      widget.doctor['about'],
+      style: const TextStyle(
+        fontSize: 18,
+        color: Colors.black54,
+      ),
+    ),
+  ),
+],
+
+  
                      
                       Center(
                         child: ElevatedButton(
@@ -838,7 +888,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                             ),
                           ),
                           child: const Text(
-                            "Set as My Doctor  ",
+                            "Set as my doctor  ",
                             style: TextStyle(fontSize: 16, color: Colors.white),
                           ),
                         ),
@@ -912,3 +962,24 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
     );
   }
 }
+
+
+
+//////////////////////////////
+
+class TransparentScrollbarBehavior extends ScrollBehavior {
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;  
+  }
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const AlwaysScrollableScrollPhysics(); 
+  }
+}
+

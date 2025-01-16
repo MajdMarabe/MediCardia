@@ -164,7 +164,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
             const SizedBox(height: 20),
             const Text(
               'Please enter your new password below.',
-              style: TextStyle(fontSize: 16.0, color: Colors.black54),
+              style: TextStyle(fontSize: 15.5, color: Colors.black54),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 40),

@@ -982,6 +982,7 @@ final TextEditingController _reasonController = TextEditingController();
           // High Priority ChoiceChip
           ChoiceChip(
             label: const Text('High'),
+            backgroundColor: Colors.white,
             selected: _selectedPriority == 'High',
             selectedColor: const Color(0xff613089), 
             onSelected: (selected) {
@@ -994,6 +995,7 @@ final TextEditingController _reasonController = TextEditingController();
           // Medium Priority ChoiceChip
           ChoiceChip(
             label: const Text('Medium'),
+            backgroundColor: Colors.white,
             selected: _selectedPriority == 'Medium',
             selectedColor: const Color(0xff613089), 
             onSelected: (selected) {
@@ -1008,6 +1010,7 @@ final TextEditingController _reasonController = TextEditingController();
           // Low Priority ChoiceChip
           ChoiceChip(
             label: const Text('Low'),
+            backgroundColor: Colors.white,
             selected: _selectedPriority == 'Low',
             selectedColor: const Color(0xff613089), // Color when selected
             onSelected: (selected) {

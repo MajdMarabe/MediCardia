@@ -413,7 +413,7 @@ Future<void> _selectDate(BuildContext context) async {
       ),
     Center(
       child: Container(
-        width: 600,
+        width: 700,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -462,13 +462,16 @@ Future<void> _selectDate(BuildContext context) async {
       ),
       body: Container(
         color: Colors.white,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+         child: ScrollConfiguration(
+    behavior: kIsWeb ? TransparentScrollbarBehavior() : const ScrollBehavior(),
+    child: SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
                 // New Container at the top of the page
                 Container(
                   padding: const EdgeInsets.all(15),
@@ -506,13 +509,16 @@ Future<void> _selectDate(BuildContext context) async {
     Text(
       'Enter your private medical information securely.',
       textAlign: TextAlign.center,
-      style: TextStyle(color: Colors.black54),
+      style: TextStyle(color: Colors.black54,
+      fontSize: 14),
+      
     ),
     SizedBox(height: 10),
     Text(
       'Your data is fully protected and cannot be accessed without your permission.',
       textAlign: TextAlign.center,
-      style: TextStyle(color: Colors.black54, fontStyle: FontStyle.italic),
+      style: TextStyle(color: Colors.black54, fontStyle: FontStyle.italic,
+      fontSize: 14),
     ),
   ],
 ),
@@ -743,6 +749,8 @@ ElevatedButton(
           ),
         ),
       ),
+       ),
+        ),
     );
   }
 
@@ -821,4 +829,23 @@ ElevatedButton(
     print('Treatment Goals: ${_treatmentGoalsController.text}');
     print('Alternative Therapies: ${_alternativeTherapiesController.text}');
   }*/
+}
+
+
+////////////////////////////
+
+class TransparentScrollbarBehavior extends ScrollBehavior {
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;  
+  }
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const AlwaysScrollableScrollPhysics(); 
+  }
 }

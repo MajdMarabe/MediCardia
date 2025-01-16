@@ -307,47 +307,50 @@ class _MedicineListPageState extends State<MedicineListPage> {
                       const SizedBox(height: 20),
 
                       // Drug Type Dropdown
-Theme(
-  data: Theme.of(context).copyWith(
-    popupMenuTheme: PopupMenuThemeData(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-    ),
-  ),
-  child: DropdownButtonFormField<String>(
-    dropdownColor: Colors.white,
-    value: _selectedDrugType,
-    items: ['Permanent', 'Temporary']
-        .map((type) => DropdownMenuItem(
-            value: type, child: Text(type)))
-        .toList(),
-    onChanged: (value) {
-      setState(() {
-        _selectedDrugType = value!;
-        _isTemporary = _selectedDrugType == 'Temporary';
-      });
-    },
-    decoration: InputDecoration(
-      labelText: 'Drug Type',
-      labelStyle: const TextStyle(color: Color(0xff613089)),
-      prefixIcon: const Icon(Icons.category, color: Color(0xff613089)),
-      contentPadding: const EdgeInsets.symmetric(
-          vertical: 16.0, horizontal: 12.0),
-      filled: true,
-      fillColor: const Color(0xFFF3F3F3),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        borderSide: const BorderSide(color: Color(0xff613089), width: 1.5),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        borderSide: const BorderSide(color: Color(0xff613089), width: 2.0),
-      ),
-    ),
-  ),
-),
-
+                      Theme(
+                        data: Theme.of(context).copyWith(
+                          popupMenuTheme: PopupMenuThemeData(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                          ),
+                        ),
+                        child: DropdownButtonFormField<String>(
+                          dropdownColor: Colors.white,
+                          value: _selectedDrugType,
+                          items: ['Permanent', 'Temporary']
+                              .map((type) => DropdownMenuItem(
+                                  value: type, child: Text(type)))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedDrugType = value!;
+                              _isTemporary = _selectedDrugType == 'Temporary';
+                            });
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'Drug Type',
+                            labelStyle:
+                                const TextStyle(color: Color(0xff613089)),
+                            prefixIcon: const Icon(Icons.category,
+                                color: Color(0xff613089)),
+                            contentPadding: const EdgeInsets.symmetric(
+                                vertical: 16.0, horizontal: 12.0),
+                            filled: true,
+                            fillColor: const Color(0xFFF3F3F3),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                              borderSide: const BorderSide(
+                                  color: Color(0xff613089), width: 1.5),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                              borderSide: const BorderSide(
+                                  color: Color(0xff613089), width: 2.0),
+                            ),
+                          ),
+                        ),
+                      ),
 
                       const SizedBox(height: 16.0),
 
@@ -591,73 +594,72 @@ Theme(
   }
 
 // Function to build search section (full width)
-Widget buildSearchSection() {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(30),
-      border: Border.all(color: const Color(0xFF6A4C9C), width: 2),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.1),
-          blurRadius: 5,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    ),
-    child: Column(
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.search, color: Color(0xFF6A4C9C), size: 28),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Autocomplete<String>(
-                optionsBuilder: (TextEditingValue textEditingValue) {
-                  if (textEditingValue.text.isEmpty) {
-                    _fetchDrugs();
-                    return const Iterable<String>.empty();
-                  }
-                  return drugs.map((drug) => drug['name'] as String).where(
-                      (name) => name
-                          .toLowerCase()
-                          .contains(textEditingValue.text.toLowerCase()));
-                },
-                onSelected: (String selectedDrug) {
-                  setState(() {
-                    searchController.text = selectedDrug;
-                    drugs = drugs
-                        .where((drug) =>
-                            drug['name']!.toLowerCase() ==
-                            selectedDrug.toLowerCase())
-                        .toList();
-                  });
-                },
-                fieldViewBuilder: (BuildContext context,
-                    TextEditingController controller,
-                    FocusNode focusNode,
-                    VoidCallback onFieldSubmitted) {
-                  searchController = controller;
-                  return TextField(
-                    controller: controller,
-                    focusNode: focusNode,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      hintText: 'Search for drugs...',
-                      hintStyle: TextStyle(color: Colors.grey),
-                    ),
-                  );
-                },
+  Widget buildSearchSection() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: const Color(0xFF6A4C9C), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.search, color: Color(0xFF6A4C9C), size: 28),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Autocomplete<String>(
+                  optionsBuilder: (TextEditingValue textEditingValue) {
+                    if (textEditingValue.text.isEmpty) {
+                      _fetchDrugs();
+                      return const Iterable<String>.empty();
+                    }
+                    return drugs.map((drug) => drug['name'] as String).where(
+                        (name) => name
+                            .toLowerCase()
+                            .contains(textEditingValue.text.toLowerCase()));
+                  },
+                  onSelected: (String selectedDrug) {
+                    setState(() {
+                      searchController.text = selectedDrug;
+                      drugs = drugs
+                          .where((drug) =>
+                              drug['name']!.toLowerCase() ==
+                              selectedDrug.toLowerCase())
+                          .toList();
+                    });
+                  },
+                  fieldViewBuilder: (BuildContext context,
+                      TextEditingController controller,
+                      FocusNode focusNode,
+                      VoidCallback onFieldSubmitted) {
+                    searchController = controller;
+                    return TextField(
+                      controller: controller,
+                      focusNode: focusNode,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'Search for drugs...',
+                        hintStyle: TextStyle(color: Colors.grey),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
-}
-
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
 //////////////////////////////
 
@@ -699,137 +701,144 @@ Widget buildSearchSection() {
                 },
               ),
             ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final double maxWidth =
-              constraints.maxWidth > 600 ? 1000 : constraints.maxWidth;
+      body: ScrollConfiguration(
+           behavior: kIsWeb ? TransparentScrollbarBehavior() : const ScrollBehavior(),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final double maxWidth =
+                constraints.maxWidth > 600 ? 1000 : constraints.maxWidth;
 
-          return Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    buildSearchSection(),
-                    const SizedBox(height: 16),
-                    // Drugs Grid Section
-                    Expanded(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          // Adjust grid layout and aspect ratio based on screen width
-                          final bool isWeb = constraints.maxWidth > 600;
-                          final int crossAxisCount =
-                              isWeb ? 3 : 2; // More items in a row for web
-                          final double childAspectRatio = isWeb
-                              ? 1.1
-                              : 0.7; // Higher ratio for shorter items
+            return Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      buildSearchSection(),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final bool isWeb = constraints.maxWidth > 600;
+                            final int crossAxisCount = isWeb ? 3 : 2;
+                            final double childAspectRatio = isWeb ? 1.1 : 0.7;
 
-                          return drugs.isNotEmpty
-                              ? GridView.builder(
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: crossAxisCount,
-                                    crossAxisSpacing: 16,
-                                    mainAxisSpacing: 16,
-                                    childAspectRatio: childAspectRatio,
-                                  ),
-                                  itemCount: drugs.length,
-                                  itemBuilder: (context, index) {
-                                    final drug = drugs[index];
-                                    return Card(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      elevation: 5,
-                                      color: Colors.purple.shade50,
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(12.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.stretch,
-                                          children: [
-                                            Container(
-                                              alignment: Alignment.center,
-                                              
-                                              child: const Icon(
-                                               FontAwesomeIcons.capsules,
-                                                size: 45,
-                                                color: Color(0xff613089),
+                            return drugs.isNotEmpty
+                                ? GridView.builder(
+                                    gridDelegate:
+                                        SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: crossAxisCount,
+                                      crossAxisSpacing: 16,
+                                      mainAxisSpacing: 16,
+                                      childAspectRatio: childAspectRatio,
+                                    ),
+                                    itemCount: drugs.length,
+                                    itemBuilder: (context, index) {
+                                      final drug = drugs[index];
+                                      return Card(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                        ),
+                                        elevation: 5,
+                                        color: Colors.purple.shade50,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.stretch,
+                                            children: [
+                                              Container(
+                                                alignment: Alignment.center,
+                                                child: const Icon(
+                                                  FontAwesomeIcons.capsules,
+                                                  size: 45,
+                                                  color: Color(0xff613089),
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(height: 12),
-                                            Text(
-                                              drug['name'] ?? 'Unknown Drug',
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              '${drug['dose']}',
-                                              textAlign: TextAlign.center,
-                                              style:
-                                                  const TextStyle(fontSize: 14),
-                                            ),
-                                            const SizedBox(height: 12),
-                                            if (drug['isExpired'])
-                                              const Text(
-                                                'Not Used',
+                                              const SizedBox(height: 12),
+                                              Text(
+                                                drug['name'] ?? 'Unknown Drug',
                                                 textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  color: Colors.red,
+                                                style: const TextStyle(
+                                                  fontSize: 16,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
-                                            const Spacer(),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                GestureDetector(
-                                                  onTap: () =>
-                                                      _showDrugDetailsDialog(
-                                                          drug),
-                                                  child: const Text(
-                                                    'View Details',
-                                                    style: TextStyle(
-                                                      color: Color(0xff613089),
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                '${drug['dose']}',
+                                                textAlign: TextAlign.center,
+                                                style: const TextStyle(
+                                                    fontSize: 14),
+                                              ),
+                                              const SizedBox(height: 12),
+                                              if (drug['isExpired'])
+                                                const Text(
+                                                  'Not Used',
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                    color: Colors.red,
+                                                    fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
-                                                IconButton(
-                                                  icon: const Icon(Icons.delete,
-                                                      color: Color(0xff613089)),
-                                                  onPressed: () {
-                                                    _deleteDrug(
-                                                        drug['name'] ?? '');
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                          ],
+                                              const Spacer(),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  GestureDetector(
+                                                    onTap: () =>
+                                                        _showDrugDetailsDialog(
+                                                            drug),
+                                                    child: const Text(
+                                                      'View Details',
+                                                      style: TextStyle(
+                                                        color:
+                                                            Color(0xff613089),
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                      Icons.delete,
+                                                      color: Color(0xff613089),
+                                                    ),
+                                                    onPressed: () {
+                                                      _deleteDrug(
+                                                          drug['name'] ?? '');
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  },
-                                )
-                              :  Center(child: Text('No drugs available.',
-                              style: TextStyle(fontSize: 16, color: Colors.grey[500])));
-                        },
+                                      );
+                                    },
+                                  )
+                                : Center(
+                                    child: Text(
+                                      'No drugs available.',
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey[500]),
+                                    ),
+                                  );
+                          },
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddDrugDialog,
@@ -839,3 +848,23 @@ Widget buildSearchSection() {
     );
   }
 }
+
+
+/////////////////////////////
+
+class TransparentScrollbarBehavior extends ScrollBehavior {
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;  
+  }
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const AlwaysScrollableScrollPhysics(); 
+  }
+}
+

@@ -159,8 +159,8 @@ double averageRating=0.0;
     _fetchPatients();
 
   }
-   Future<void> fetchUserInfo() async {
-  final String ? userid =  await storage.read(key: 'userid');
+ Future<void> fetchUserInfo() async {
+  final String? userid = await storage.read(key: 'userid');
   try {
     final response = await http.get(
       Uri.parse('${ApiConstants.baseUrl}/doctors/$userid'),
@@ -169,11 +169,19 @@ double averageRating=0.0;
       final Map<String, dynamic> data = jsonDecode(response.body);
       setState(() {
         username = data['fullName'] ?? 'Unknown';
-       speciality=data['specialization'] ?? 'Unknown';
-        base64ImageDoctor=data['image'] ?? 'Unknown';
-       
-  totalpatients=   data['numberOfPatients'] ?? 'Unknown';
-   averageRating= data['averageRating'] ?? 'Unknown';
+        speciality = data['specialization'] ?? 'Unknown';
+        base64ImageDoctor = data['image'] ?? 'Unknown';
+
+        totalpatients = data['numberOfPatients'] ?? 'Unknown';
+
+        averageRating = 0.0; 
+        if (data['averageRating'] != null) {
+          try {
+            averageRating = (data['averageRating'] as num).toDouble();
+          } catch (e) {
+            averageRating = 0.0;
+          }
+        }
       });
     } else {
       _showMessage('Failed to load user information');
@@ -183,13 +191,15 @@ double averageRating=0.0;
     }
   } catch (e) {
     _showMessage('Error: $e');
-if(mounted){
-    setState(() {
-      _isLoading = false;
-    });}
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 }
- void _showMessage(String message) {
+
+void _showMessage(String message) {
   if (mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -306,121 +316,120 @@ Widget build(BuildContext context) {
                 padding: const EdgeInsets.only(top: 20),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Center(
-                          child: AnimatedTextKit(
-                            animatedTexts: [
-                              TyperAnimatedText(
-                                'Welcome to MediCardia',
-                                textStyle: const TextStyle(
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xff613089),
-                                  fontFamily: 'ScriptMTBold',
-                                ),
-                                speed: const Duration(milliseconds: 100),
-                              ),
-                            ],
-                            totalRepeatCount: 1,
-                            pause: const Duration(milliseconds: 500),
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-                        _buildDoctorProfile(),
-                        const SizedBox(height: 30),
-                        buildSearchSection(),
-                        const SizedBox(height: 30),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(child: buildBloodDonationTile(context)),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          DoctorSchedulePage(),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.05),
-                                        blurRadius: 8,
-                                        spreadRadius: 1,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
+                  child: ScrollConfiguration(
+                    behavior: kIsWeb ? TransparentScrollbarBehavior() : const ScrollBehavior(),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(
+                            child: AnimatedTextKit(
+                              animatedTexts: [
+                                TyperAnimatedText(
+                                  'Welcome to MediCardia',
+                                  textStyle: const TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xff613089),
+                                    fontFamily: 'ScriptMTBold',
                                   ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        width: 60,
-                                        height: 60,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xff613089)
-                                              .withOpacity(0.15),
-                                          shape: BoxShape.circle,
+                                  speed: const Duration(milliseconds: 100),
+                                ),
+                              ],
+                              totalRepeatCount: 1,
+                              pause: const Duration(milliseconds: 500),
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          _buildDoctorProfile(),
+                          const SizedBox(height: 30),
+                          buildSearchSection(),
+                          const SizedBox(height: 30),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(child: buildBloodDonationTile(context)),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => DoctorSchedulePage(),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.05),
+                                          blurRadius: 8,
+                                          spreadRadius: 1,
+                                          offset: const Offset(0, 4),
                                         ),
-                                        child: const Center(
-                                          child: Icon(
-                                            Icons.access_time,
-                                            color: Color(0xff613089),
-                                            size: 30,
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          width: 60,
+                                          height: 60,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xff613089).withOpacity(0.15),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.access_time,
+                                              color: Color(0xff613089),
+                                              size: 30,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      const Text(
-                                        "Set Your Schedule",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xff613089),
+                                        const SizedBox(height: 12),
+                                        const Text(
+                                          "Set Your Schedule",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xff613089),
+                                          ),
                                         ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(child: buildReviewsTile(context)),
+                            ],
+                          ),
+                          const SizedBox(height: 30),
+                          _isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : SizedBox(
+                                  height: MediaQuery.of(context).size.height * 0.4,
+                                  child: Column(
+                                    children: [
+                                      Center(
+                                        child: _buildToggleButtons(),
+                                      ),
+                                      Expanded(
+                                        child: _buildPatientList(),
                                       ),
                                     ],
                                   ),
                                 ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(child: buildReviewsTile(context)),
-                          ],
-                        ),
-                        const SizedBox(height: 30),
-                      //  _buildToggleButtons(),
-                        _isLoading
-                            ? const Center(child: CircularProgressIndicator())
-                            : SizedBox(
-  height: MediaQuery.of(context).size.height * 0.4,
-  child: Column(
-    children: [
-      Center(
-        child: _buildToggleButtons(),
-      ),
-      Expanded(
-        child: _buildPatientList(),
-      ),
-    ],
-  ),
-),
-
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -432,6 +441,7 @@ Widget build(BuildContext context) {
     ),
   );
 }
+
 
 Widget buildBloodDonationTile(BuildContext context) {
   return GestureDetector(
@@ -585,7 +595,7 @@ Widget buildReviewsTile(BuildContext context) {
             child: TextField(
               decoration: InputDecoration(
                 border: InputBorder.none,
-                hintText: 'Search for patient by ID...',
+                hintText: 'Search for patient by ID number...',
                 hintStyle: TextStyle(color: Colors.grey[500]),
               ),
               onChanged: (value) {
@@ -653,7 +663,7 @@ Widget buildReviewsTile(BuildContext context) {
                 ),
                 const SizedBox(height: 5),
                  Text(
-                  "Specialist:$speciality",
+                  "Specialist: $speciality",
                   style: const TextStyle(fontSize: 16, color: Colors.white70),
                 ),
                 const SizedBox(height: 10),
@@ -661,7 +671,7 @@ Widget buildReviewsTile(BuildContext context) {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _buildProfileStat(totalpatients.toString(), "Total Patients"),
-                    _buildProfileStat(averageRating.toString(), "average Rating"),
+                    _buildProfileStat(averageRating.toString(), "Average Rating"),
 
                     
                   ],
@@ -978,3 +988,22 @@ class NotificationsPage extends StatelessWidget {
   }
 }
 */
+
+
+//////////////////////////////
+
+class TransparentScrollbarBehavior extends ScrollBehavior {
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;  
+  }
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const AlwaysScrollableScrollPhysics(); 
+  }
+}

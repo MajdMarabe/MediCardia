@@ -103,7 +103,10 @@ class _DonationRequestsPageState extends State<DonationRequestsPage> {
 
 @override
 Widget build(BuildContext context) {
-  return Scaffold(
+  return MaterialApp(
+   scrollBehavior: TransparentScrollbarBehavior(), 
+    debugShowCheckedModeBanner: false,
+    home: Scaffold(
     backgroundColor: const Color(0xFFF2F5FF),
     appBar: kIsWeb
         ? AppBar(
@@ -149,6 +152,9 @@ Widget build(BuildContext context) {
                   : MediaQuery.of(context).size.width * 1,
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
               child: ListView.builder(
+                   physics: kIsWeb 
+      ? const AlwaysScrollableScrollPhysics() 
+      : const BouncingScrollPhysics(), 
                 itemCount: _donationRequests.length,
                 itemBuilder: (context, index) {
                   final request = _donationRequests[index];
@@ -282,9 +288,28 @@ Widget build(BuildContext context) {
               ),
             ),
           ),
+           ),
   );
+}
+
 }
 
 
 
+//////////////////////////////
+
+class TransparentScrollbarBehavior extends ScrollBehavior {
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;  
+  }
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const AlwaysScrollableScrollPhysics(); 
+  }
 }

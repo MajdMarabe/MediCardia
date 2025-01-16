@@ -324,13 +324,14 @@ Widget _buildDurationSelector() {
               children: [
                 for (var slot in times)
                   ListTile(
-                    title: Text(
-                      "${slot['start']} - ${slot['end']}",
-                      style: const TextStyle(
-                        color: Color(0xFF6A1B9A),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+             title: Text(
+  "${_formatTime(slot['start'] ?? '')} - ${_formatTime(slot['end'] ?? '')}",
+  style: const TextStyle(
+    color: Color(0xFF6A1B9A),
+    fontWeight: FontWeight.w600,
+  ),
+),
+
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -463,6 +464,14 @@ Widget _buildDurationSelector() {
       }
     }
   }
+
+
+String _formatTime(String time24h) {
+  final parsedTime = DateFormat("HH:mm").parse(time24h);
+  return DateFormat("hh:mm a").format(parsedTime);
+}
+
+
 
   Future<void> _deleteTimeSlot(String start, String end) async {
     final String apiUrl =

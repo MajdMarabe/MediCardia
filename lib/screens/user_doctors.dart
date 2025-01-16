@@ -45,12 +45,26 @@ class _DoctorsPageState extends State<DoctorsPage> {
         doctors = data.map((relation) {
           final doctor = relation['doctorId'];
           return {
-            'name': doctor['fullName'] ?? 'Unknown',
-            'specialty': doctor['specialization'] ?? 'Unknown',
-            'price': doctor['price'] ?? 0,
-            'rating': doctor['rating'] ?? 0.0,
-            'image': doctor['image'] ?? 'Unknown',
-          };
+                'id': doctor['_id'],
+              'name': doctor['fullName'] ?? 'Unknown',
+              'specialty': doctor['specialization'] ?? 'Unknown',
+              'rating': doctor['averageRating'] ?? 0.0,
+              'image': (doctor['image']?.isNotEmpty == true)
+                  ? doctor['image']
+                  : 'Unknown',
+              'email': doctor['email'] ?? 'No email provided.',
+              'about': doctor['about'] ?? 'No about provided.',
+              'phone': doctor['phone'] ?? 'No phone number provided.',
+              'numberOfPatients': doctor['numberOfPatients'] ?? 0,
+              'workplace': {
+                'name': doctor['workplace']?['name'] ?? 'No workplace name.',
+                'address': doctor['workplace']?['address'] ?? 'No address.',
+                'notificationSettings': {
+                  'messages': doctor['notificationSettings']?['messages'] ?? true,
+                  'requests': doctor['notificationSettings']?['requests'] ?? true,
+           },
+              },
+            };
         }).toList();
         filteredDoctors = doctors;
         isLoading = false;
@@ -209,7 +223,7 @@ class _DoctorsPageState extends State<DoctorsPage> {
                                       crossAxisCount: isWeb ? 3 : 2,
                                       crossAxisSpacing: 16,
                                       mainAxisSpacing: 6,
-                                      childAspectRatio: isWeb ? 1.1 : 0.77,
+                                      childAspectRatio: isWeb ? 1.4 : 0.77,
                                     ),
                                     itemCount: filteredDoctors.length,
                                     itemBuilder: (context, index) {

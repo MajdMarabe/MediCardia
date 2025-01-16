@@ -145,6 +145,7 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: const Color(0xff613089),
@@ -243,7 +244,7 @@ class _ChatPageState extends State<ChatPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: const Color(0xFFF2F5FF),
         borderRadius: BorderRadius.circular(12.0),
       ),
       child: Row(
@@ -259,7 +260,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.send, color: Color.fromARGB(255, 118, 6, 137)),
+            icon: const Icon(Icons.send, color: Color.fromARGB(255, 67, 4, 79)),
             onPressed: _sendMessage,
           ),
         ],

@@ -81,189 +81,188 @@ class _PermissionRequestsPageState extends State<PermissionRequestsPage> {
 
 ///////////////////////////////////////
 
-  @override
+@override
 Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFFF2F5FF),
-    appBar: kIsWeb
-          ? AppBar(
-            automaticallyImplyLeading: false,
-      centerTitle: true,
-      title: const Text(
-        'Permission Requests',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Color(0xff613089),
-          letterSpacing: 1.5,
-        ),
-      ),
+  return MaterialApp(
+    scrollBehavior: TransparentScrollbarBehavior(), 
+    debugShowCheckedModeBanner: false,
+    home: Scaffold(
       backgroundColor: const Color(0xFFF2F5FF),
-      
-    )
-     : AppBar(
-       backgroundColor: const Color(0xFFF2F5FF),
-      centerTitle: true,
-      title: const Text(
-        'Permission Requests',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Color(0xff613089),
-          letterSpacing: 1.5,
-        ),
-      ),
-     
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
-        onPressed: () {
-          Navigator.pop(context);
+      appBar: kIsWeb
+          ? AppBar(
+              automaticallyImplyLeading: false,
+              centerTitle: true,
+              title: const Text(
+                'Permission Requests',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xff613089),
+                  letterSpacing: 1.5,
+                ),
+              ),
+              backgroundColor: const Color(0xFFF2F5FF),
+            )
+          : AppBar(
+              backgroundColor: const Color(0xFFF2F5FF),
+              centerTitle: true,
+              title: const Text(
+                'Permission Requests',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xff613089),
+                  letterSpacing: 1.5,
+                ),
+              ),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          double width = constraints.maxWidth > 600 ? 900 : constraints.maxWidth;
+          return Center(
+            child: Container(
+              width: width,
+              padding: const EdgeInsets.all(8.0),
+              child: permissions.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No permission requests found.',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                      ),
+                    )
+                  : ListView.builder(
+                     physics: kIsWeb 
+      ? const AlwaysScrollableScrollPhysics() 
+      : const BouncingScrollPhysics(), 
+                      padding: const EdgeInsets.all(8.0),
+                      itemCount: permissions.length,
+                      itemBuilder: (context, index) {
+                        final request = permissions[index];
+                        final String nnnn = request['doctorId'];
+                        return Card(
+                          color: Colors.white,
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          elevation: 3.0,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const CircleAvatar(
+                                      radius: 30.0,
+                                      backgroundColor:
+                                          Color.fromARGB(255, 185, 160, 205),
+                                      child: Icon(
+                                        FontAwesomeIcons.userMd,
+                                        size: 30.0,
+                                        color: Color(0xff613089),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10.0),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Doctor name: ${request['name']}',
+                                            style: const TextStyle(
+                                              fontSize: 18.0,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4.0),
+                                          Text(
+                                            'Priority: ${request['selectedPriority']}',
+                                            style: TextStyle(
+                                              fontSize: 14.0,
+                                              color: Colors.grey[700],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4.0),
+                                          Text(
+                                            'Deadline: ${request['deadline']}',
+                                            style: TextStyle(
+                                              fontSize: 14.0,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10.0),
+                                const Text(
+                                  'Reason:',
+                                  style: TextStyle(
+                                    fontSize: 14.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xff613089),
+                                  ),
+                                ),
+                                const SizedBox(height: 4.0),
+                                Text(
+                                  request['body'] ?? 'No reason provided',
+                                  style: const TextStyle(
+                                    fontSize: 14.0,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    IconButton(
+                                      onPressed: () {
+                                        final String docid = request['doctorId'] ?? '';
+                                        _setAsMyDoctor(context, docid);
+                                        final String requestId = request['id'];
+                                        _handlePermissionAction(requestId, true); // true for accepted
+                                      },
+                                      icon: const Icon(
+                                        Icons.check_circle,
+                                        color: Color(0xff613089),
+                                        size: 30.0,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () async {
+                                        final String requestId = request['id'];
+                                        _handlePermissionAction(requestId, false); // false for rejected
+                                      },
+                                      icon: const Icon(
+                                        Icons.cancel,
+                                        color: Color(0xff613089),
+                                        size: 30.0,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          );
         },
       ),
-     ),
-    body: LayoutBuilder(
-      builder: (context, constraints) {
-       
-        double width = constraints.maxWidth > 600 ? 900 : constraints.maxWidth;
-        return Center(
-          child: Container(
-            width: width, 
-            padding: const EdgeInsets.all(8.0),
-            child: permissions.isEmpty
-                ? Center(
-                    child: Text(
-                      'No permission requests found.',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(8.0),
-                    itemCount: permissions.length,
-                    itemBuilder: (context, index) {
-                      final request = permissions[index];
-                      final String nnnn = request['doctorId'];
-                      return Card(
-                        color: Colors.white,
-                        margin: const EdgeInsets.symmetric(vertical: 8.0),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        elevation: 3.0,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const CircleAvatar(
-                                    radius: 30.0,
-                                    backgroundColor:
-                                        Color.fromARGB(255, 185, 160, 205),
-                                    child: Icon(
-                                      FontAwesomeIcons.userMd,
-                                      size: 30.0,
-                                      color: Color(0xff613089),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10.0),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Doctor name: ${request['name']}',
-                                          style: const TextStyle(
-                                            fontSize: 18.0,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4.0),
-                                        Text(
-                                          'Priority: ${request['selectedPriority']}',
-                                          style: TextStyle(
-                                            fontSize: 14.0,
-                                            color: Colors.grey[700],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4.0),
-                                        Text(
-                                          'Deadline: ${request['deadline']}',
-                                          style: TextStyle(
-                                            fontSize: 14.0,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10.0),
-                              const Text(
-                                'Reason:',
-                                style: TextStyle(
-                                  fontSize: 14.0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xff613089),
-                                ),
-                              ),
-                              const SizedBox(height: 4.0),
-                              Text(
-                                request['body'] ?? 'No reason provided',
-                                style: const TextStyle(
-                                  fontSize: 14.0,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              //const SizedBox(height: 12.0),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  IconButton(
-                                   onPressed: () {
-                              final String docid = request['doctorId']??'';
-_setAsMyDoctor(context, docid);
-final String requestId = request['id'];
-    _handlePermissionAction(requestId, true); // true for accepted
-
-                            },
-                                    icon: const Icon(
-                                      Icons.check_circle,
-                                      color: Color(0xff613089),
-                                      size: 30.0,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    onPressed: () async {
-  final String requestId = request['id'];
-   _handlePermissionAction(requestId, false); // false for rejected
-  //final String? username = await storage.read(key: 'username'); // Use await to get the username value
- 
-
-  // If you need to send a notification, you can now safely use 'username'
-  //_sendNotification(request['doctorId'], "Meidicardia", "$username rejected your request.");
-},
-                                    icon: const Icon(
-                                      Icons.cancel,
-                                      color: Color(0xff613089),
-                                      size: 30.0,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        );
-      },
     ),
   );
 }
+
+
 
 
 
@@ -377,3 +376,22 @@ void _sendNotification(String receiverId, String title, String message) async {
 
 
 }
+
+
+
+class TransparentScrollbarBehavior extends ScrollBehavior {
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;  
+  }
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const AlwaysScrollableScrollPhysics(); 
+  }
+}
+
