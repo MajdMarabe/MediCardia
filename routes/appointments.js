@@ -8,7 +8,13 @@ const {
     updateDoctorSchedule,
     getDoctorSlots,
     bookAppointment,
-    getDoctorbooked
+    getDoctorbooked,
+    getUserBookedAppointments,
+    deleteAppointment,
+    cancelAppointment,
+    getUserCancelledAppointments,
+    checkCompletedAppointment
+    
 } = require("../controllers/appointmentController");
 
 
@@ -22,5 +28,11 @@ router.post('/schedules/:doctorId/booked', getDoctorbooked);
 
 //////
 router.post('/schedules/:doctorId/book',verifyToken, bookAppointment);
+router.get('/:userId/booked', getUserBookedAppointments);
+router.delete('/:appointmentId', deleteAppointment);// by user
+router.patch('/:appointmentId/cancel', cancelAppointment);// by doctor
+router.get('/:userId/cancelled', getUserCancelledAppointments);
+
+router.post('/check/completed', checkCompletedAppointment);
 
 module.exports = router;

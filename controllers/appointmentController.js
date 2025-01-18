@@ -264,7 +264,7 @@ module.exports.getDoctorbooked = asyncHandler(async (req, res) => {
         select: 'patientId time status notes', 
         populate: {
             path: 'patientId', 
-            select: 'username', 
+            select: 'username ', 
         },
     });
 
@@ -292,6 +292,8 @@ module.exports.getDoctorbooked = asyncHandler(async (req, res) => {
             appointmentId: slot.appointmentId?._id,
             status: slot.status,
             patientName: slot.appointmentId?.patientId?.username,
+            patientId: slot.appointmentId?.patientId,
+
         })),
     });
 });
@@ -355,6 +357,212 @@ module.exports.bookAppointment = asyncHandler(async (req, res) => {
             date: appointment.date,
             time: appointment.time,
             notes:appointment.notes,
+        },
+    });
+});
+/**
+ * @desc Delete an appointment and reset the corresponding slot in the doctor's schedule
+ * @route DELETE /api/appointment/:appointmentId
+ * @method DELETE
+ * @access Public
+ */
+module.exports.deleteAppointment = asyncHandler(async (req, res) => {
+    const { appointmentId } = req.params;
+
+    // Find the appointment by ID
+    const appointment = await Appointment.findById(appointmentId);
+
+    if (!appointment) {
+        return res.status(404).json({
+            message: 'Appointment not found.',
+        });
+    }
+
+    // Find the doctor's schedule containing the slot for this appointment
+    const schedule = await DoctorSchedule.findOne({
+        doctorId: appointment.doctorId,
+        date: appointment.date,
+        'slots.time': appointment.time,
+    });
+
+    if (!schedule) {
+        return res.status(404).json({
+            message: 'Schedule not found for the doctor and date.',
+        });
+    }else{
+        const slot = schedule.slots.find(slot => slot.time === appointment.time);
+        if (slot) {
+            slot.status = 'available';
+            slot.appointmentId = null;
+        }
+        await schedule.save();
+
+
+
+    }
+
+    // Find the slot in the schedule and reset its status
+
+    // Delete the appointment directly
+    await Appointment.findByIdAndDelete(appointmentId);
+
+    // Save the updated schedule
+
+    res.status(200).json({
+        message: 'Appointment deleted successfully and slot reset to available.',
+    });
+});
+/**
+ * @desc Cancel an appointment and reset the corresponding slot in the doctor's schedule
+ * @route PATCH /api/appointment/:appointmentId/cancel
+ * @method PATCH
+ * @access Public
+ */
+module.exports.cancelAppointment = asyncHandler(async (req, res) => {
+    const { appointmentId } = req.params;
+
+    // Find the appointment by ID
+    const appointment = await Appointment.findById(appointmentId);
+
+    if (!appointment) {
+        return res.status(404).json({
+            message: 'Appointment not found.',
+        });
+    }
+
+    // Check if the appointment is already cancelled
+    if (appointment.status === 'cancelled') {
+        return res.status(400).json({
+            message: 'The appointment is already cancelled.',
+        });
+    }
+
+    // Find the doctor's schedule containing the slot for this appointment
+    const schedule = await DoctorSchedule.findOne({
+        doctorId: appointment.doctorId,
+        date: appointment.date,
+        'slots.time': appointment.time,
+    });
+
+    if (!schedule) {
+        return res.status(404).json({
+            message: 'Schedule not found for the doctor and date.',
+        });
+    }
+
+    // Find the slot in the schedule and reset its status
+    const slot = schedule.slots.find(slot => slot.time === appointment.time);
+    if (slot) {
+        slot.status = 'cancelled';
+        slot.appointmentId = null;
+    }
+
+    // Update the appointment's status to "cancelled"
+    appointment.status = 'cancelled';
+    await appointment.save();
+
+    // Save the updated schedule
+    await schedule.save();
+
+    res.status(200).json({
+        message: 'Appointment status updated to cancelled and slot reset to available.',
+    });
+});
+
+
+///////
+
+/**
+ * @desc Retrieve all booked appointments for a specific user
+ * @route GET /api/appointment/:userId/booked
+ * @method GET
+ * @access Public
+ */
+module.exports.getUserBookedAppointments = asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+
+    // Fetch appointments for the user with status 'booked'
+    const appointments = await Appointment.find({
+        patientId: userId,
+        status: 'booked',
+    })
+        .populate('doctorId', 'fullName specialization') // Populates doctor information
+        .select('date time notes status'); // Select relevant fields
+
+    // Check if appointments exist
+    if (!appointments || appointments.length === 0) {
+        return res.status(404).json({ message: 'No booked appointments found for this user.' });
+    }
+
+    // Respond with the fetched appointments
+    res.status(200).json({
+        message: 'Booked appointments retrieved successfully.',
+        appointments,
+    });
+});
+
+/**
+ * @desc Retrieve all booked appointments for a specific user
+ * @route GET /api/appointment/:userId/cancelled
+ * @method GET
+ * @access Public
+ */
+module.exports.getUserCancelledAppointments = asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+
+    // Fetch appointments for the user with status 'booked'
+    const appointments = await Appointment.find({
+        patientId: userId,
+        status: 'cancelled',
+    })
+        .populate('doctorId', 'fullName specialization') // Populates doctor information
+        .select('date time notes status'); // Select relevant fields
+
+    // Check if appointments exist
+    if (!appointments || appointments.length === 0) {
+        return res.status(404).json({ message: 'No booked appointments found for this user.' });
+    }
+
+    // Respond with the fetched appointments
+    res.status(200).json({
+        message: 'Booked appointments retrieved successfully.',
+        appointments,
+    });
+});
+
+/**
+ * @desc Check if a patient has a completed appointment with a specific doctor
+ * @route /api/appointment/check-completed
+ * @method POST
+ * @access Private
+ */
+module.exports.checkCompletedAppointment = asyncHandler(async (req, res) => {
+    const { patientId, doctorId } = req.body;
+console.log("patientId, doctorId ");
+    if (!patientId || !doctorId) {
+        return res.status(400).json({
+            message: 'Patient ID and Doctor ID are required',
+        });
+    }
+
+    const completedAppointment = await Appointment.findOne({
+        patientId,
+        doctorId,
+        status: 'completed',
+    });
+
+    if (!completedAppointment) {
+        return res.status(404).json({
+            message: 'No completed appointment found for this patient with the specified doctor',
+        });
+    }
+
+    res.status(200).json({
+        message: 'Completed appointment found',
+        appointment: {
+            date: completedAppointment.date,
+            time: completedAppointment.time,
+            notes: completedAppointment.notes,
         },
     });
 });
