@@ -141,9 +141,11 @@ Map<String, int> ratingDistribution = {
       }
     } catch (e) {
       print('Error fetching data: $e');
+      if(mounted){
       setState(() {
         isLoading = false;
       });
+      }
     }
   }
 

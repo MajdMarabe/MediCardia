@@ -52,13 +52,18 @@ class _ReviewsPageState extends State<ReviewsPage> {
     'Below Average': 0,
     'Poor': 0,
   };
+  late Future<bool> _appointmentCheckFuture;
 
   @override
   void initState() {
     super.initState();
     fetchRatingData();
+    _appointmentCheckFuture = _checkCompletedAppointment();
   }
-
+  Future<bool> _checkCompletedAppointment() async {
+    final userId = await storage.read(key: 'userid') ?? '';
+    return await checkCompletedAppointment(userId,widget.doctorid );
+  }
   Future<void> fetchRatingData() async {
     final apiUrl = '${ApiConstants.baseUrl}/rating/${widget.doctorid}';
     try {
@@ -145,154 +150,207 @@ Widget _buildUserAvatarPatient(String base64Image) {
   );
 }
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFFF2F5FF),
-    appBar: AppBar(
+Future<bool> checkCompletedAppointment(String patientId, String doctorId) async {
+  final String apiUrl = '${ApiConstants.baseUrl}/appointment/check/completed';
+
+  try {
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'patientId': patientId,
+        'doctorId': doctorId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      // إذا تم العثور على موعد مكتمل
+      return true;
+    } else if (response.statusCode == 404) {
+      // إذا لم يتم العثور على موعد مكتمل
+      return false;
+    } else {
+      // حالات أخرى
+      print('Unexpected error: ${response.statusCode}');
+      return false;
+    }
+  } catch (error) {
+    print('Error: $error');
+    return false;
+  }
+}
+ @override
+  Widget build(BuildContext context) {
+    return Scaffold(
       backgroundColor: const Color(0xFFF2F5FF),
-      elevation: 0,
-      centerTitle: true,
-      title: const Text(
-        "Reviews",
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Color(0xff613089),
-          letterSpacing: 1.5,
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF2F5FF),
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          "Reviews",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xff613089),
+            letterSpacing: 1.5,
+          ),
         ),
+        automaticallyImplyLeading: !kIsWeb,
+        leading: kIsWeb
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
       ),
-      automaticallyImplyLeading: !kIsWeb,
-      leading: kIsWeb
-          ? null
-          : IconButton(
-              icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-    ),
-    body: LayoutBuilder(
-      builder: (context, constraints) {
-        final double pageWidth = constraints.maxWidth > 600 ? 900 : double.infinity;
-        return Center(
-          child: SizedBox(
-            width: pageWidth,
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ScrollConfiguration(
-                    behavior: kIsWeb ? TransparentScrollbarBehavior() : const ScrollBehavior(),
-                    child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            if (reviewCount == 0)
-                              const Center(
-                                child: Text(
-                                  'No reviews available yet.',
-                                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                                ),
-                              )
-                            else ...[
-                              Column(
-                                children: [
-                                  Text(
-                                    averageRating.toStringAsFixed(1),
-                                    style: const TextStyle(
-                                      fontSize: 48,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF613089),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final double pageWidth = constraints.maxWidth > 600 ? 900 : double.infinity;
+          return Center(
+            child: SizedBox(
+              width: pageWidth,
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ScrollConfiguration(
+                      behavior: kIsWeb ? TransparentScrollbarBehavior() : const ScrollBehavior(),
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                if (reviewCount == 0)
+                                  const Center(
+                                    child: Text(
+                                      'No reviews available yet.',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey),
                                     ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: List.generate(
-                                      5,
-                                      (index) => Icon(
-                                        Icons.star,
-                                        color: index < averageRating.round()
-                                            ? Colors.amber
-                                            : Colors.grey,
-                                        size: 24,
+                                  )
+                                else ...[
+                                  Column(
+                                    children: [
+                                      Text(
+                                        averageRating.toStringAsFixed(1),
+                                        style: const TextStyle(
+                                          fontSize: 48,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF613089),
+                                        ),
                                       ),
-                                    ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: List.generate(
+                                          5,
+                                          (index) => Icon(
+                                            Icons.star,
+                                            color: index < averageRating.round()
+                                                ? Colors.amber
+                                                : Colors.grey,
+                                            size: 24,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'based on $reviewCount reviews',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'based on $reviewCount reviews',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey,
-                                    ),
+                                  const SizedBox(height: 16),
+                                  Column(
+                                    children: ratingDistribution.entries.map((entry) {
+                                      return _buildRatingBar(
+                                        entry.key,
+                                        _getRatingColor(entry.key),
+                                        entry.value.toDouble() / (reviewCount > 0 ? reviewCount : 1),
+                                      );
+                                    }).toList(),
                                   ),
+                                  const SizedBox(height: 24),
+                                  ...reviews.map((review) => _buildReviewCard(
+                                       imageUrl:  review.image,
+                                        username: review.username,
+                                        rating: review.rating,
+                                        date: review.date,
+                                        comment: review.comment,
+                                      )),
                                 ],
-                              ),
-                              const SizedBox(height: 16),
-                              Column(
-                                children: ratingDistribution.entries.map((entry) {
-                                  return _buildRatingBar(
-                                    entry.key,
-                                    _getRatingColor(entry.key),
-                                    entry.value.toDouble() / (reviewCount > 0 ? reviewCount : 1),
-                                  );
-                                }).toList(),
-                              ),
-                              const SizedBox(height: 24),
-                              ...reviews.map((review) => _buildReviewCard(
-                                   imageUrl:  review.image,
-                                    username: review.username,
-                                    rating: review.rating,
-                                    date: review.date,
-                                    comment: review.comment,
-                                  )),
-                            ],
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => WriteReviewPage(doctorid: widget.doctorid),
-                                  ),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFF2F5FF),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 70,
-                                  vertical: 12,
+                                const SizedBox(height: 16),
+                                // Use FutureBuilder here to wait for the result
+                                FutureBuilder<bool>(
+                                  future: _appointmentCheckFuture, // Use the Future created in initState
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return const CircularProgressIndicator(); // Show loading
+                                    }
+
+                                    if (snapshot.hasError) {
+                                      return const Text('Error checking appointment status');
+                                    }
+
+                                    bool canWriteReview = snapshot.data ?? false; // True means the appointment is completed
+                                    
+                                    // If the condition is true, return an empty container to hide the button
+                                    if (canWriteReview) {
+                                      return const SizedBox.shrink(); // Hide the button
+                                    }
+
+                                    // Otherwise, show the "Write a Review" button
+                                    return ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => WriteReviewPage(doctorid: widget.doctorid),
+                                          ),
+                                        );
+                                        fetchRatingData();
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFFF2F5FF),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 70,
+                                          vertical: 12,
+                                        ),
+                                        side: const BorderSide(
+                                          color: Color(0xFF613089),
+                                          width: 1.5,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'Write a Review',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Color(0xFF613089),
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
-                                side: const BorderSide(
-                                  color: Color(0xFF613089),
-                                  width: 1.5,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text(
-                                'Write a Review',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Color(0xFF613089),
-                                ),
-                              ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-          ),
-           ),
-        );
-      },
-    ),
-  );
-}
-
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   Color _getRatingColor(String category) {
     switch (category) {
@@ -576,6 +634,7 @@ void _submitReview() async {
           ],
         ),
       );
+      
     } else {
       // Handle server errors
       print('Error: ${response.body}');
@@ -789,6 +848,7 @@ void _submitReview() async {
                           ),
                         ),
                       ),
+                      
                     ),
                   ],
                 ),

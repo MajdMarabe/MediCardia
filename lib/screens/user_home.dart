@@ -9,6 +9,7 @@ import 'package:flutter_application_3/screens/lab_tests_view.dart';
 import 'package:flutter_application_3/screens/medical_notes_view.dart';
 import 'package:flutter_application_3/screens/treatment_plans_view.dart';
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 import 'blood_donation_home.dart';
 import 'drugshome.dart';
 import 'viewdoctors.dart';
@@ -36,6 +37,7 @@ class _HomePageState extends State<HomePage> {
   String phoneNumber = 'N/A';
   String idNumber = 'Unknown';
   String? base64Image = '';
+  List<String> availableTimes = [];
 
   List<String> chronicDiseases = [];
   List<String> allergies = [];
@@ -1067,7 +1069,6 @@ Future<void> fetchDoctors() async {
 Widget buildDoctorCard(String name, String distance, String? base64Image, VoidCallback onTap) {
   ImageProvider backgroundImage;
 
-  // فك تشفير الصورة باستخدام buildImageFromBase64
   try {
     if (base64Image != null && base64Image.isNotEmpty && base64Image != 'Unknown') {
       backgroundImage = buildImageFromBase64(base64Image).image;

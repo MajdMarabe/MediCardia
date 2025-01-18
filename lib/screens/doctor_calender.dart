@@ -1,6 +1,8 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_3/screens/constants.dart';
+import 'package:flutter_application_3/screens/constants.dart'as constants;
+import 'package:flutter_application_3/services/notification_service.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:http/http.dart' as http;
@@ -251,8 +253,9 @@ class _DoctorCalendarPageState extends State<DoctorCalendarPage> {
                           )
                         : IconButton(
                             icon: const Icon(Icons.cancel, color: Colors.red),
-                            onPressed: () => _cancelEvent(index),
-                          ),
+ onPressed: () {
+    _cancelEvent(index);
+  },                          ),
                     onTap: () {
                       double dialogWidth = MediaQuery.of(context).size.width > 600
                           ? 600
@@ -333,17 +336,67 @@ class _DoctorCalendarPageState extends State<DoctorCalendarPage> {
     );
   }
 
-  void _cancelEvent(int index) {
-    setState(() {
-      _events.removeAt(index);
-    });
+ void _cancelEvent(int index) async {
+  final String appointmentId = _events[index]['appointmentId'];
+  final String apiUrl = "${constants.ApiConstants.baseUrl}/appointment/$appointmentId/cancel";
+
+  try {
+    final response = await http.patch(Uri.parse(apiUrl));
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _events.removeAt(index);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Appointment canceled successfully.")),
+      );
+    } else {
+      final errorMessage = json.decode(response.body)['message'] ?? 'Failed to cancel appointment.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $errorMessage")),
+      );
+    }
+  } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Appointment canceled")),
+      SnackBar(content: Text("An error occurred: $e")),
     );
   }
+ _sendNotification(_events[index]['patientId']['_id'], "MediCardia",
+              "Dr.${await storage.read(key: 'username')} has canceld your appointment, you can check your celender page for more details");
 
+  
+}
+
+  void _sendNotification(
+      String receiverId, String title, String message) async {
+    final DatabaseReference usersRef =
+        FirebaseDatabase.instance.ref('users/$receiverId');
+    final DataSnapshot snapshot = await usersRef.get();
+
+    if (snapshot.exists) {
+      final String? fcmToken = snapshot.child('fcmToken').value as String?;
+
+      if (fcmToken != null) {
+        try {
+          await sendNotifications(
+              fcmToken: fcmToken,
+              title: title,
+              body: message,
+              userId: receiverId,
+              type: 'appointment');
+          print('Notification sent successfully');
+        } catch (error) {
+          print('Error sending notification: $error');
+        }
+      } else {
+        print('FCM token not found for the user.');
+      }
+    } else {
+      print('User not found in the database.');
+    }
+  }
   Future<void> _fetchBookedSlots() async {
-    final String apiUrl = '${ApiConstants.baseUrl}/appointment/schedules/$doctorid/booked';
+    final String apiUrl = '${constants.ApiConstants.baseUrl}/appointment/schedules/$doctorid/booked';
 
     if (_selectedDay == null) return;
 
