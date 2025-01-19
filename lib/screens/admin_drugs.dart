@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/screens/constants.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 
 class ManageDrugsPage extends StatefulWidget {
@@ -18,6 +21,8 @@ class _ManageDrugsPageState extends State<ManageDrugsPage> {
     super.initState();
     _fetchDrugs();
   }
+
+
 
   Future<void> _fetchDrugs() async {
     final url = '${ApiConstants.baseUrl}/drugs';
@@ -48,6 +53,8 @@ class _ManageDrugsPageState extends State<ManageDrugsPage> {
     }
   }
 
+
+
   Future<void> _deleteDrug(String id, int index) async {
     final url = '${ApiConstants.baseUrl}/drugs/$id';
     try {
@@ -67,6 +74,8 @@ class _ManageDrugsPageState extends State<ManageDrugsPage> {
       print("Error deleting drug: $e");
     }
   }
+
+
 
   Future<void> _updateDrug(String id, Map<String, dynamic> updatedDrug, int index) async {
     final url = '${ApiConstants.baseUrl}/drugs/$id';
@@ -101,39 +110,55 @@ class _ManageDrugsPageState extends State<ManageDrugsPage> {
     }
   }
 
+
+
+////////////////////////////
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F5FF),
       appBar: AppBar(
-        title: const Text(
-          'Drug Management',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+      title: const Text(
+        'Drug Management',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          letterSpacing: 1.5,
         ),
-        centerTitle: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(35),
-          ),
+      ),
+      centerTitle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(35),
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xff9C27B0), Color(0xff6A1B9A)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+      ),
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xff9C27B0), Color(0xff6A1B9A)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
         ),
       ),
+
+      leading:  IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+    ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final double pageWidth = constraints.maxWidth > 600 ? 1000 : double.infinity;
+          const double pageWidth =  double.infinity;
           return Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: pageWidth),
+                constraints: const BoxConstraints(maxWidth: pageWidth),
                 child: drugs.isEmpty
                     ? const Center(child: CircularProgressIndicator())
                     : ListView.builder(
@@ -151,7 +176,7 @@ class _ManageDrugsPageState extends State<ManageDrugsPage> {
                                 radius: 30,
                                 backgroundColor: Color(0xff613089),
                                 child: Icon(
-                                  Icons.medical_services,
+                                 FontAwesomeIcons.capsules,
                                   size: 30,
                                   color: Colors.white,
                                 ),
@@ -204,7 +229,12 @@ class _ManageDrugsPageState extends State<ManageDrugsPage> {
                                         ),
                                       ),
                                     ],
+                                     color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+      ),
                                   ),
+                                  
                                 ],
                               ),
                             ),
@@ -226,56 +256,65 @@ class _ManageDrugsPageState extends State<ManageDrugsPage> {
     );
   }
 
-  void _showDrugDetailsDialog(BuildContext context, Map<String, dynamic> drug) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          backgroundColor: Colors.white,
-          elevation: 5,
+  void _showDrugDetailsDialog(BuildContext context, Map<String, dynamic> drug)
+ {
+  showDialog(
+    context: context,
+    builder: (context) {
+           double dialogWidth =  MediaQuery.of(context).size.width * 0.9; 
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 5,
           child: Container(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${drug['name']} Details',
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xff6A1B9A)),
+          width: dialogWidth, 
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${drug['name']} Details',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xff6A1B9A),
                 ),
-                const SizedBox(height: 20),
-                _buildDetailRow('Use:', drug['use'] ?? 'N/A'),
-                _buildDetailRow('Dose:', drug['dose'] ?? 'N/A'),
-                _buildDetailRow('Time:', drug['time'] ?? 'N/A'),
-                _buildDetailRow('Notes:', drug['notes'] ?? 'N/A'),
-                const SizedBox(height: 20),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xff6A1B9A),
-                      padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                    ),
-                    child: const Text(
-                      'Close',
-                      style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+              _buildDetailRow('Use:', drug['use'] ?? 'N/A'),
+              _buildDetailRow('Dose:', drug['dose'] ?? 'N/A'),
+              _buildDetailRow('Time:', drug['time'] ?? 'N/A'),
+              _buildDetailRow('Notes:', drug['notes'] ?? 'N/A'),
+              const SizedBox(height: 20),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff6A1B9A),
+                    padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
                     ),
                   ),
+                  child: const Text(
+                    'Close',
+                    style: TextStyle(fontSize: 16),
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
   Future<void> _addDrug(Map<String, dynamic> newDrug) async {
   final url = '${ApiConstants.baseUrl}/drugs/admin';
   try {
@@ -338,7 +377,7 @@ class _ManageDrugsPageState extends State<ManageDrugsPage> {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(color: Colors.grey, fontSize: 14),
+              style: const TextStyle(color: Colors.grey, fontSize: 14.5),
               overflow: TextOverflow.ellipsis,
               maxLines: 2,
             ),
@@ -348,91 +387,127 @@ class _ManageDrugsPageState extends State<ManageDrugsPage> {
     );
   }
 
-  void _showEditDrugDialog(BuildContext context, Map<String, dynamic> drug, int index) {
-    final TextEditingController nameController = TextEditingController(text: drug['name']);
-    final TextEditingController barcodeController = TextEditingController(text: drug['barcode']);
-    final TextEditingController useController = TextEditingController(text: drug['use']);
-    final TextEditingController doseController = TextEditingController(text: drug['dose']);
-    final TextEditingController timeController = TextEditingController(text: drug['time']);
-    final TextEditingController notesController = TextEditingController(text: drug['notes']);
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          backgroundColor: Colors.white,
-          elevation: 5,
-          child: StatefulBuilder(
-            builder: (context, setState) {
-              return Container(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Edit Drug',
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xff6A1B9A)),
-                    ),
-                    const SizedBox(height: 20),
-                    _buildTextField(nameController, 'Drug Name'),
-                    _buildTextField(barcodeController, 'Barcode'),
-                    _buildTextField(useController, 'Use'),
-                    _buildTextField(doseController, 'Dose'),
-                    _buildTextField(timeController, 'Time'),
-                    _buildTextField(notesController, 'Notes'),
-                    const SizedBox(height: 20),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          final updatedDrug = {
-                            'id': drug['id'],
-                            'name': nameController.text,
-                            'barcode': barcodeController.text,
-                            'use': useController.text,
-                            'dose': doseController.text,
-                            'time': timeController.text,
-                            'notes': notesController.text,
-                          };
-                          _updateDrug(drug['id'], updatedDrug, index);
-                          Navigator.pop(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff6A1B9A),
-                          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
-                        child: const Text(
-                          'Save Changes',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
+ void _showEditDrugDialog(BuildContext context, Map<String, dynamic> drug, int index) {
+  final TextEditingController nameController = TextEditingController(text: drug['name']);
+  final TextEditingController barcodeController = TextEditingController(text: drug['barcode']);
+  final TextEditingController useController = TextEditingController(text: drug['use']);
+  final TextEditingController doseController = TextEditingController(text: drug['dose']);
+  final TextEditingController timeController = TextEditingController(text: drug['time']);
+  final TextEditingController notesController = TextEditingController(text: drug['notes']);
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      double dialogWidth =  MediaQuery.of(context).size.width * 0.9;
+      return AlertDialog(
+        backgroundColor: Colors.white,
+        title: const Text(
+          'Edit Drug',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Color(0xff6A1B9A),
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
         ),
-      ),
-    );
-  }
+        content: SizedBox(
+          width: dialogWidth,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildTextField(controller: nameController, label: 'Drug Name', hint: 'Please enter drug name'),
+                const SizedBox(height: 10),
+                          TextField(
+  controller: barcodeController,
+  decoration: InputDecoration(
+    labelText: 'Barcode',
+    hintText: 'Please enter barcode',
+    hintStyle: TextStyle(
+      color: Colors.grey.shade400, 
+      fontSize: 14,
+      fontStyle: FontStyle.italic,
+    ),
+    labelStyle: const TextStyle(color: Color(0xff6A1B9A)),
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+    focusedBorder: OutlineInputBorder(
+      borderSide: const BorderSide(color: Color(0xffb41391), width: 2.0),
+      borderRadius: BorderRadius.circular(15),
+    ),
+    filled: true,
+    fillColor: const Color(0xFFF5F5F5),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+    suffixIcon:IconButton(  
+      icon: const Icon(Icons.camera_alt, color: Color(0xff613089)),
+      onPressed: () async {
+        String barcodeScanResult = await FlutterBarcodeScanner.scanBarcode(
+          "#ff6666",
+          "Cancel",
+          true,
+          ScanMode.BARCODE,
+        );
+
+        if (barcodeScanResult != '-1') {
+          barcodeController.text = barcodeScanResult;
+          if (kDebugMode) {
+            print("Scanned Barcode: $barcodeScanResult");
+          }
+        }
+      },
+    )  
+  ),
+),
+                const SizedBox(height: 10),
+                _buildTextField(controller: useController, label: 'Use', hint: 'Please enter use'),
+                const SizedBox(height: 10),
+                _buildTextField(controller: doseController, label: 'Dose', hint: 'Please enter dose'),
+                const SizedBox(height: 10),
+                _buildTextField(controller: timeController, label: 'Time', hint: 'Please enter time'),
+                const SizedBox(height: 10),
+                _buildTextField(controller: notesController, label: 'Notes', hint: 'Please enter notes'),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final updatedDrug = {
+                'id': drug['id'],
+                'name': nameController.text,
+                'barcode': barcodeController.text,
+                'use': useController.text,
+                'dose': doseController.text,
+                'time': timeController.text,
+                'notes': notesController.text,
+              };
+              _updateDrug(drug['id'], updatedDrug, index);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff6A1B9A),
+              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            ),
+            child: const Text('Save Changes'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
+
 
 void _showAddDrugDialog(BuildContext context) {
   final TextEditingController nameController = TextEditingController();
@@ -445,32 +520,90 @@ void _showAddDrugDialog(BuildContext context) {
   showDialog(
     context: context,
     builder: (context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      double dialogWidth = MediaQuery.of(context).size.width > 600
+          ? 600
+          : MediaQuery.of(context).size.width * 0.9;
+      return AlertDialog(
         backgroundColor: Colors.white,
-        elevation: 5,
-        child: StatefulBuilder(
-          builder: (context, setState) {
-            return Container(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Add New Drug',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xff6A1B9A)),
+        title: const Text(
+          'Add New Drug',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Color(0xff6A1B9A),
+          ),
+        ),
+        content: SizedBox(
+          width: dialogWidth,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildTextField(controller: nameController, label: 'Drug Name', hint: 'Please enter drug name'),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: barcodeController,
+                  decoration: InputDecoration(
+                    labelText: 'Barcode',
+                    hintText: 'Please enter barcode',
+                    hintStyle: TextStyle(
+                      color: Colors.grey.shade400,
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    labelStyle: const TextStyle(color: Color(0xff6A1B9A)),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Color(0xffb41391), width: 2.0),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF5F5F5),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                    suffixIcon: IconButton(
+                            icon: const Icon(Icons.camera_alt, color: Color(0xff613089)),
+                            onPressed: () async {
+                              String barcodeScanResult = await FlutterBarcodeScanner.scanBarcode(
+                                "#ff6666",
+                                "Cancel",
+                                true,
+                                ScanMode.BARCODE,
+                              );
+
+                              if (barcodeScanResult != '-1') {
+                                barcodeController.text = barcodeScanResult;
+                                if (kDebugMode) {
+                                  print("Scanned Barcode: $barcodeScanResult");
+                                }
+                              }
+                            },
+                          )
+                    
                   ),
-                  const SizedBox(height: 20),
-                  _buildTextField(nameController, 'Drug Name'),
-                  _buildTextField(barcodeController, 'Barcode'),
-                  _buildTextField(useController, 'Use'),
-                  _buildTextField(doseController, 'Dose'),
-                  _buildTextField(timeController, 'Time'),
-                  _buildTextField(notesController, 'Notes'),
-                  const SizedBox(height: 20),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton(
+                ),
+                const SizedBox(height: 10),
+                _buildTextField(controller: useController, label: 'Use', hint: 'Please enter use'),
+                const SizedBox(height: 10),
+                _buildTextField(controller: doseController, label: 'Dose', hint: 'Please enter dose'),
+                const SizedBox(height: 10),
+                _buildTextField(controller: timeController, label: 'Time', hint: 'Please enter time'),
+                const SizedBox(height: 10),
+                _buildTextField(controller: notesController, label: 'Notes', hint: 'Please enter notes'),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+          ElevatedButton(
                       onPressed: () {
                         final newDrug = {
                           'name': nameController.text,
@@ -483,27 +616,49 @@ void _showAddDrugDialog(BuildContext context) {
                         _addDrug(newDrug);
                         Navigator.pop(context);
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xff6A1B9A),
-                        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                      child: const Text(
-                        'Add Drug',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff6A1B9A),
+              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            ),
+            child: const Text('Add'),
+          ),
+        ],
       );
     },
   );
 }
+
+
+
+
+Widget _buildTextField({
+  required TextEditingController controller,
+  required String label,
+  String? hint,
+}) {
+  return TextField(
+    controller: controller,
+    decoration: InputDecoration(
+      labelText: label,
+      hintText: hint,
+      hintStyle: TextStyle(
+        color: Colors.grey.shade400,
+        fontSize: 14,
+        fontStyle: FontStyle.italic,
+      ),
+      labelStyle: const TextStyle(color: Color(0xff6A1B9A)),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+      focusedBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Color(0xffb41391), width: 2.0),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      filled: true,
+      fillColor: const Color(0xFFF5F5F5),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+    ),
+  );
+}
+
 
 }

@@ -70,9 +70,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           ),
         ),
         automaticallyImplyLeading: !kIsWeb,
-        leading: kIsWeb
-            ? null
-            : IconButton(
+        leading:  IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () {
                   Navigator.pop(context);
@@ -84,7 +82,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           : LayoutBuilder(
               builder: (context, constraints) {
                 final double pageWidth =
-                    constraints.maxWidth > 600 ? 1100 : constraints.maxWidth * 0.9;
+                   constraints.maxWidth * 0.9;
                 return Center(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -152,6 +150,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
     );
   }
 }
+
+
+
 class FeatureUsageChart extends StatelessWidget {
   final Map<String, dynamic> statistics; // Accept statistics data as a parameter
 
@@ -159,6 +160,8 @@ class FeatureUsageChart extends StatelessWidget {
     Key? key,
     required this.statistics,
   }) : super(key: key);
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -196,6 +199,8 @@ class FeatureUsageChart extends StatelessWidget {
   }
 }
 
+
+
 class FeatureUsageData {
   final String feature;
   final int usagePercentage;
@@ -217,6 +222,10 @@ class InfoCard extends StatelessWidget {
     required this.icon,
     required this.iconColor,
   }) : super(key: key);
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -281,7 +290,7 @@ final Map<String, Color> bloodTypeColors = {
   'B+': const Color(0xff9361B2),
   'AB+': const Color(0xffAD7FC7),
   'A-': const Color(0xffC79EDC),
-  'O-': const Color(0xff8E44AD), // Add more blood types as needed
+  'O-': const Color(0xff8E44AD), 
   'B-': const Color.fromARGB(255, 56, 21, 69),
   'AB-': const Color.fromARGB(255, 131, 27, 147),
 };
@@ -290,7 +299,7 @@ final chartData = bloodTypeData!
     .map((data) {
       final bloodType = data['bloodType'];
       final percentage = data['percentage'];
-      final color = bloodTypeColors[bloodType] ?? const Color(0xff000000); // Default to black if not found
+      final color = bloodTypeColors[bloodType] ?? const Color(0xff000000);
       return BloodTypeData(bloodType, percentage, color);
     })
     .toList();

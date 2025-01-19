@@ -1,9 +1,9 @@
-import 'dart:convert';  // لاستعمال jsonDecode
+import 'dart:convert';  
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/screens/constants.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:http/http.dart' as http;  // إضافة حزمة http
+import 'package:http/http.dart' as http; 
 
 class ManageAccountsPage extends StatefulWidget {
   const ManageAccountsPage({Key? key}) : super(key: key);
@@ -21,9 +21,9 @@ class _ManageAccountsPageState extends State<ManageAccountsPage> {
     _fetchAccounts();
   }
 
-  // استدعاء الـ API لتحميل المستخدمين
+
   Future<void> _fetchAccounts() async {
-    final url = '${ApiConstants.baseUrl}/users';  // هنا ضع رابط الـ API
+    final url = '${ApiConstants.baseUrl}/users';  
     try {
       final response = await http.get(Uri.parse(url));
 
@@ -31,7 +31,7 @@ class _ManageAccountsPageState extends State<ManageAccountsPage> {
         final data = jsonDecode(response.body);
         final List<Map<String, String>> users = [];
 
-        // دمج الأطباء مع المستخدمين في قائمة واحدة
+     
         for (var user in data['data']['users']) {
           users.add({
             'name': user['username'],
@@ -48,11 +48,11 @@ class _ManageAccountsPageState extends State<ManageAccountsPage> {
          users.add({
             'name': doctor['fullName'],
             'email': doctor['email'],
-      'phone': doctor['phone'] ?? '', // تحقق من أن الحقل موجود
-   'specialization': doctor['specialization'] ?? '', // تحقق من الحقول الإضافية
+      'phone': doctor['phone'] ?? '', 
+   'specialization': doctor['specialization'] ?? '',
    'licenseNumber': doctor['licenseNumber'] ?? '',
-   'workplaceName': doctor['workplace']?['name'] ?? '', // تحقق من وجود الحقل الفرعي
-   'workplaceAddress': doctor['workplace']?['address'] ?? '', // اسم الحقل هنا يبدو خطأ (adress -> address)
+   'workplaceName': doctor['workplace']?['name'] ?? '', 
+   'workplaceAddress': doctor['workplace']?['address'] ?? '', 
    'role': 'Doctor',
           });
         }
@@ -64,10 +64,19 @@ class _ManageAccountsPageState extends State<ManageAccountsPage> {
         throw Exception('Failed to load accounts');
       }
     } catch (error) {
-      print(error);
-      // يمكنك إضافة معالجة للأخطاء مثل عرض رسالة للمستخدم في حالة حدوث خطأ
+      if (kDebugMode) {
+        print(error);
+      }
+     
     }
   }
+
+
+
+
+//////////////////////////////////
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -97,18 +106,8 @@ class _ManageAccountsPageState extends State<ManageAccountsPage> {
             ),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: () {
-              // Search functionality
-            },
-          ),
-        ],
-        automaticallyImplyLeading: !kIsWeb,
-        leading: kIsWeb
-            ? null
-            : IconButton(
+   
+        leading:  IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () {
                   Navigator.pop(context);
@@ -117,7 +116,7 @@ class _ManageAccountsPageState extends State<ManageAccountsPage> {
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final double pageWidth = constraints.maxWidth > 600 ? 1000 : double.infinity;
+          const double pageWidth =  double.infinity;
           return Center(
             child: SizedBox(
               width: pageWidth,
@@ -168,13 +167,14 @@ class _ManageAccountsPageState extends State<ManageAccountsPage> {
                               ),
                             ),
                             Text(
-                              account['role']!,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xff613089),
-                              ),
-                            ),
+  account['role'] == 'User' ? 'Patient' : account['role']!,
+  style: const TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: Color(0xff613089),
+  ),
+),
+
                           ],
                         ),
                         isThreeLine: true,
@@ -223,6 +223,10 @@ class _ManageAccountsPageState extends State<ManageAccountsPage> {
                               ),
                             ),
                           ],
+                            color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+      ),
                         ),
                       ),
                     );
@@ -243,7 +247,7 @@ class _ManageAccountsPageState extends State<ManageAccountsPage> {
     );
   }
 
-  // يمكنك إضافة طرق للتحكم في المحادثات مثل _showEditDoctorDialog أو _showAddAccountDialog حسب الحاجة
+
 }
 
 
@@ -297,9 +301,7 @@ void _showEditDoctorDialog(BuildContext context, Map<String, String> account) {
   showDialog(
     context: context,
           builder: (context) {
-        double dialogWidth = MediaQuery.of(context).size.width > 600
-            ? 600
-            : MediaQuery.of(context).size.width * 0.9;
+        double dialogWidth =  MediaQuery.of(context).size.width * 0.9;
       return Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         elevation: 5,
@@ -397,9 +399,7 @@ void _showEditPatientDialog(BuildContext context, Map<String, String> account) {
   showDialog(
     context: context,
     builder: (context) {
-             double dialogWidth = MediaQuery.of(context).size.width > 600
-            ? 600
-            : MediaQuery.of(context).size.width * 0.9;
+             double dialogWidth =  MediaQuery.of(context).size.width * 0.9;
       return Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         elevation: 5,

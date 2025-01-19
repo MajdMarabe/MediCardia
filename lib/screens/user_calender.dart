@@ -1,14 +1,20 @@
 
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/screens/constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
+
+
+
 class PatientAppointment extends StatefulWidget {
   @override
   _AppointmentFilterUIState createState() => _AppointmentFilterUIState();
 }
+
+
 
 class _AppointmentFilterUIState extends State<PatientAppointment> {
   List<Map<String, dynamic>> _appointments = [];
@@ -24,8 +30,10 @@ List<Map<String, dynamic>> CanceledSlots = [];
     _fetchCanceledSlots();
   }
 
+
+
   Future<void> _fetchCanceledSlots() async {
-    String userId =  await storage.read(key: 'userid') ?? ''; // Replace with the actual user ID
+    String userId =  await storage.read(key: 'userid') ?? '';
      String apiUrl = "${ApiConstants.baseUrl}/appointment/$userId/cancelled";
 
     try {
@@ -54,13 +62,17 @@ List<Map<String, dynamic>> CanceledSlots = [];
       }
     } catch (e) {
       setState(() {
-        _errorMessage = "Failed to load appointments. Please try again later.";
+        _errorMessage = "Failed to load canceled appointments. Please try again later.";
         _isLoading = false;
       });
     }
   }
+
+
+
+
   Future<void> _fetchAppointments() async {
-    const String userId = "674a1f30a138e7fd5c6e0cbe"; // Replace with the actual user ID
+    String userId =  await storage.read(key: 'userid') ?? '';
      String apiUrl = "${ApiConstants.baseUrl}/appointment/$userId/booked";
 
     try {
@@ -76,7 +88,7 @@ List<Map<String, dynamic>> CanceledSlots = [];
               "time": item['time'],
               "doctor": item['doctorId']['fullName'],
               "specialization": item['doctorId']['specialization'],
-              "canceledByDoctor": false, // Adjust if cancellation info is available
+              "canceledByDoctor": false, 
             };
           }).toList();
           _isLoading = false;
@@ -89,11 +101,17 @@ List<Map<String, dynamic>> CanceledSlots = [];
       }
     } catch (e) {
       setState(() {
-        _errorMessage = "Failed to load appointments. Please try again later.";
+        _errorMessage = "Failed to load your appointments. Please try again later.";
         _isLoading = false;
       });
     }
   }
+
+
+
+//////////////////////////////
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -112,25 +130,56 @@ List<Map<String, dynamic>> CanceledSlots = [];
             fontSize: 24,
           ),
         ),
+        automaticallyImplyLeading: !kIsWeb,
+        leading: kIsWeb
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF613089)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-              ? Center(child: Text(_errorMessage!))
-              : Padding(
+          : Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
                     children: [
-                      _sectionTitle("Current Appointments"),
-                      Expanded(child: _buildCurrentAppointmentsTable()),
+                       _sectionTitle("Current Appointments"),
+                    _appointments.isEmpty
+                        ?  Center(child: Text('No booked appointments found.',
+                        
+                         style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey[500]),
+                                    ))
+                        : Expanded(child: _buildCurrentAppointmentsTable()),
 
-                      _sectionTitle("Appointments Canceled by Doctor"),
-                      Expanded(child: _buildDoctorCanceledAppointments()),
+                    
+                    CanceledSlots.isEmpty
+                        ? Center(child: Text('No canceled appointments found.',
+                         style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey[500]),
+                                    ))
+                        : Expanded(child: _buildDoctorCanceledAppointments()),
                     ],
                   ),
                 ),
     );
   }
+
+  
+  String formatEventTime(String time) {
+    try {
+      var parsedTime = DateFormat("HH:mm").parse(time);
+      return DateFormat.jm().format(parsedTime); 
+    } catch (e) {
+      return "Invalid time";
+    }
+  }
+
 
   Widget _sectionTitle(String title) {
     return Padding(
@@ -165,7 +214,6 @@ Widget _buildCurrentAppointmentsTable() {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // إذا كانت قائمة المواعيد فارغة، عرض رسالة داخل الجدول
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: DataTable(
@@ -197,10 +245,10 @@ Widget _buildCurrentAppointmentsTable() {
                     return DataRow(cells: [
                       DataCell(Text(appointment['doctor'])),
                       DataCell(Text(appointment['date'])),
-                      DataCell(Text(appointment['time'])),
+                      DataCell(Text(formatEventTime(appointment['time']))),
                       DataCell(
                         IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
+                          icon: const Icon(Icons.delete, color: Color(0xFF928794)),
                           onPressed: () {
                             _deleteAppointment(appointment);
                           },
@@ -209,11 +257,11 @@ Widget _buildCurrentAppointmentsTable() {
                     ]);
                   }).toList()
                 : [
-                    DataRow(cells: [
-                      const DataCell(Text("No appointments available", style: TextStyle(color: Colors.grey))),
-                      const DataCell(Text("")),
-                      const DataCell(Text("")),
-                      const DataCell(Text("")),
+                    const DataRow(cells: [
+                      DataCell(Text("No appointments available", style: TextStyle(color: Colors.grey))),
+                      DataCell(Text("")),
+                      DataCell(Text("")),
+                      DataCell(Text("")),
                     ]),
                   ],
           ),
@@ -225,9 +273,23 @@ Widget _buildCurrentAppointmentsTable() {
 
 
 
+
 Widget _buildDoctorCanceledAppointments() {
   print(CanceledSlots);
-  // Directly use CanceledSlots as it already contains canceled appointments
+  const Padding(
+      padding: EdgeInsets.all(12.0),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          "Appointments Canceled By Doctor",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF613089),
+          ),
+        ),
+      ),
+    );
   return Card(
     color: Colors.white,
     margin: const EdgeInsets.all(16.0),
@@ -235,29 +297,47 @@ Widget _buildDoctorCanceledAppointments() {
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(16.0),
     ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CanceledSlots.isNotEmpty
-            ? ListView.builder(
-                shrinkWrap: true, 
-                itemCount: CanceledSlots.length,
-                itemBuilder: (context, index) {
-                  final appointment = CanceledSlots[index];
-                  return _appointmentCard(appointment);
-                },
-              )
-            : Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: const Text(
-                  "No appointments canceled.",
-                  style: TextStyle(color: Colors.grey),
+    child: SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+            const Padding(
+            padding: EdgeInsets.all(12.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Appointments Canceled By Doctor",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF613089),
                 ),
               ),
-      ],
+            ),
+          ),
+          CanceledSlots.isNotEmpty
+              ? ListView.builder(
+                  shrinkWrap: true, 
+                  physics: const NeverScrollableScrollPhysics(), 
+                  itemCount: CanceledSlots.length,
+                  itemBuilder: (context, index) {
+                    final appointment = CanceledSlots[index];
+                    return _appointmentCard(appointment);
+                  },
+                )
+              : const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
+                    "No appointments canceled.",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+        ],
+      ),
     ),
   );
 }
+
 
 Widget _appointmentCard(Map<String, dynamic> appointment) {
   return Card(
@@ -275,37 +355,67 @@ Widget _appointmentCard(Map<String, dynamic> appointment) {
           ListTile(
             leading: const Icon(
               Icons.cancel,
-              color: Colors.red,
+              color: Color(0xff613089),
             ),
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Doctor: ${appointment['doctor']} (${appointment['specialization']})",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                Expanded(
+                  child: Text(
+                    "Dr ${appointment['doctor']} (${appointment['specialization']})",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                 
+                  ),
                 ),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.refresh, color: Colors.green),
-                      onPressed: () {
-                        _chooseNewAppointment(appointment);
-                      },
-                      iconSize: 26,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_forever, color: Colors.red),
-                      onPressed: () {
-                        _deleteAppointment(appointment);
-                      },
-                      iconSize: 26,
-                    ),
-                  ],
-                ),
+            Row(
+  mainAxisAlignment: MainAxisAlignment.end, 
+  children: [
+    PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert), 
+      onSelected: (String value) {
+        if (value == 'Choose New Slot') {
+          _chooseNewAppointment(appointment);
+        } else if (value == 'delete') {
+          _deleteAppointment(appointment);
+        }
+      },
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+        const PopupMenuItem<String>(
+          value: 'Choose New Slot',
+          child: Row(
+            children: [
+              Icon(Icons.refresh, color: Color(0xff613089)),
+              SizedBox(width: 8),
+              Text('Choose New Slot'),
+            ],
+          ),
+        ),
+        const PopupMenuItem<String>(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete_forever, color: Color(0xff613089)),
+              SizedBox(width: 8),
+              Text('Delete'),
+            ],
+          ),
+        ),
+        
+      ],
+      color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+      ),
+    ),
+    
+  ],
+)
+
               ],
             ),
             subtitle: Text(
-              "Date: ${appointment['date']}\nTime: ${appointment['time']}",
+              "Date: ${appointment['date']}\nTime: ${formatEventTime(appointment['time'])}",
+
             ),
           ),
         ],
@@ -315,11 +425,18 @@ Widget _appointmentCard(Map<String, dynamic> appointment) {
 }
 
 
+
   void _editAppointment(Map<String, dynamic> appointment) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Edit appointment functionality coming soon!")),
     );
+
+
+
   }
+
+
+
   void _deleteAppointment(Map<String, dynamic> appointment) async {
   final String apiUrl =
       "${ApiConstants.baseUrl}/appointment/${appointment['id']}"; // Replace with the correct endpoint
@@ -361,7 +478,11 @@ Widget _appointmentCard(Map<String, dynamic> appointment) {
       _appointments.remove(appointment);
     });
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Appointment deleted.")));
-  }*/Future<void> _fetchAvailableTimes(String doctorId) async {
+  }*/
+  
+  
+  
+  Future<void> _fetchAvailableTimes(String doctorId) async {
   String apiUrl = "${ApiConstants.baseUrl}/appointment/schedules/$doctorId/slots";
 
   setState(() {
@@ -405,6 +526,8 @@ Widget _appointmentCard(Map<String, dynamic> appointment) {
     });
   }
 }
+
+
 void _chooseNewAppointment(Map<String, dynamic> canceledAppointment) async {
   if (_isLoading) {
     print("Loading in progress. Please wait.");
@@ -426,15 +549,16 @@ void _chooseNewAppointment(Map<String, dynamic> canceledAppointment) async {
   showDialog(
     context: context,
     builder: (context) {
-      String? selectedTime; // متغير لتحديد الوقت المختار
+      String? selectedTime; 
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
+            backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
             title: Text(
-              "Choose a New Appointment for ${canceledAppointment['doctor']}",
+              "Choose a new appointment for Dr. ${canceledAppointment['doctor']}",
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -460,30 +584,39 @@ void _chooseNewAppointment(Map<String, dynamic> canceledAppointment) async {
                           ],
                         ),
                         child: availableTimes.isNotEmpty
-                            ? Wrap(
-                                spacing: 12,
-                                runSpacing: 12,
-                                children: availableTimes.map((slot) {
-                                  return ChoiceChip(
-                                    backgroundColor: Colors.white,
-                                    label: Text(
-                                      "${canceledAppointment['date']} at $slot",
-                                    ),
-                                    selected: selectedTime == slot,
-                                    onSelected: (selected) {
-                                      setState(() {
-                                        selectedTime = selected ? slot : null;
-                                      });
-                                    },
-                                    selectedColor: const Color(0xFF613089),
-                                    labelStyle: TextStyle(
-                                      color: selectedTime == slot
-                                          ? Colors.white
-                                          : Colors.black87,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  );
-                                }).toList(),
+                            ? SizedBox(
+                                height: 240, 
+                                child: SingleChildScrollView(
+                                  child: Wrap(
+                                    spacing: 12,
+                                    runSpacing: 12,
+                                    children: availableTimes.map((slot) {
+                                      return ChoiceChip(
+                                        backgroundColor: Colors.white,
+                                        label: Text(
+                                          "${canceledAppointment['date']} at ${formatEventTime(slot)}",
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        selected: selectedTime == slot,
+                                        onSelected: (selected) {
+                                          setState(() {
+                                            selectedTime = selected ? slot : null;
+                                          });
+                                        },
+                                        selectedColor: const Color(0xFF613089),
+                                        labelStyle: TextStyle(
+                                          color: selectedTime == slot
+                                              ? Colors.white
+                                              : Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
                               )
                             : const Center(
                                 child: Text(
@@ -504,20 +637,19 @@ void _chooseNewAppointment(Map<String, dynamic> canceledAppointment) async {
                                   canceledAppointment['doctorId'],
                                   canceledAppointment['doctor'],
                                   selectedTime!,
-                                  DateFormat('dd-MM-yyyy').parse(canceledAppointment['date']), // Parse date here
-                                  "No notes", // Add notes here if needed
+                                  DateFormat('dd-MM-yyyy').parse(canceledAppointment['date']),
+                                  "No notes",
                                   canceledAppointment['date'],
                                   await storage.read(key: 'token'),
                                 );
                                 Navigator.pop(context);
-                               _deleteAppointment(canceledAppointment);
-
+                                _deleteAppointment(canceledAppointment);
                               }
                             : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF613089),
-                          disabledForegroundColor: Colors.white.withOpacity(0.5),
-                          disabledBackgroundColor: Colors.grey.shade300,
+                          disabledForegroundColor: Colors.black.withOpacity(0.7),
+                          disabledBackgroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
                               vertical: 14, horizontal: 35),
                           shape: RoundedRectangleBorder(
@@ -540,6 +672,9 @@ void _chooseNewAppointment(Map<String, dynamic> canceledAppointment) async {
     },
   );
 }
+
+
+
 
 Future<void> _proceedToBookAppointment(
   BuildContext context,
@@ -608,7 +743,7 @@ Future<void> _proceedToBookAppointment(
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  "Date: ${formattedDate}",
+                  "Date: $formattedDate",
                   style: const TextStyle(fontSize: 16, color: Colors.black54),
                 ),
                 Text(

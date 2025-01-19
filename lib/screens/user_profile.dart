@@ -120,7 +120,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     const SizedBox(height: 10),
                     _itemProfile(
                       'Settings',
-                      'Go to set Settings',
+                      'Go to set settings',
                       CupertinoIcons.settings,
                       onTap: () {
                         Navigator.push(
@@ -891,33 +891,34 @@ class AboutUsPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionTitle('Our Mission'),
+              _buildSectionTitle('Our Mission', Icons.account_balance),
               const SizedBox(height: 10),
               const Text(
-                'At MediCardia, our mission is to empower individuals to take control of their health through innovative technology. We aim to provide a comprehensive platform that helps users track and manage their health data, while ensuring privacy and security at all times.',
+                'Our mission is to empower individuals to take control of their health through innovative technology. We aim to provide a comprehensive platform for health tracking while ensuring privacy and security.',
                 style: TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 20),
 
-              _buildSectionTitle('Our Vision'),
+              _buildSectionTitle('Our Vision', Icons.remove_red_eye),
               const SizedBox(height: 10),
               const Text(
-                'We envision a world where everyone has easy access to their health data, enabling them to make informed decisions about their well-being. Our goal is to become a trusted partner for users, doctors, and healthcare providers in managing personal health information.',
+                'We envision a world where everyone has easy access to their health data, enabling them to make informed decisions about their well-being.',
                 style: TextStyle(fontSize: 16),
               ),
                const SizedBox(height: 20),
-              _buildSectionTitle('Our Team'),
+
+              _buildSectionTitle('Our Team', Icons.group),
               const SizedBox(height: 10),
               const Text(
-                'We are a team of dedicated  software developers. Our team includes Anwar Aqraa and Majd Marabe. Together, we have combined our expertise to build a secure and user-friendly platform tailored to your healthcare needs.',
+                'Our team includes software developers Anwar Aqraa and Majd Marabe. Together, we aim to provide a secure and user-friendly healthcare platform.',
                 style: TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 20),
 
-              _buildSectionTitle('Contact Us'),
+              _buildSectionTitle('Contact Us', Icons.contact_mail),
               const SizedBox(height: 10),
               const Text(
-                'For any inquiries, suggestions, or feedback, feel free to contact us at support@medicardia.com. We value your input and are committed to improving our services.',
+                'For inquiries or feedback, reach us at support@medicardia.com. We value your input!',
                 style: TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 20),
@@ -928,14 +929,20 @@ class AboutUsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-        color: Color(0xff613089),
-      ),
+  Widget _buildSectionTitle(String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, color: const Color(0xff613089), size: 24),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xff613089),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -943,7 +950,6 @@ class AboutUsPage extends StatelessWidget {
 
 
 ///////////////////////////////////////////////
-
 
 
 
@@ -958,10 +964,11 @@ class InformationPage extends StatelessWidget {
         centerTitle: true,
         backgroundColor: const Color(0xFFF2F5FF),
         title: const Text(
-          'Information about MediCardia',
+          'MediCardia Overview',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: Color(0xff613089),
+            letterSpacing: 1.5,
           ),
         ),
         automaticallyImplyLeading: false,
@@ -977,81 +984,92 @@ class InformationPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          const Text(
-            'What is MediCardia?',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xff613089),
-            ),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'MediCardia is a health management app designed to make it easier for you to track and manage your personal health information. With MediCardia, you can:',
-            style: TextStyle(fontSize: 16),
-          ),
-          const SizedBox(height: 15),
-          _buildFeature('💳 Digital Health Card', 'Store essential health details like blood type and allergies.'),
-          _buildFeature('💊 Medication Management', 'Add medications and check for drug interactions.'),
-          _buildFeature('🩸 Blood Donation Alerts', 'Get notifications when hospitals need your blood type.'),
-        
+          _buildParagraph('MediCardia is a health management app to track your personal health. Key features include:'),
           
-          // New Sections
-          const SizedBox(height: 20),
-          const Text(
-            'Additional Features',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xff613089),
-            ),
-          ),
-          const SizedBox(height: 10),
-          _buildFeature('🩺 Health Device Integration', 
-            'MediCardia integrates with health devices like blood pressure monitors and glucose meters, allowing you to track your health data continuously.'),
-          _buildFeature('🔒 Privacy & Security', 
-            'MediCardia respects your privacy. All private health data is encrypted, and access is only granted with your permission.'),
-          _buildFeature('👩‍⚕️ Doctor Interaction', 
-            'Doctors can access your public health data in case of emergencies, ensuring timely and appropriate care.'),
+          _buildFeatureCard('💳 Digital Health Card', 'Store blood type, allergies, and more.'),
+          _buildFeatureCard('💊 Medication Management', 'Track your medications and interactions.'),
+          _buildFeatureCard('🩸 Blood Donation Alerts', 'Get notified when hospitals need your blood type.'),
           
-          const SizedBox(height: 20),
-          const Text(
-            'Stay in control of your health, securely and easily!',
-            style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
-          ),
+          _buildSectionTitle('More Features'),
+          _buildFeatureCard('🩺 Health Devices Integration', 'Sync with health devices like BP monitors.'),
+          _buildFeatureCard('🔒 Privacy & Security', 'Your health data is encrypted and secure.'),
+          _buildFeatureCard('👩‍⚕️ Doctor Interaction', 'Share health data in emergencies for better care.'),
+          
+          _buildSectionTitle('Quick Access'),
+          _buildFeatureCard('📅 Appointment Booking', 'Book appointments with doctors directly in the app.'),
+          _buildFeatureCard('💬 Contact a Doctor', 'Message doctors for consultations in a secure chat.'),
+          
+          _buildParagraph('Take control of your health with ease and security!', isItalic: true),
         ],
       ),
     );
   }
 
-  Widget _buildFeature(String title, String description) {
+  Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.check_circle_outline, color: Color(0xff613089)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  description,
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ],
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Color(0xff613089),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildParagraph(String text, {bool isItalic = false}) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 16,
+        fontStyle: isItalic ? FontStyle.italic : FontStyle.normal,
+        color: Colors.black87,
+      ),
+    );
+  }
+
+  Widget _buildFeatureCard(String title, String description) {
+    return Card(
+      color: Colors.white,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Row(
+          children: [
+            const Icon(Icons.check_circle_outline, color: Color(0xff613089)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xff613089),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    description,
+                    style: const TextStyle(fontSize: 14, color: Colors.black54),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
+
+
 
 
 

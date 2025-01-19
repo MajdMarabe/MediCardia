@@ -127,7 +127,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
                       const SizedBox(height: 10),
                       _itemProfile(
                         'Settings',
-                        'Go to set Settings',
+                        'Go to set settings',
                         CupertinoIcons.settings,
                         onTap: () {
                           Navigator.push(

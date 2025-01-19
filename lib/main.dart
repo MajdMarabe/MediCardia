@@ -97,10 +97,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'MediCardia',
       theme: lightMode,
       navigatorKey: navigatorKey,
-      home: WelcomeScreen(),
+      home: const WelcomeScreen(),
     );
   }
 }

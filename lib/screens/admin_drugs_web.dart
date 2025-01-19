@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/screens/admin_home.dart';
 import 'package:flutter_application_3/screens/constants.dart';
 import 'package:flutter_application_3/screens/statistics.dart';
+import 'package:flutter_application_3/screens/welcome_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 
@@ -62,7 +64,7 @@ int number =0;
           drugs.removeAt(index);
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Drug deleted')),
+          const SnackBar(content: Text('Drug deleted')),
         );
       } else {
         throw Exception('Failed to delete drug');
@@ -105,12 +107,37 @@ int number =0;
     }
   }
 
+  // Function to handle log out
+Future<void> _logOut() async {
+  // Add your logout logic here (e.g., clearing user session, etc.)
+  try {
+    await storage.deleteAll(); // Clears all stored keys and values
+    print('Storage cleared successfully.');
+    await FirebaseMessaging.instance.deleteToken();
+
+    // Navigate the user back to the welcome or login screen
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+    );
+  } catch (e) {
+    print('Error clearing storage: $e');
+  }
+  if (mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Logged out successfully!")),
+    );
+  }
+}
+
+
+
 @override
 Widget build(BuildContext context) {
   return Scaffold(
+    backgroundColor: Colors.white,
     body: Row(
       children: [
-        Sidebar(),
+        Sidebar(onLogout: _logOut),
         Expanded(
           child: SingleChildScrollView(
             child: Padding(
@@ -118,38 +145,65 @@ Widget build(BuildContext context) {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         "Manage Drugs",
                         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       ),
-                      InfoCard(
-
-                        title: "Drugs Number",
-              value: number.toString() ,
-              icon: FontAwesomeIcons.userMd,
-              iconColor: Colors.orange,
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          _showAddDrugDialog(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff6A1B9A),
-                          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
-                        ),
-                        child: const Text("Add New Drug"),
-                      ),
+                      
                     ],
                   ),
+                    const SizedBox(height: 20),
+             Center(
+              
+  child: Row(
+    
+    mainAxisAlignment: MainAxisAlignment.center, 
+    
+    children: [
+       const SizedBox(width: 500),
+      InfoCard(
+        title: "Drugs Number",
+        value: number.toString(),
+        icon: FontAwesomeIcons.capsules,
+        iconColor: const Color(0xff613089),
+      ),
+      const Spacer(), 
+      ElevatedButton(
+        onPressed: () {
+          _showAddDrugDialog(context);
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xff6A1B9A),
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.add_circle_outline, 
+              color: Colors.white,
+            ),
+            SizedBox(width: 8),
+            Text(
+              "Add New Drug",
+              style: TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    ],
+  ),
+),
+
                   const SizedBox(height: 16),
                   drugs.isEmpty
                       ? const Center(child: CircularProgressIndicator())
                       : ListView.builder(
                           shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
+                          physics: const NeverScrollableScrollPhysics(),
                           itemCount: drugs.length,
                           itemBuilder: (context, index) {
                             final drug = drugs[index];
@@ -164,7 +218,7 @@ Widget build(BuildContext context) {
                                 contentPadding: const EdgeInsets.all(16.0),
                                 leading: const CircleAvatar(
                                   backgroundColor: Color(0xff613089),
-                                  child: Icon(Icons.medical_services, color: Colors.white),
+                                  child: Icon(FontAwesomeIcons.capsules, color: Colors.white),
                                 ),
                                 title: Text(
                                   drug['name'],
@@ -191,19 +245,41 @@ Widget build(BuildContext context) {
                                   },
 
                                   itemBuilder: (context) => [
-                                    const PopupMenuItem(
-                                      value: 'Edit',
-                                      child: Text('Edit'),
-                                    ),
-                                    const PopupMenuItem(
-                                      value: 'Delete',
-                                      child: Text('Delete'),
-                                    ),
+                                   const PopupMenuItem(
+                                        value: 'Edit',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.edit, color: Color(0xff6A1B9A)),
+                                            SizedBox(width: 8),
+                                            Text('Edit'),
+                                          ],
+                                        ),
+                                      ),
+                                     const PopupMenuItem(
+                                        value: 'Delete',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.delete, color: Color(0xff6A1B9A)),
+                                            SizedBox(width: 8),
+                                            Text('Delete'),
+                                          ],
+                                        ),
+                                      ),
                                       const PopupMenuItem(
-                                      value: 'Details',
-                                      child: Text('Details'),
-                                    ),
+                                        value: 'Details',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.info, color: Color(0xff6A1B9A)),
+                                            SizedBox(width: 8),
+                                            Text('Details'),
+                                          ],
+                                        ),
+                                      ),
                                   ],
+                                   color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+      ),
                                 ),
                               ),
                             );
@@ -224,12 +300,16 @@ Widget build(BuildContext context) {
   void _showDrugDetailsDialog(BuildContext context, Map<String, dynamic> drug) {
     showDialog(
       context: context,
-      builder: (context) {
+       builder: (context) {
+           double dialogWidth = MediaQuery.of(context).size.width > 600
+          ? 600
+          : MediaQuery.of(context).size.width * 0.9; 
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           backgroundColor: Colors.white,
           elevation: 5,
           child: Container(
+             width: dialogWidth, 
             padding: const EdgeInsets.all(20.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -327,13 +407,13 @@ Widget build(BuildContext context) {
         children: [
           Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xff6A1B9A), fontSize: 16),
+            style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xff6A1B9A), fontSize: 18),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(color: Colors.grey, fontSize: 14),
+              style: const TextStyle(color: Colors.grey, fontSize: 16),
               overflow: TextOverflow.ellipsis,
               maxLines: 2,
             ),
@@ -343,91 +423,92 @@ Widget build(BuildContext context) {
     );
   }
 
-  void _showEditDrugDialog(BuildContext context, Map<String, dynamic> drug, int index) {
-    final TextEditingController nameController = TextEditingController(text: drug['name']);
-    final TextEditingController barcodeController = TextEditingController(text: drug['barcode']);
-    final TextEditingController useController = TextEditingController(text: drug['use']);
-    final TextEditingController doseController = TextEditingController(text: drug['dose']);
-    final TextEditingController timeController = TextEditingController(text: drug['time']);
-    final TextEditingController notesController = TextEditingController(text: drug['notes']);
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          backgroundColor: Colors.white,
-          elevation: 5,
-          child: StatefulBuilder(
-            builder: (context, setState) {
-              return Container(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Edit Drug',
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xff6A1B9A)),
-                    ),
-                    const SizedBox(height: 20),
-                    _buildTextField(nameController, 'Drug Name'),
-                    _buildTextField(barcodeController, 'Barcode'),
-                    _buildTextField(useController, 'Use'),
-                    _buildTextField(doseController, 'Dose'),
-                    _buildTextField(timeController, 'Time'),
-                    _buildTextField(notesController, 'Notes'),
-                    const SizedBox(height: 20),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          final updatedDrug = {
-                            'id': drug['id'],
-                            'name': nameController.text,
-                            'barcode': barcodeController.text,
-                            'use': useController.text,
-                            'dose': doseController.text,
-                            'time': timeController.text,
-                            'notes': notesController.text,
-                          };
-                          _updateDrug(drug['id'], updatedDrug, index);
-                          Navigator.pop(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff6A1B9A),
-                          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
-                        child: const Text(
-                          'Save Changes',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
+
+ void _showEditDrugDialog(BuildContext context, Map<String, dynamic> drug, int index) {
+  final TextEditingController nameController = TextEditingController(text: drug['name']);
+  final TextEditingController barcodeController = TextEditingController(text: drug['barcode']);
+  final TextEditingController useController = TextEditingController(text: drug['use']);
+  final TextEditingController doseController = TextEditingController(text: drug['dose']);
+  final TextEditingController timeController = TextEditingController(text: drug['time']);
+  final TextEditingController notesController = TextEditingController(text: drug['notes']);
+
+  showDialog(
+    context: context,
+    builder: (context) {
+  double dialogWidth = MediaQuery.of(context).size.width > 600
+          ? 600
+          : MediaQuery.of(context).size.width * 0.9; 
+      return AlertDialog(
+        backgroundColor: Colors.white,
+        title: const Text(
+          'Edit Drug',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Color(0xff6A1B9A),
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
         ),
-      ),
-    );
-  }
+        content: SizedBox(
+          width: dialogWidth,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildTextField(controller: nameController, label: 'Drug Name', hint: 'Please enter drug name'),
+                const SizedBox(height: 10),
+            _buildTextField(controller: barcodeController, label: 'Barcode', hint: 'Please enter barcode'),
+                const SizedBox(height: 10),
+                _buildTextField(controller: useController, label: 'Use', hint: 'Please enter use'),
+                const SizedBox(height: 10),
+                _buildTextField(controller: doseController, label: 'Dose', hint: 'Please enter dose'),
+                const SizedBox(height: 10),
+                _buildTextField(controller: timeController, label: 'Time', hint: 'Please enter time'),
+                const SizedBox(height: 10),
+                _buildTextField(controller: notesController, label: 'Notes', hint: 'Please enter notes'),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final updatedDrug = {
+                'id': drug['id'],
+                'name': nameController.text,
+                'barcode': barcodeController.text,
+                'use': useController.text,
+                'dose': doseController.text,
+                'time': timeController.text,
+                'notes': notesController.text,
+              };
+              _updateDrug(drug['id'], updatedDrug, index);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff6A1B9A),
+              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            ),
+            child: const Text('Save Changes'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
+
 
 void _showAddDrugDialog(BuildContext context) {
   final TextEditingController nameController = TextEditingController();
@@ -440,32 +521,51 @@ void _showAddDrugDialog(BuildContext context) {
   showDialog(
     context: context,
     builder: (context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      double dialogWidth = MediaQuery.of(context).size.width > 600
+          ? 600
+          : MediaQuery.of(context).size.width * 0.9;
+      return AlertDialog(
         backgroundColor: Colors.white,
-        elevation: 5,
-        child: StatefulBuilder(
-          builder: (context, setState) {
-            return Container(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Add New Drug',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xff6A1B9A)),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(nameController, 'Drug Name'),
-                  _buildTextField(barcodeController, 'Barcode'),
-                  _buildTextField(useController, 'Use'),
-                  _buildTextField(doseController, 'Dose'),
-                  _buildTextField(timeController, 'Time'),
-                  _buildTextField(notesController, 'Notes'),
-                  const SizedBox(height: 20),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton(
+        title: const Text(
+          'Add New Drug',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Color(0xff6A1B9A),
+          ),
+        ),
+        content: SizedBox(
+          width: dialogWidth,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildTextField(controller: nameController, label: 'Drug Name', hint: 'Please enter drug name'),
+                const SizedBox(height: 10),
+                _buildTextField(controller: barcodeController, label: 'Barcode', hint: 'Please enter barcode'),
+                const SizedBox(height: 10),
+                _buildTextField(controller: useController, label: 'Use', hint: 'Please enter use'),
+                const SizedBox(height: 10),
+                _buildTextField(controller: doseController, label: 'Dose', hint: 'Please enter dose'),
+                const SizedBox(height: 10),
+                _buildTextField(controller: timeController, label: 'Time', hint: 'Please enter time'),
+                const SizedBox(height: 10),
+                _buildTextField(controller: notesController, label: 'Notes', hint: 'Please enter notes'),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+          ElevatedButton(
                       onPressed: () {
                         final newDrug = {
                           'name': nameController.text,
@@ -478,27 +578,49 @@ void _showAddDrugDialog(BuildContext context) {
                         _addDrug(newDrug);
                         Navigator.pop(context);
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xff6A1B9A),
-                        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                      child: const Text(
-                        'Add Drug',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff6A1B9A),
+              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            ),
+            child: const Text('Add'),
+          ),
+        ],
       );
     },
   );
 }
+
+
+
+
+Widget _buildTextField({
+  required TextEditingController controller,
+  required String label,
+  String? hint,
+}) {
+  return TextField(
+    controller: controller,
+    decoration: InputDecoration(
+      labelText: label,
+      hintText: hint,
+      hintStyle: TextStyle(
+        color: Colors.grey.shade400,
+        fontSize: 14,
+        fontStyle: FontStyle.italic,
+      ),
+      labelStyle: const TextStyle(color: Color(0xff6A1B9A)),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+      focusedBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Color(0xffb41391), width: 2.0),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      filled: true,
+      fillColor: const Color(0xFFF5F5F5),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+    ),
+  );
+}
+
 
 }

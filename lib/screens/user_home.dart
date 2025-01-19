@@ -894,33 +894,39 @@ Future<void> fetchDoctors() async {
                               },
                             ),
                             const SizedBox(width: 20),
-                            buildCircleButton(
-                              icon: Icons.bloodtype,
-                              label: 'Diabetes',
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => DiabetesControlPage(),
-                                  ),
-                                );
-                              },
-                            ),
-                            const SizedBox(width: 20),
-                            buildCircleButton(
-                              icon: Icons.monitor_heart,
-                              label: 'Blood Pressure',
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        BloodPressureControlPage(),
-                                  ),
-                                );
-                              },
-                            ),
-                            const SizedBox(width: 20),
+                                        if (chronicDiseases.contains('Diabetes')) 
+
+
+            buildCircleButton(
+              icon: Icons.bloodtype,
+              label: 'Diabetes',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DiabetesControlPage(),
+                  ),
+                );
+              },
+            ),
+
+        
+                         if (chronicDiseases.contains('Diabetes')) const SizedBox(width: 20),
+                            if (chronicDiseases.contains('Blood Pressure')) 
+  
+            buildCircleButton(
+              icon: Icons.monitor_heart,
+              label: 'Blood Pressure',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BloodPressureControlPage(),
+                  ),
+                );
+              },
+            ),
+                   if (chronicDiseases.contains('Blood Pressure')) const SizedBox(width: 20),
                             GestureDetector(
                               onTap: () {
                                 Navigator.push(

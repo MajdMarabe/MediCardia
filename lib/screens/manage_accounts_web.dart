@@ -1,11 +1,12 @@
 import 'dart:convert';  
-import 'package:flutter/foundation.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_3/screens/constants.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter_application_3/screens/welcome_screen.dart';
 import 'package:http/http.dart' as http;
-import 'package:table_calendar/table_calendar.dart';  
 import 'package:flutter_application_3/screens/admin_home.dart';
+
+
 
 class ManageAccountsPage1 extends StatefulWidget {
   const ManageAccountsPage1({Key? key}) : super(key: key);
@@ -14,15 +15,21 @@ class ManageAccountsPage1 extends StatefulWidget {
   _ManageAccountsPageState createState() => _ManageAccountsPageState();
 }
 
+
+
 class _ManageAccountsPageState extends State<ManageAccountsPage1> {
   bool isLoading = true;
   List<Map<String, String>> accounts = [];
+
+
 
   @override
   void initState() {
     super.initState();
     _fetchAccounts();  
   }
+
+
 
   Future<void> _fetchAccounts() async {
     final url = '${ApiConstants.baseUrl}/users';  
@@ -72,14 +79,44 @@ class _ManageAccountsPageState extends State<ManageAccountsPage1> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Row(
-        children: [
-          Sidebar(),
-          Expanded(
-            child: SingleChildScrollView(
+
+    // Function to handle log out
+Future<void> _logOut() async {
+  // Add your logout logic here (e.g., clearing user session, etc.)
+  try {
+    await storage.deleteAll(); // Clears all stored keys and values
+    print('Storage cleared successfully.');
+    await FirebaseMessaging.instance.deleteToken();
+
+    // Navigate the user back to the welcome or login screen
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+    );
+  } catch (e) {
+    print('Error clearing storage: $e');
+  }
+  if (mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Logged out successfully!")),
+    );
+  }
+}
+
+
+
+//////////////////////////
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.white,
+    body: Row(
+      children: [
+        Sidebar(onLogout: _logOut),
+        Expanded(
+          child: ScrollConfiguration(
+            behavior: TransparentScrollbarBehavior(),
+            child: SingleChildScrollView(  
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -88,20 +125,36 @@ class _ManageAccountsPageState extends State<ManageAccountsPage1> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
+                        const Text(
                           "Manage Accounts",
                           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                         ),
                         ElevatedButton(
                           onPressed: () {
-          _showAddAccountDialog(context);
+                            _showAddAccountDialog(context);
                           },
-                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xff613089)),
-                          child: Text("Add New Account"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xff6A1B9A),
+                            padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.add_circle_outline, 
+                                color: Colors.white,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                "Add New Account",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : AccountsList(accounts: accounts),
@@ -110,11 +163,17 @@ class _ManageAccountsPageState extends State<ManageAccountsPage1> {
               ),
             ),
           ),
-          SidePanel(onDateRangeSelected: (startDate, endDate) {}),
-        ],
-      ),
-    );
-  }
+        ),
+        SidePanel(onDateRangeSelected: (startDate, endDate) {}),
+      ],
+    ),
+  );
+}
+
+
+
+
+
 void _showAddAccountDialog(BuildContext context) {
   String selectedRole = 'Doctor';
   final TextEditingController fullNameController = TextEditingController();
@@ -321,10 +380,11 @@ void _showAddAccountDialog(BuildContext context) {
     },
   );
 }
-
-
-
 }
+
+
+
+
 
 class AccountsList extends StatelessWidget {
   final List<Map<String, String>> accounts;
@@ -448,7 +508,9 @@ Future<void> deleteUser(BuildContext context, String userId) async {
               DataCell(Text(account['name'] ?? '')),
               DataCell(Text(account['email'] ?? '')),
               DataCell(Text(account['phone'] ?? '')),
-              DataCell(Text(account['role'] ?? '')),
+              DataCell(     Text(
+  account['role'] == 'User' ? 'Patient' : account['role']!,
+)),
               DataCell(
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert, color: Color(0xff6A1B9A)),
@@ -493,7 +555,12 @@ Future<void> deleteUser(BuildContext context, String userId) async {
                         ],
                       ),
                     ),
+                    
                   ],
+                  color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+      ),
                 ),
               ),
             ],
@@ -516,6 +583,9 @@ void _showEditDoctorDialog(BuildContext context, Map<String, String> account) {
   final TextEditingController licenseNumberController = TextEditingController(text: account['licenseNumber']);
   final TextEditingController workplaceNameController = TextEditingController(text: account['workplaceName']);
   final TextEditingController workplaceAddressController = TextEditingController(text: account['workplaceAddress']);
+
+
+
     void _saveProfile() async {
     final String username = fullNameController.text;
     final String email = emailController.text;
@@ -603,7 +673,7 @@ void _showEditDoctorDialog(BuildContext context, Map<String, String> account) {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  'Edit Account',
+                  'Edit Doctor Account',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -692,12 +762,17 @@ Widget _buildTextField({
     ),
   );  
 }
+
+
+
 void _showEditPatientDialog(BuildContext context, Map<String, String> account) {
   final TextEditingController fullNameController = TextEditingController(text: account['name']);
   final TextEditingController emailController = TextEditingController(text: account['email']);
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController locationController = TextEditingController(text: account['location']);
   final TextEditingController phoneController = TextEditingController(text: account['phone']);
+
+
 
   void _saveProfile() async {
     final String username = fullNameController.text;
@@ -781,7 +856,7 @@ void _showEditPatientDialog(BuildContext context, Map<String, String> account) {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  'Edit Patient Information',
+                  'Edit Patient Account',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -832,7 +907,6 @@ void _showEditPatientDialog(BuildContext context, Map<String, String> account) {
 }
 
 
-
 class SidePanel extends StatelessWidget {
   final Function(String startDate, String endDate) onDateRangeSelected;
 
@@ -845,74 +919,10 @@ class SidePanel extends StatelessWidget {
       color: const Color.fromARGB(255, 233, 218, 239),
       child: Column(
         children: [
-         // CalendarWidget(onDateRangeSelected: onDateRangeSelected),
           Expanded(
             child: ListView(
              
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class CalendarWidget extends StatefulWidget {
-  final Function(String startDate, String endDate) onDateRangeSelected;
-
-  const CalendarWidget({Key? key, required this.onDateRangeSelected}) : super(key: key);
-
-  @override
-  _CalendarWidgetState createState() => _CalendarWidgetState();
-}
-
-class _CalendarWidgetState extends State<CalendarWidget> {
-  DateTime? _startDate;
-  DateTime? _endDate;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("Select Date Range", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          SizedBox(height: 16),
-          TableCalendar(
-            firstDay: DateTime.utc(2000, 1, 1),
-            lastDay: DateTime.utc(2100, 12, 31),
-            focusedDay: DateTime.now(),
-            rangeSelectionMode: RangeSelectionMode.enforced,
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                if (_startDate == null || (_endDate != null && selectedDay.isBefore(_startDate!))) {
-                  _startDate = selectedDay;
-                  _endDate = null;
-                } else if (_endDate == null) {
-                  _endDate = selectedDay;
-                } else {
-                  _startDate = selectedDay;
-                  _endDate = null;
-                }
-                widget.onDateRangeSelected(
-                  _startDate?.toIso8601String() ?? '',
-                  _endDate?.toIso8601String() ?? '',
-                );
-              });
-            },
-          ),
-          if (_startDate != null && _endDate != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: Text("Selected Range: ${_startDate!.toLocal()} - ${_endDate!.toLocal()}"),
-            ),
-          ElevatedButton(
-            onPressed: () {
-              widget.onDateRangeSelected('', ''); // Get all time data
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xff613089)),
-            child: Text('Get All Time Data'),
           ),
         ],
       ),

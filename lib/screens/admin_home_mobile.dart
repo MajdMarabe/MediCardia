@@ -1,95 +1,136 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_3/screens/blood_donation.dart';
+import 'package:flutter_application_3/screens/welcome_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'statistics.dart';
 import 'manage_accounts.dart';
 import 'admin_drugs.dart';
-import 'admin_hospitals.dart';
+
 
 class AdminDashboard1 extends StatelessWidget {
   const AdminDashboard1({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9F7FD),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final double pageWidth = constraints.maxWidth > 600 ? 700 : double.infinity;
 
-          return Center(
-            child: Container(
-              width: pageWidth,
-              padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 50),
-                      child: Center(
-                        child: AnimatedTextKit(
-                          animatedTexts: [
-                            TyperAnimatedText(
-                              'Welcome to the admin dashboard!',
-                              textStyle: const TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xff613089),
-                                fontFamily: 'ScriptMTBold',
-                              ),
-                              speed: const Duration(milliseconds: 100),
+ // Function to handle log out
+  Future<void> _logOut(BuildContext context) async {
+    try {
+      // Add your logout logic here (e.g., clearing user session, etc.)
+      await storage.deleteAll(); // Clears all stored keys and values
+      print('Storage cleared successfully.');
+      await FirebaseMessaging.instance.deleteToken();
+
+      // Navigate the user back to the welcome or login screen
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+      );
+
+      // Show a confirmation message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Logged out successfully!")),
+      );
+    } catch (e) {
+      print('Error clearing storage: $e');
+    }
+  }
+
+
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFF9F7FD),
+    body: LayoutBuilder(
+      builder: (context, constraints) {
+        const double pageWidth = double.infinity;
+
+        return Center(
+          child: Container(
+            width: pageWidth,
+            padding: const EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 50),
+                    child: Center(
+                      child: AnimatedTextKit(
+                        animatedTexts: [
+                          TyperAnimatedText(
+                            'Welcome to the admin dashboard!',
+                            textStyle: const TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xff613089),
+                              fontFamily: 'ScriptMTBold',
                             ),
-                          ],
-                          totalRepeatCount: 1,
-                          pause: const Duration(milliseconds: 500),
-                        ),
+                            speed: const Duration(milliseconds: 100),
+                          ),
+                        ],
+                        totalRepeatCount: 1,
+                        pause: const Duration(milliseconds: 500),
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 20,
-                        crossAxisSpacing: 20,
-                        childAspectRatio: constraints.maxWidth > 600 ? 2.5 : 1.5,
-                      ),
-                      itemCount: 4,
-                      itemBuilder: (context, index) {
-                        List<String> titles = [
-                          'Manage Accounts',
-                          'Statistics',
-                          'Hospitals',
-                          'Drugs'
-                        ];
-                        List<String> routes = [
-                          '/manageAccounts',
-                          '/statistics',
-                          '/Hospitals',
-                          '/Drugs'
-                        ];
-                        List<IconData> icons = [
-                          Icons.people,
-                          Icons.bar_chart,
-                          FontAwesomeIcons.hospital,
-                          FontAwesomeIcons.capsules,
-                        ];
+                  ),
+                  const SizedBox(height: 10),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 1,
+                      mainAxisSpacing: 20,
+                      crossAxisSpacing: 20,
+                      childAspectRatio: 3,
+                    ),
+                    itemCount: 3,
+                    itemBuilder: (context, index) {
+                      List<String> titles = [
+                        'Manage Accounts',
+                        'Statistics',
+                        'Drugs'
+                      ];
+                      List<String> routes = [
+                        '/manageAccounts',
+                        '/statistics',
+                        '/Drugs'
+                      ];
+                      List<IconData> icons = [
+                        Icons.people,
+                        Icons.bar_chart,
+                        FontAwesomeIcons.capsules,
+                      ];
 
-                        return _buildNavigationButton(
-                            context, titles[index], routes[index], icons[index]);
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
+                      return _buildNavigationButton(
+                          context, titles[index], routes[index], icons[index]);
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                ],
               ),
             ),
-          );
-        },
-      ),
-    );
-  }
+          ),
+        );
+      },
+    ),
+  floatingActionButton: 
+ FloatingActionButton.extended(
+    onPressed: () => _logOut(context),
+    backgroundColor: Colors.transparent, 
+    elevation: 0, 
+    icon: const Icon(Icons.logout, color: Color(0xff613089)),
+    label: const Text(
+      'Log Out',
+      style: TextStyle(color: Color(0xff613089), fontWeight: FontWeight.bold),
+    ),
+  ),
+
+
+    
+  );
+}
+
+
 
 Widget _buildNavigationButton(
     BuildContext context, String title, String route, IconData icon) {
@@ -106,12 +147,6 @@ Widget _buildNavigationButton(
           MaterialPageRoute(builder: (context) => const ManageAccountsPage()),
         );
       }
-      else if (route == '/Hospitals') {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ManageHospitalsPage()),
-        );
-      } 
       else if (route == '/Drugs') {
         Navigator.push(
           context,
@@ -151,12 +186,7 @@ Widget _buildNavigationButton(
               context,
               MaterialPageRoute(builder: (context) => const ManageAccountsPage()),
             );
-          }   else if (route == '/Hospitals') {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ManageHospitalsPage()),
-        );
-      } 
+          }   
       else if (route == '/Drugs') {
         Navigator.push(
           context,
