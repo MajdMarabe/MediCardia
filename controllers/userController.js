@@ -201,7 +201,7 @@ module.exports.verifyEmail = asyncHandler(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     // Send verification code to email
-    const message = `Your email verification code is: ${verificationCode}. It will expire in 10 minutes.`;
+    const message = ` ${verificationCode}`;
 
     try {
         await sendEmail({
@@ -478,7 +478,7 @@ module.exports.forgetPassword = asyncHandler(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     // 3. Send the verification code to the user's email
-    const message = `Your password reset verification code is: ${verificationCode}. This code will expire in 10 minutes.`;
+    const message = `${verificationCode}`;
 
     try {
         await sendEmail({

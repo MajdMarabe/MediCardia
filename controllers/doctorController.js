@@ -251,7 +251,7 @@ module.exports.verifyEmail = asyncHandler(async (req, res, next) => {
     doctor.verificationCodeExpires = Date.now() + 10 * 60 * 1000; // 10 minutes expiration
     await doctor.save({ validateBeforeSave: false });
 
-    const message = `Your email verification code is: ${verificationCode}. It will expire in 10 minutes.`;
+    const message = `${verificationCode}`;
 
     try {
         await sendEmail({
