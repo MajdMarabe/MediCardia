@@ -183,228 +183,283 @@ Future<void> fetchDoctors() async {
 
   //////////////////////////////////
 
-  void _showAddChronicDialog(BuildContext context, Function(String) onAdd) {
-    // Sample list of chronic diseases
-    final List<Map<String, dynamic>> allDiseases = [
-      {'name': 'Diabetes', 'icon': Icons.bloodtype},
-      {'name': 'Blood Pressure', 'icon': Icons.monitor_heart},
-      {'name': 'Asthma', 'icon': Icons.air},
-      {'name': 'Cancer', 'icon': Icons.coronavirus},
-      {'name': 'Kidney Failure', 'icon': Icons.opacity},
-    ];
+void _showAddChronicDialog(BuildContext context,  Function(List<String>) onAdd) {
+  final List<Map<String, dynamic>> allDiseases = [
+    {'name': 'Diabetes', 'icon': Icons.bloodtype},
+    {'name': 'Blood Pressure', 'icon': Icons.monitor_heart},
+    {'name': 'Asthma', 'icon': Icons.air},
+    {'name': 'Cancer', 'icon': Icons.coronavirus},
+    {'name': 'Kidney Failure', 'icon': Icons.opacity},
+  ];
 
-    List<String> selectedDiseases = [];
+  List<String> selectedDiseases = [];
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        double dialogWidth = MediaQuery.of(context).size.width > 600
-            ? 600
-            : MediaQuery.of(context).size.width * 0.9;
+  showDialog(
+    context: context,
+    builder: (context) {
+      double dialogWidth = MediaQuery.of(context).size.width > 600
+          ? 600
+          : MediaQuery.of(context).size.width * 0.9;
 
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: Center(
-            child: Container(
-              width: dialogWidth,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Add Chronic Disease",
-                    style: TextStyle(
-                      color: Color(0xff613089),
-                      fontSize: 20,
-                    ),
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        child: Center(
+          child: Container(
+            width: dialogWidth,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Add Chronic Disease",
+                  style: TextStyle(
+                    color: Color(0xff613089),
+                    fontSize: 20,
                   ),
-                  const SizedBox(height: 20),
-                  Wrap(
-                    spacing: 10.0, // Spacing between chips
-                    runSpacing: 10.0,
-                    children: allDiseases.map((disease) {
-                      final isSelected =
-                          selectedDiseases.contains(disease['name']);
-                      return FilterChip(
-                        label: Text(
-                          disease['name'],
-                          style: TextStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : const Color(0xff613089),
-                          ),
-                        ),
-                        avatar: Icon(
-                          disease['icon'],
+                ),
+                const SizedBox(height: 20),
+                Wrap(
+                  spacing: 10.0,
+                  runSpacing: 10.0,
+                  children: allDiseases.map((disease) {
+                    final isSelected = selectedDiseases.contains(disease['name']);
+                    return FilterChip(
+                      label: Text(
+                        disease['name'],
+                        style: TextStyle(
                           color: isSelected
                               ? Colors.white
                               : const Color(0xff613089),
                         ),
-                        selected: isSelected,
-                        onSelected: (selected) {
-                          setState(() {
-                            if (selected) {
-                              selectedDiseases.add(disease['name']);
+                      ),
+                      avatar: Icon(
+                        disease['icon'],
+                        color: isSelected
+                            ? Colors.white
+                            : const Color(0xff613089),
+                      ),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        if (selected) {
+                          selectedDiseases.add(disease['name']);
+                        } else {
+                          selectedDiseases.remove(disease['name']);
+                        }
+                      },
+                      selectedColor: const Color(0xffb41391),
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        "Cancel",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (selectedDiseases.isNotEmpty) {
+ final String? userid = await storage.read(key: 'userid');
+ 
+                   try {
+                            final response = await http.put(
+                              Uri.parse('${ApiConstants.baseUrl}/users/$userid/chronic-condition'),
+                              headers: {'Content-Type': 'application/json'},
+                              body: json.encode({'chronicCondition': selectedDiseases.join(', ')}),
+                            );
+
+                            if (response.statusCode == 200) {
+                              onAdd(selectedDiseases);
+                                  fetchUserInfo();
+
+                              Navigator.pop(context);
                             } else {
-                              selectedDiseases.remove(disease['name']);
+                              /*ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Failed to add diseases')),
+                              );*/
+                               fetchUserInfo();
+
+                              Navigator.pop(context);
                             }
-                          });
-                        },
-                        selectedColor: const Color(0xffb41391),
-                        backgroundColor: Colors.white,
+                          } catch (e) {
+                           /* ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $e')),
+                            );*/
+                             fetchUserInfo();
+
+                              Navigator.pop(context);
+                          }
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please select a disease')),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xff613089),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text(
-                          "Cancel",
-                          style: TextStyle(color: Colors.grey),
-                        ),
                       ),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (selectedDiseases.isNotEmpty) {
-                            // Pass the selected diseases to the onAdd function
-                            onAdd(selectedDiseases.join(', '));
-                            Navigator.pop(context);
-                          } else {
-                            // Show a message if no disease is selected
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Please select a disease')),
-                            );
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff613089),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
-                        child: const Text("Add"),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                      child: const Text("Add"),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
+/***
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ final response = await http.put(
+                              Uri.parse('${ApiConstants.baseUrl}/users/$userid/chronic-condition'),
+ */
+void _showAddAllergyDialog(BuildContext context, Function(String) onAdd) {
+  TextEditingController allergyController = TextEditingController();
+  double dialogWidth = MediaQuery.of(context).size.width > 600
+      ? 600
+      : MediaQuery.of(context).size.width * 0.9;
 
-  void _showAddAllergyDialog(BuildContext context, Function(String) onAdd) {
-    TextEditingController allergyController = TextEditingController();
-    double dialogWidth = MediaQuery.of(context).size.width > 600
-        ? 600
-        : MediaQuery.of(context).size.width * 0.9;
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: Center(
-            child: Container(
-              width: dialogWidth,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Add Allergy",
-                    style: TextStyle(
-                      color: Color(0xff613089),
-                      fontSize: 20,
+  showDialog(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        child: Center(
+          child: Container(
+            width: dialogWidth,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Add Allergy",
+                  style: TextStyle(
+                    color: Color(0xff613089),
+                    fontSize: 20,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: allergyController,
+                  decoration: InputDecoration(
+                    labelText: 'Enter allergy',
+                    labelStyle: const TextStyle(color: Color(0xff613089)),
+                    hintText: 'Enter allergy',
+                    hintStyle: TextStyle(
+                      color: Colors.grey.shade400,
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    prefixIcon: const Icon(Icons.warning, color: Color(0xff613089)),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        color: Color(0xffb41391),
+                        width: 2.0,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: allergyController,
-                    decoration: InputDecoration(
-                      labelText: 'Enter allergy',
-                      labelStyle: const TextStyle(color: Color(0xff613089)),
-                      hintText: 'Enter allergy',
-                      hintStyle: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 14,
-                        fontStyle: FontStyle.italic,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      prefixIcon:
-                          const Icon(Icons.warning, color: Color(0xff613089)),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                          color: Color(0xffb41391),
-                          width: 2.0,
-                        ),
-                        borderRadius: BorderRadius.circular(10),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        "Cancel",
+                        style: TextStyle(color: Colors.grey),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text(
-                          "Cancel",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (allergyController.text.isNotEmpty) {
-                            // Add the entered allergy to the list
-                            onAdd(allergyController.text);
-                            Navigator.pop(context);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Please enter an allergy')),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (allergyController.text.isNotEmpty) {
+                          try {
+                             final String? userid = await storage.read(key: 'userid');
+                            final response = await http.put(
+                              Uri.parse('${ApiConstants.baseUrl}/users/$userid/allergy'),
+                              headers: {'Content-Type': 'application/json'},
+                              body: json.encode({'allergy': allergyController.text}),
                             );
+
+                            if (response.statusCode == 200) {
+                              onAdd(allergyController.text);
+                                  fetchUserInfo();
+
+                              Navigator.pop(context);
+                            } else {
+                              /*ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Failed to add allergy')),
+                              );*/
+                                fetchUserInfo();
+
+                              Navigator.pop(context);
+                            }
+                          } catch (e) {
+  fetchUserInfo();
+
+                              Navigator.pop(context);
+                            /*ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $e')),
+                            );*/
                           }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff613089),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please enter an allergy')),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xff613089),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
                         ),
-                        child: const Text("Add"),
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                      child: const Text("Add"),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
+
 
   // Function to build circular service buttons
   Widget buildCircleButton({
@@ -583,7 +638,7 @@ Future<void> fetchDoctors() async {
                 buildEditableListRow(FontAwesomeIcons.heartbeat,
                     'Chronic Diseases:', chronicDiseases, (newValue) {
                   setState(() {
-                    chronicDiseases.add(newValue);
+                    chronicDiseases.add(newValue as String);
                   });
                 }, (index) {
                   setState(() {
@@ -593,7 +648,7 @@ Future<void> fetchDoctors() async {
                 buildEditableListRow(Icons.warning, 'Allergies:', allergies,
                     (newValue) {
                   setState(() {
-                    allergies.add(newValue);
+                    allergies.add(newValue as String);
                   });
                 }, (index) {
                   setState(() {
@@ -643,60 +698,70 @@ Future<void> fetchDoctors() async {
       backgroundImage: backgroundImage,
     );
   }
+Widget buildEditableListRow(
+  IconData icon,
+  String title,
+  List<String> list,
+  Function(List<String>) onAdd, // Change String to List<String>
+  Function(int) onRemove,
+  String type,
+) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontSize: 16, color: Colors.white70),
+        ),
+        ...list.map((item) {
+          int index = list.indexOf(item);
+          return Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 24, color: Colors.white),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  item,
+                  style: const TextStyle(fontSize: 14, color: Colors.white70),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.white),
+                onPressed: () {
+                  onRemove(index);
+                },
+              ),
+            ],
+          );
+        }),
+        IconButton(
+          icon: const Icon(Icons.add, color: Colors.white),
+          onPressed: () {
+            if (type == 'chronic') {
+              _showAddChronicDialog(context, onAdd); // Pass List<String>
+            } else if (type == 'allergy') {
+              _showAddAllergyDialog(context, (String newAllergy) {
+                onAdd([newAllergy]); // Wrap single string in a list
+              });
+              
+              
+            }
+          },
+        ),
+      ],
+    ),
+  );
+}
 
-  Widget buildEditableListRow(IconData icon, String title, List<String> list,
-      Function(String) onAdd, Function(int) onRemove, String type) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 16, color: Colors.white70),
-          ),
-          ...list.map((item) {
-            int index = list.indexOf(item);
-            return Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, size: 24, color: Colors.white),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    item,
-                    style: const TextStyle(fontSize: 14, color: Colors.white70),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.white),
-                  onPressed: () {
-                    onRemove(index);
-                  },
-                ),
-              ],
-            );
-          }),
-          IconButton(
-            icon: const Icon(Icons.add, color: Colors.white),
-            onPressed: () {
-              if (type == 'chronic') {
-                _showAddChronicDialog(context, onAdd);
-              } else if (type == 'allergy') {
-                _showAddAllergyDialog(context, onAdd);
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
 
 /////////////////////////
 

@@ -469,7 +469,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage> {
                             style: TextStyle(color: Colors.grey)),
                       ),
                       ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           final newEntry = {
                             'conditionName': conditionController.text,
                             'diagnosisDate': _diagnosisDateController.text,
@@ -480,8 +480,8 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage> {
                             medicalHistory.add(newEntry);
                           });
 
-                          addMedicalHistory([newEntry]);
-                        },
+  await addMedicalHistory([newEntry]);
+                         Navigator.pop(context);                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xff613089),
                           shape: RoundedRectangleBorder(

@@ -53,7 +53,7 @@ class _LabTestsPageState extends State<LabTestsPage> {
 
   Future<void> updateLabTest(
       int index, Map<String, dynamic> updatedItem) async {
-    final userId = await storage.read(key: 'userid');
+      final userId =widget.patientId;
     if (userId != null) {
       final response = await http.put(
         Uri.parse(
@@ -71,34 +71,40 @@ class _LabTestsPageState extends State<LabTestsPage> {
     }
   }
 
-  Future<void> addLabTests(List<Map<String, dynamic>> newLabTests) async {
-    final userId = await storage.read(key: 'userid');
-
-    if (userId != null) {
-      try {
-        final response = await http.post(
-          Uri.parse('${ApiConstants.baseUrl}/users/labtests'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({
-            'userid': userId,
-            'labTests': newLabTests,
-          }),
-        );
-
-        if (response.statusCode == 200) {
-          final data = json.decode(response.body);
-          setState(() {
-            labTests = data['labTests'];
-          });
-          print('Lab tests added successfully');
-        } else {
-          print("Failed to add lab tests: ${response.statusCode}");
-        }
-      } catch (e) {
-        print("Error adding lab tests: $e");
-      }
-    }
+ Future<void> addLabTests(List<Map<String, dynamic>> newLabTests) async {
+      final userId =widget.patientId;
+  if (userId == null) {
+    print("User ID not found in storage.");
+    return;
   }
+
+  // Create the request payload
+  Map<String, dynamic> requestPayload = {
+    "labTests": newLabTests,
+  };
+
+  try {
+    String apiUrl = '${ApiConstants.baseUrl}/users/$userId/labtests';
+    final response = await http.put(
+      Uri.parse(apiUrl),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode(requestPayload), // Directly encode the request payload
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        labTests = data['labTests'];
+      });
+      print('Lab tests added successfully');
+    } else {
+      print("Failed to add lab tests: ${response.body}");
+    }
+  } catch (e) {
+    print("Error adding lab tests: $e");
+  }
+}
+
 
   Future<void> deleteLabTest(int index) async {
     final item = labTests[index];
@@ -107,7 +113,7 @@ class _LabTestsPageState extends State<LabTestsPage> {
       labTests.removeAt(index);
     });
 
-    final userId = await storage.read(key: 'userid');
+      final userId =widget.patientId;
 
     if (userId != null) {
       final response = await http.delete(
@@ -430,7 +436,7 @@ class _LabTestsPageState extends State<LabTestsPage> {
                             style: TextStyle(color: Colors.grey)),
                       ),
                       ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           final newItem = {
                             'testName': nameController.text,
                             'testDate': _testDateController.text,
@@ -441,8 +447,8 @@ class _LabTestsPageState extends State<LabTestsPage> {
                             labTests.add(newItem);
                           });
 
-                          addLabTests([newItem]);
-                        },
+  await addLabTests([newItem]);
+    Navigator.pop(context);                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xff613089),
                           shape: RoundedRectangleBorder(

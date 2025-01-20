@@ -375,6 +375,7 @@ Widget _appointmentCard(Map<String, dynamic> appointment) {
       onSelected: (String value) {
         if (value == 'Choose New Slot') {
           _chooseNewAppointment(appointment);
+           
         } else if (value == 'delete') {
           _deleteAppointment(appointment);
         }
@@ -454,21 +455,21 @@ Widget _appointmentCard(Map<String, dynamic> appointment) {
       setState(() {
         _appointments.remove(appointment);
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+     /* ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Appointment deleted successfully.")),
-      );
+      );*/
    //     _fetchAppointments();
     _fetchCanceledSlots();
     } else {
-      final error = json.decode(response.body)['message'];
+     /* final error = json.decode(response.body)['message'];
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to delete: $error")),
-      );
+      );*/
     }
   } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
+    /*ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("An error occurred. Please try again.")),
-    );
+    );*/
   }
 }
 
@@ -534,7 +535,6 @@ void _chooseNewAppointment(Map<String, dynamic> canceledAppointment) async {
     return;
   }
 
-  // جلب الأوقات المتاحة للطبيب
   await _fetchAvailableTimes(canceledAppointment['doctorId']);
 
   if (availableTimes.isEmpty) {
@@ -643,7 +643,7 @@ void _chooseNewAppointment(Map<String, dynamic> canceledAppointment) async {
                                   await storage.read(key: 'token'),
                                 );
                                 Navigator.pop(context);
-                                _deleteAppointment(canceledAppointment);
+                                  _deleteAppointment(canceledAppointment);
                               }
                             : null,
                         style: ElevatedButton.styleFrom(
@@ -783,6 +783,10 @@ Future<void> _proceedToBookAppointment(
           ),
         ),
       );
+          Navigator.pop(context); 
+          _fetchAppointments();
+    _fetchCanceledSlots();
+
     } else {
       var errorBody = jsonDecode(response.body);
       print("Error: ${errorBody['message']}");
@@ -840,6 +844,10 @@ if (!mounted) return;
           ),
         ),
       );
+          Navigator.pop(context);
+          _fetchAppointments();
+    _fetchCanceledSlots(); 
+
     }
   } catch (error) {
     print("Error booking appointment: $error");
@@ -879,6 +887,7 @@ if (!mounted) return;
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);  
+                  
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
@@ -897,6 +906,10 @@ if (!mounted) return;
         ),
       ),
     );
+        Navigator.pop(context); 
+        _fetchAppointments();
+    _fetchCanceledSlots();
+
   }
 }
 

@@ -69,34 +69,40 @@ class _LabTestsPageState extends State<LabTestsPage> {
     }
   }
 
-  Future<void> addLabTests(List<Map<String, dynamic>> newLabTests) async {
-    final userId = await storage.read(key: 'userid');
-
-    if (userId != null) {
-      try {
-        final response = await http.post(
-          Uri.parse('${ApiConstants.baseUrl}/users/labtests'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({
-            'userid': userId,
-            'labTests': newLabTests,
-          }),
-        );
-
-        if (response.statusCode == 200) {
-          final data = json.decode(response.body);
-          setState(() {
-            labTests = data['labTests'];
-          });
-          print('Lab tests added successfully');
-        } else {
-          print("Failed to add lab tests: ${response.statusCode}");
-        }
-      } catch (e) {
-        print("Error adding lab tests: $e");
-      }
-    }
+ Future<void> addLabTests(List<Map<String, dynamic>> newLabTests) async {
+  final userId = await storage.read(key: 'userid');
+  if (userId == null) {
+    print("User ID not found in storage.");
+    return;
   }
+
+  // Create the request payload
+  Map<String, dynamic> requestPayload = {
+    "labTests": newLabTests,
+  };
+
+  try {
+    String apiUrl = '${ApiConstants.baseUrl}/users/$userId/labtests';
+    final response = await http.put(
+      Uri.parse(apiUrl),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode(requestPayload), // Directly encode the request payload
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        labTests = data['labTests'];
+      });
+      print('Lab tests added successfully');
+    } else {
+      print("Failed to add lab tests: ${response.body}");
+    }
+  } catch (e) {
+    print("Error adding lab tests: $e");
+  }
+}
+
 
   Future<void> deleteLabTest(int index) async {
     final item = labTests[index];
@@ -427,28 +433,30 @@ class _LabTestsPageState extends State<LabTestsPage> {
                         child: const Text("Cancel",
                             style: TextStyle(color: Colors.grey)),
                       ),
-                      ElevatedButton(
-                        onPressed: () {
-                          final newItem = {
-                            'testName': nameController.text,
-                            'testDate': _testDateController.text,
-                            'testResult': resultController.text,
-                          };
+                   ElevatedButton(
+  onPressed: () async {
+    final newItem = {
+      'testName': nameController.text,
+      'testDate': _testDateController.text,
+      'testResult': resultController.text,
+    };
 
-                          setState(() {
-                            labTests.add(newItem);
-                          });
+    setState(() {
+      labTests.add(newItem);
+    });
 
-                          addLabTests([newItem]);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff613089),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
-                        child: const Text("Add"),
-                      ),
+    await addLabTests([newItem]);
+    Navigator.pop(context); 
+  },
+  style: ElevatedButton.styleFrom(
+    backgroundColor: const Color(0xff613089),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(15),
+    ),
+  ),
+  child: const Text("Add"),
+),
+
                     ],
                   ),
                 ],

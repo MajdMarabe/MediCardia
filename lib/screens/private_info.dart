@@ -40,8 +40,7 @@ class _PrivateInfoState extends State<PrivateInfo> {
 
   DateTime? _selectedDate;
 
-
-Future<void> _addNewMedicalCondition() async {
+Future<void> _addNewMedicalHistory() async {
   // Create a list of medical history objects
   List<Map<String, dynamic>> medicalHistory = [
     {
@@ -57,22 +56,33 @@ Future<void> _addNewMedicalCondition() async {
     }
   ];
 
+  // Validate that fields are not null before sending
+  if (medicalHistory.any((entry) =>
+      entry['conditionName'] == null ||
+      entry['diagnosisDate'] == null ||
+      entry['conditionDetails'] == null)) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('All fields are required.')),
+    );
+    return;
+  }
+
   // Clear the controllers after creating the request
   _medicalConditionNameController.clear();
   _diagnosisDateController.clear();
   _medicalConditionDetailsController.clear();
 
-  // Prepare the payload in the correct format
+  // Prepare the payload
   Map<String, dynamic> requestPayload = {
+    "userid": widget.userId, // Ensure user ID is sent as part of the request
     "medicalHistory": medicalHistory,
   };
 
   print('Request Payload: ${json.encode(requestPayload)}');
 
-  String userId = widget.userId; 
   try {
-    String apiUrl = '${ApiConstants.baseUrl}/users/$userId/medicalhistory';
-    final response = await http.put(
+    String apiUrl = '${ApiConstants.baseUrl}/users/addMedicalHistory';
+    final response = await http.post(
       Uri.parse(apiUrl),
       headers: {"Content-Type": "application/json"},
       body: json.encode(requestPayload),
@@ -83,11 +93,11 @@ Future<void> _addNewMedicalCondition() async {
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Medical information updated successfully')),
+        const SnackBar(content: Text('Medical history added successfully.')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update medical information: ${response.body}')),
+        SnackBar(content: Text('Failed to add medical history: ${response.body}')),
       );
     }
   } catch (e) {
@@ -182,10 +192,10 @@ Future<void> _addNewMedicalNotes() async {
 
   print('Request Payload: ${json.encode(requestPayload)}');
 
-  String userId = widget.userId; // Get user ID
+  String userId = widget.userId; 
   try {
     String apiUrl = '${ApiConstants.baseUrl}/users/$userId/medicalNotes';
-    final response = await http.put(
+    final response = await http.post(
       Uri.parse(apiUrl),
       headers: {"Content-Type": "application/json"},
       body: json.encode(requestPayload),
@@ -195,13 +205,13 @@ Future<void> _addNewMedicalNotes() async {
     print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
+    /*  ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('medicalNotes information updated successfully')),
-      );
+      );*/
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+     /* ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to update medicalNotes information: ${response.body}')),
-      );
+      );*/
     }
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -212,10 +222,9 @@ Future<void> _addNewMedicalNotes() async {
 
 
 
-
 Future<void> _addNewTreatmentPlans() async {
-   // Create a list of treatment plans objects     
-List<Map<String, dynamic>> treatmentPlans = [
+  // Create a list of treatment plans objects
+  List<Map<String, dynamic>> treatmentPlans = [
     {
       "prescribedMedications": _prescribedMedicationsController.text.isNotEmpty
           ? _prescribedMedicationsController.text
@@ -231,24 +240,27 @@ List<Map<String, dynamic>> treatmentPlans = [
           : null,
     }
   ];
-  
 
-        _treatmentGoalsController.clear();
-        _treatmentDurationController.clear();
-        _prescribedMedicationsController.clear();
-        _alternativeTherapiesController.clear();
+  // Clear the controllers after creating the request payload
+  _prescribedMedicationsController.clear();
+  _treatmentDurationController.clear();
+  _treatmentGoalsController.clear();
+  _alternativeTherapiesController.clear();
 
- 
+  // Prepare the request payload in the correct format
   Map<String, dynamic> requestPayload = {
+    "userid": widget.userId, // Pass userId in the payload
     "treatmentPlans": treatmentPlans,
   };
 
   print('Request Payload: ${json.encode(requestPayload)}');
 
-  String userId = widget.userId; 
   try {
-    String apiUrl = '${ApiConstants.baseUrl}/users/$userId/treatmentPlans';
-    final response = await http.put(
+    // Define the API URL
+    String apiUrl = '${ApiConstants.baseUrl}/users/addTreatmentPlan';
+    
+    // Make the POST request
+    final response = await http.post(
       Uri.parse(apiUrl),
       headers: {"Content-Type": "application/json"},
       body: json.encode(requestPayload),
@@ -258,20 +270,23 @@ List<Map<String, dynamic>> treatmentPlans = [
     print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('treatmentPlans information updated successfully')),
-      );
+      // Success response
+     /* ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Treatment plans added successfully')),
+      );*/
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update treatmentPlans information: ${response.body}')),
-      );
+      /*ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add treatment plans: ${response.body}')),
+      );*/
     }
   } catch (e) {
+    // Handle exceptions
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Error: $e')),
     );
   }
- }
+}
+
 
 
 //////////////////////////////////////
@@ -559,7 +574,7 @@ Future<void> _selectDate(BuildContext context) async {
                 ),
                 const SizedBox(height: 20),
                   ElevatedButton.icon(
-                  onPressed: _addNewMedicalCondition,
+                  onPressed: _addNewMedicalHistory,
                   icon: const Icon(Icons.add, color: Colors.white),
                   label: const Text("Add New Medical Condition"),
                   style: ElevatedButton.styleFrom(
