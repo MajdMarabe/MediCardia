@@ -42,7 +42,11 @@ const {
     getCounts,
     getPatientStatistics,
     updateUserbyAdmin,
-    AddUserByAdmin
+    AddUserByAdmin,
+    addAllergy,
+    addChronicCondition,
+    ///privte info
+    AddMedicalNotes,
     
 } = require("../controllers/userController");
 
@@ -74,6 +78,10 @@ router.put('/updateMedicalHistory', UpdatemedicalHistory);
 router.put('/:id/labtests', UpdalabTests);
 //router.put('/:id/medicalNotes', UpdamedicalNotes);
 router.put('/:userid/treatmentPlans/:planId', UpdatreatmentPlans);
+////
+router.put('/:userid/allergy', addAllergy);
+router.put('/:userid/chronic-condition', addChronicCondition);
+
 
 // Delete routes for medical data
 router.delete('/:id/medicalhistory', DeleteMedicalHistory);
@@ -99,5 +107,7 @@ router.get("/stats/count",getCounts);
 router.get("/stats/patients",getPatientStatistics);
 router.put("/admin/update/:userid", updateUserbyAdmin);
 router.post("/addUser/admin",AddUserByAdmin);
+///add privet data
+router.post("/:userId/medicalNotes",AddMedicalNotes);
 
 module.exports = router;

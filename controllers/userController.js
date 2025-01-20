@@ -780,6 +780,7 @@ console.log(labTests);
  */
 module.exports.UpdamedicalNotes = asyncHandler(async (req, res) => {
     const { userid, noteId, updatedNote } = req.body; 
+    console.log(userid, noteId, updatedNote);
     // Validate input
     if (!noteId || typeof noteId !== 'string') {
         return res.status(400).json({ message: 'Note ID is required and should be a string.' });
@@ -1428,6 +1429,83 @@ module.exports.addTreatmentPlan = asyncHandler(async (req, res) => {
         treatmentPlans: user.medicalCard.privateData.treatmentPlans
     });
 });
+
+/**
+ * @desc Add a new allergy to the user's profile
+ * @route /api/users/:userid/allergy
+ * @method PUT
+ * @access private (requires authentication)
+ */
+module.exports.addAllergy = asyncHandler(async (req, res, next) => {
+    const { allergy } = req.body;
+
+    // Validate input
+    if (!allergy || typeof allergy !== "string") {
+        return res.status(400).json({ message: "Invalid allergy provided." });
+    }
+
+    const user = await User.findById(req.params.userid);
+    if (!user) {
+        return res.status(404).json({ message: "User not found." });
+    }
+
+    // Check if the allergy already exists
+    if (user.medicalCard.publicData.allergies.includes(allergy)) {
+        return res.status(400).json({ message: "Allergy already exists." });
+    }
+
+    // Add the allergy
+    user.medicalCard.publicData.allergies.push(allergy);
+    await user.save();
+
+    res.status(200).json({
+        message: "Allergy added successfully.",
+        allergies: user.medicalCard.publicData.allergies,
+    });
+});
+
+/**
+ * @desc Add a new chronic condition to the user's profile
+ * @route /api/users/:userid/chronic-condition
+ * @method PUT
+ * @access private (requires authentication)
+ */
+module.exports.addChronicCondition = asyncHandler(async (req, res, next) => {
+    const { chronicCondition } = req.body;
+console.log(chronicCondition);
+    // Validate input
+    if (!chronicCondition || typeof chronicCondition !== "string") {
+        console.log("incalid");
+
+        return res.status(400).json({ message: "Invalid chronic condition provided." });
+
+    }
+
+    const user = await User.findById(req.params.userid);
+    if (!user) {
+        console.log("user");
+
+        return res.status(404).json({ message: "User not found." });
+    }
+
+    // Check if the chronic condition already exists
+    if (user.medicalCard.publicData.chronicConditions.includes(chronicCondition)) {
+        console.log("not");
+
+        return res.status(400).json({ message: "Chronic condition already exists." });
+    }
+
+    // Add the chronic condition
+    user.medicalCard.publicData.chronicConditions.push(chronicCondition);
+    await user.save();
+
+    res.status(200).json({
+        message: "Chronic condition added successfully.",
+        chronicConditions: user.medicalCard.publicData.chronicConditions,
+    });
+});
+
+
 /////// Statistics //////
 /**
  * @desc Get the number of users and doctors with role 'doctor' within a date range
@@ -1471,7 +1549,7 @@ module.exports.getCounts = asyncHandler(async (req, res) => {
             {
                 $match: {
                     "medicalCard.publicData.bloodType": { $ne: null },
-                    createdAt: { $gte: start, $lte: end } // Filter by created date within range
+                    createdAt: { $gte: start, $lte: end } 
                 }
             },
             {
@@ -1697,5 +1775,42 @@ module.exports.AddUserByAdmin = asyncHandler(async (req, res, next) => {
     res.status(201).json({
         token,
         _id: user._id, 
+    });
+});
+/////// add privte data
+
+/**
+ * @desc Add new medical notes
+ * @route POST /users/:userId/medicalNotes
+ * @access Public
+ */
+module.exports.AddMedicalNotes= asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+    const { medicalNotes } = req.body;
+
+    // Validate input
+    if (!medicalNotes || !Array.isArray(medicalNotes) || medicalNotes.length === 0) {
+        return res.status(400).json({ message: 'Medical notes must be a non-empty array.' });
+    }
+
+    // Find the user
+    const user = await User.findById(userId);
+    if (!user) {
+        return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // Add new medical notes to the user's record
+    const newNotes = medicalNotes
+        .filter(note => note.note) // Ensure notes are not null or empty
+        .map(note => ({ note: note.note }));
+
+    user.medicalCard.privateData.medicalNotes.push(...newNotes);
+
+    // Save the updated user record
+    await user.save();
+
+    res.status(201).json({
+        message: 'Medical notes added successfully.',
+        updatedMedicalNotes: user.medicalCard.privateData.medicalNotes,
     });
 });
