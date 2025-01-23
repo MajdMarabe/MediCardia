@@ -249,7 +249,7 @@ module.exports.login = asyncHandler(async (req, res) => {
 
     const passwordMatch = await bcrypt.compare(req.body.password_hash, user.password_hash);
     if (!passwordMatch) {
-        return res.status(400).json({ message: "Invalid password" });
+        return res.status(400).json({ message: "Wrong password" });
     }
 
     const token = user.generateToken();
