@@ -146,15 +146,18 @@ List<Map<String, dynamic>> CanceledSlots = [];
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
                     children: [
-                       _sectionTitle("Current Appointments"),
-                    _appointments.isEmpty
-                        ?  Center(child: Text('No booked appointments found.',
-                        
-                         style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.grey[500]),
-                                    ))
-                        : Expanded(child: _buildCurrentAppointmentsTable()),
+                       if (_appointments.isNotEmpty) _sectionTitle("Current Appointments"),
+    _appointments.isEmpty
+        ? Center(
+            child: Text(
+              'No booked appointments found.',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[500],
+              ),
+            ),
+          )
+        : Expanded(child: _buildCurrentAppointmentsTable()),
 
                     
                     CanceledSlots.isEmpty

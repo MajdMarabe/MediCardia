@@ -654,7 +654,7 @@ Widget buildReviewsTile(BuildContext context) {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                  Text(
-                 "Dr.$username",
+                 "Dr. $username",
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,

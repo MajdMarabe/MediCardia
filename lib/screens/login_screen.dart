@@ -146,12 +146,14 @@ class _SignInScreenState extends State<SignInScreen> {
         } else {
           final errorMessage = jsonDecode(response.body)['message'];
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login Failed: $errorMessage')),
+            SnackBar(content: Text('Login Failed: $errorMessage'),
+            backgroundColor: Colors.red),
           );
         }
       } catch (error) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $error')),
+          SnackBar(content: Text('Error: $error'),
+            backgroundColor: Colors.red),
         );
       }
     }

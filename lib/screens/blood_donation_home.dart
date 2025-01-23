@@ -282,6 +282,7 @@ class _BloodDonationHomeState extends State<BloodDonationHome> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: Colors.white,
           title: const Text('Select Last Donation Date', style: TextStyle(color: Color(0xff613089))),
           content: SizedBox(
             width: 300,

@@ -594,72 +594,141 @@ class _MedicineListPageState extends State<MedicineListPage> {
   }
 
 // Function to build search section (full width)
-  Widget buildSearchSection() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: const Color(0xFF6A4C9C), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
+Widget buildSearchSection() {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    decoration: _buildSearchBoxDecoration(),
+    child: Column(
+      children: [
+        _buildSearchRow(),
+      ],
+    ),
+  );
+}
+
+// Helper function to build the search box decoration
+BoxDecoration _buildSearchBoxDecoration() {
+  return BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(30),
+    border: Border.all(color: const Color(0xFF6A4C9C), width: 2),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withOpacity(0.1),
+        blurRadius: 5,
+        offset: const Offset(0, 3),
       ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.search, color: Color(0xFF6A4C9C), size: 28),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Autocomplete<String>(
-                  optionsBuilder: (TextEditingValue textEditingValue) {
-                    if (textEditingValue.text.isEmpty) {
-                      _fetchDrugs();
-                      return const Iterable<String>.empty();
-                    }
-                    return drugs.map((drug) => drug['name'] as String).where(
-                        (name) => name
-                            .toLowerCase()
-                            .contains(textEditingValue.text.toLowerCase()));
-                  },
-                  onSelected: (String selectedDrug) {
-                    setState(() {
-                      searchController.text = selectedDrug;
-                      drugs = drugs
-                          .where((drug) =>
-                              drug['name']!.toLowerCase() ==
-                              selectedDrug.toLowerCase())
-                          .toList();
-                    });
-                  },
-                  fieldViewBuilder: (BuildContext context,
-                      TextEditingController controller,
-                      FocusNode focusNode,
-                      VoidCallback onFieldSubmitted) {
-                    searchController = controller;
-                    return TextField(
-                      controller: controller,
-                      focusNode: focusNode,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'Search for drugs...',
-                        hintStyle: TextStyle(color: Colors.grey),
-                      ),
-                    );
-                  },
+    ],
+  );
+}
+
+
+
+
+
+Widget _buildSearchRow() {
+  return Row(
+    children: [
+      const Icon(
+        Icons.search,
+        color: Color(0xFF6A4C9C),
+        size: 28,
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        child: _buildAutocompleteSearch(),
+      ),
+    ],
+  );
+}
+
+Widget _buildAutocompleteSearch() {
+  return Autocomplete<String>(
+    optionsBuilder: (TextEditingValue textEditingValue) {
+      
+      if (textEditingValue.text.isEmpty) {
+        _fetchDrugs();
+        return const Iterable<String>.empty();
+      }
+      return drugs
+          .map((drug) => drug['name'] as String)
+          .where((name) => name.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+    },
+    onSelected: (String selectedDrug) {
+      setState(() {
+        searchController.text = selectedDrug;
+        drugs = drugs
+            .where((drug) => drug['name']!.toLowerCase() == selectedDrug.toLowerCase())
+            .toList();
+      });
+    },
+    fieldViewBuilder: (BuildContext context, TextEditingController controller, FocusNode focusNode, VoidCallback onFieldSubmitted) {
+      searchController = controller ;
+      return TextField(
+        controller: controller,
+        focusNode: focusNode,
+        decoration: const InputDecoration(
+          border: InputBorder.none,
+          hintText: 'Search for drugs...',
+          hintStyle: TextStyle(color: Colors.grey),
+        ),
+      );
+    },
+    optionsViewBuilder: (BuildContext context, AutocompleteOnSelected<String> onSelected, Iterable<String> options) {
+      return Align(
+        alignment: Alignment.topLeft,
+        child: Material(
+          elevation: 4,
+          child: Container(
+  
+            width: MediaQuery.of(context).size.width * 0.8, // عرض القائمة
+            margin: const EdgeInsets.only(top: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
                 ),
-              ),
-            ],
+              ],
+            ),
+            child: ListView.builder(
+              
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              itemCount: options.length,
+              itemBuilder: (BuildContext context, int index) {
+                final option = options.elementAt(index);
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: ListTile(
+                    title: Text(
+                      option,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF6A4C9C),
+                      ),
+                    ),
+                    onTap: () {
+                      onSelected(option);
+                    },
+                  ),
+                );
+              },
+            ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
 //////////////////////////////
 

@@ -64,7 +64,6 @@ String formattedDate = DateFormat('dd-MM-yyyy').format(date);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          // تحويل البيانات إلى قائمة النصوص المطلوبة
 availableTimes = (data['slots'] as List<dynamic>)
     .map((slot) => slot['time'] as String)
     .toList();
@@ -89,7 +88,7 @@ availableTimes = (data['slots'] as List<dynamic>)
   void initState() {
     super.initState();
 
-    fetchAvailableTimes(selectedDate); // Fetch times for initial date
+    fetchAvailableTimes(selectedDate);
   }
 
 
@@ -447,7 +446,8 @@ Future<void> _proceedToBookAppointment(
     if (response.statusCode == 200) {
       var responseBody = jsonDecode(response.body);
       print("Booking successful: ${responseBody['message']}");
-      
+           DateTime parsedTime = DateFormat("HH:mm").parse(selectedTime);
+          String formattedTime = DateFormat("h:mm a").format(parsedTime);  
       if (!mounted) return;
       showDialog(
         
@@ -488,7 +488,7 @@ Future<void> _proceedToBookAppointment(
                   style: const TextStyle(fontSize: 16, color: Colors.black54),
                 ),
                 Text(
-                  "Time: $selectedTime",
+                  "Time: $formattedTime",
                   style: const TextStyle(fontSize: 16, color: Colors.black54),
                 ),
                 if (notes.isNotEmpty)

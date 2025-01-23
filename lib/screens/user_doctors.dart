@@ -322,11 +322,14 @@ Widget _buildImageFromBase64(String base64Image, double height) {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    doctor["name"] ?? "Unknown",
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
+                 Text(
+  'Dr. ${doctor["name"] ?? "Unknown"}',
+  style: const TextStyle(
+    fontWeight: FontWeight.bold, 
+    fontSize: 16,
+  ),
+),
+
                   const SizedBox(height: 4),
                   Text(
                     doctor["specialty"] ?? "N/A",

@@ -412,131 +412,129 @@ class _DoctorEditProfilePageState extends State<DoctorEditProfilePage> {
     );
   }
 
-  void _saveProfile() async {
-    if (_formProfileKey.currentState!.validate()) {
-      final String fullName = _fullNameController.text;
-      final String email = _emailController.text;
-      final String phone = _phoneController.text;
-      final String specialization = _specializationController.text;
-      final String licenseNumber = _licenseNumberController.text;
-      final String workplaceName = _workplaceNameController.text;
-      final String workplaceAddress = _workplaceAddressController.text;
-      final String about = _aboutController.text;
+ void _saveProfile() async {
+  if (_formProfileKey.currentState!.validate()) {
+    final String fullName = _fullNameController.text;
+    final String email = _emailController.text;
+    final String phone = _phoneController.text;
+    final String specialization = _specializationController.text;
+    final String licenseNumber = _licenseNumberController.text;
+    final String workplaceName = _workplaceNameController.text;
+    final String workplaceAddress = _workplaceAddressController.text;
+    final String? about = _aboutController.text.isEmpty ? ' ' : _aboutController.text;
 
-      final Map<String, dynamic> requestData = {
-        'fullName': fullName,
-        'email': email,
-        'phone': phone,
-        'specialization': specialization,
-        'licenseNumber': licenseNumber,
-        'workplaceName': workplaceName,
-        'workplaceAddress': workplaceAddress,
-        'about': about,
-        'image': base64Image,
-      };
+    final Map<String, dynamic> requestData = {
+      'fullName': fullName,
+      'email': email,
+      'phone': phone,
+      'specialization': specialization,
+      'licenseNumber': licenseNumber,
+      'workplaceName': workplaceName,
+      'workplaceAddress': workplaceAddress,
+      'about': about,
+      'image': base64Image,
+    };
 
-      try {
-        doctorid = await storage.read(key: 'userid');
-        final response = await http.put(
-          Uri.parse('${ApiConstants.baseUrl}/doctors/update/$doctorid'),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: json.encode(requestData),
+    try {
+      doctorid = await storage.read(key: 'userid');
+      final response = await http.put(
+        Uri.parse('${ApiConstants.baseUrl}/doctors/update/$doctorid'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(requestData),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Profile updated successfully!"),
+            backgroundColor: Colors.green,
+          ),
         );
-
-        if (response.statusCode == 200) {
-          final responseData = json.decode(response.body);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Profile updated successfully!"),
-              backgroundColor: Colors.green,
-            ),
-          );
-          Navigator.pop(context);
-        } else {
-          final responseData = json.decode(response.body);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content:
-                  Text(responseData['message'] ?? 'Error updating profile'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      } catch (error) {
-        print('Error updating profile: $error');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Error updating profile. Please try again later."),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+        Navigator.pop(context);
+      } else {
+        final responseData = json.decode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(responseData['message'] ?? 'Error updating profile'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (error) {
+      print('Error updating profile: $error');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Error updating profile. Please try again later."),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
+}
 
-  Widget _buildAboutField({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    String label = "About",
-    int maxLines = 4,
-    String? Function(String?)? validator,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: TextFormField(
-            controller: controller,
-            focusNode: focusNode,
-            keyboardType: TextInputType.multiline,
-            maxLines: maxLines,
-            validator: validator ??
-                (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please provide some information about yourself';
-                  }
-                  return null;
-                },
-            decoration: InputDecoration(
-              labelText: label,
-              labelStyle: const TextStyle(color: Color(0xff613089)),
-              hintText: 'Write a brief description about yourself',
-              hintStyle: TextStyle(
-                color: Colors.grey.shade400,
-                fontSize: 14,
-                fontStyle: FontStyle.italic,
+
+Widget _buildAboutField({
+  required TextEditingController controller,
+  required FocusNode focusNode,
+  String label = "About",
+  int maxLines = 4,
+  String? Function(String?)? validator,
+}) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Expanded(
+        child: TextFormField(
+          controller: controller,
+          focusNode: focusNode,
+          keyboardType: TextInputType.multiline,
+          maxLines: maxLines,
+          validator: validator ??
+              (value) {
+                return null; // السماح بترك الحقل فارغًا
+              },
+          decoration: InputDecoration(
+            labelText: label,
+            labelStyle: const TextStyle(color: Color(0xff613089)),
+            hintText: 'Write a brief description about yourself',
+            hintStyle: TextStyle(
+              color: Colors.grey.shade400,
+              fontSize: 14,
+              fontStyle: FontStyle.italic,
+            ),
+            prefixIcon: const Icon(Icons.info, color: Color(0xff613089)),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: const BorderSide(
+                color: Color(0xffb41391),
+                width: 2.0,
               ),
-              prefixIcon: const Icon(Icons.info, color: Color(0xff613089)),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(
-                  color: Color(0xffb41391),
-                  width: 2.0,
-                ),
-                borderRadius: BorderRadius.circular(10),
-              ),
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
         ),
-        const SizedBox(width: 10),
-        IconButton(
-          icon: const Icon(Icons.edit, color: Color(0xff613089)),
-          onPressed: () {
-            setState(() {
-              controller.clear();
-              focusNode.requestFocus();
-            });
-          },
-        ),
-      ],
-    );
-  }
+      ),
+      const SizedBox(width: 10),
+      IconButton(
+        icon: const Icon(Icons.edit, color: Color(0xff613089)),
+        onPressed: () {
+          setState(() {
+            controller.clear();
+            focusNode.requestFocus();
+          });
+        },
+      ),
+    ],
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
