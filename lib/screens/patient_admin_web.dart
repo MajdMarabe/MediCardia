@@ -94,7 +94,7 @@ Future<void> _logOut() async {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Dashboard",
+                            "Patients",
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,

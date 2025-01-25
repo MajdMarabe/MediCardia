@@ -36,11 +36,13 @@ String bloodType = 'Unknown';
 int age = 0; 
 String phoneNumber = 'N/A'; 
 String lastDonationDate = 'N/A'; 
-String? base64Image ='';
+String base64Image ='';
 String idNumber ='';
 String email ='';
 String location ='';
 String userid ='';
+String image ='';
+
 bool isallawod= false;
 var doctorId ='';
 List<String> chronicDiseases = []; 
@@ -122,6 +124,8 @@ Future<void> fetchUserInfo() async {
       final Map<String, dynamic> data = jsonDecode(response.body);
       setState(() {
         username = data['username'] ?? 'Unknown';
+                image = data['image'] ?? 'Unknown';
+
         gender = data['medicalCard']?['publicData']?['gender'] ?? 'Unknown';
         bloodType = data['medicalCard']?['publicData']?['bloodType'] ?? 'Unknown';
         age = data['medicalCard']?['publicData']?['age'] ?? 0;
@@ -222,6 +226,7 @@ Row(
             builder: (context) => ChatPage(
               receiverId: id,
               name: username,
+              image: base64Image
             ),
           ),
         );

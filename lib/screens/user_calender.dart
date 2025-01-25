@@ -482,10 +482,10 @@ Widget _appointmentCard(Map<String, dynamic> appointment) {
   }*/
   
   
-  
-  Future<void> _fetchAvailableTimes(String doctorId) async {
+ Future<void> _fetchAvailableTimes(String doctorId, DateTime date) async {
   String apiUrl = "${ApiConstants.baseUrl}/appointment/schedules/$doctorId/slots";
-
+  String formattedDate = DateFormat('dd-MM-yyyy').format(date);
+print(date);
   setState(() {
     availableTimes = [];
     _isLoading = true;
@@ -498,7 +498,7 @@ Widget _appointmentCard(Map<String, dynamic> appointment) {
         "Content-Type": "application/json",
       },
       body: json.encode({
-        "date": DateFormat('dd-MM-yyyy').format(DateTime.now()), // استخدام تنسيق تاريخ ISO
+        "date": formattedDate, // Use the formatted date directly without extra encoding
       }),
     );
 
@@ -511,7 +511,7 @@ Widget _appointmentCard(Map<String, dynamic> appointment) {
       });
       print(availableTimes);
     } else {
-      print("Error fetching available slots: ${response.statusCode}");
+      print("Error fetching available slots: ${response.body}");
       setState(() {
         _errorMessage = "Failed to fetch available slots. Please try again.";
       });
@@ -529,14 +529,17 @@ Widget _appointmentCard(Map<String, dynamic> appointment) {
 }
 
 
+
 void _chooseNewAppointment(Map<String, dynamic> canceledAppointment) async {
   if (_isLoading) {
     print("Loading in progress. Please wait.");
     return;
   }
-
-  await _fetchAvailableTimes(canceledAppointment['doctorId']);
-
+print(canceledAppointment['date']);
+await _fetchAvailableTimes(
+  canceledAppointment['doctorId'],
+  DateFormat('dd-MM-yyyy').parse(canceledAppointment['date']),
+);
   if (availableTimes.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(

@@ -739,7 +739,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                                                         ChatPage(
                                                             receiverId: id,
                                                             name: widget.doctor[
-                                                                'name'])),
+                                                                'name'],image:widget.doctor['image'])),
                                               );
                                             },
                                           ),

@@ -10,7 +10,9 @@ const storage = FlutterSecureStorage();
 class ChatPage extends StatefulWidget {
   final String receiverId;
   final String name;
-  const ChatPage({Key? key, required this.receiverId, required this.name})
+    final String image;
+
+  const ChatPage({Key? key, required this.receiverId, required this.name, required this.image})
       : super(key: key);
 
   @override
@@ -33,6 +35,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> _initializeSenderId() async {
+    
     recname = widget.name;
     senderid = await storage.read(key: 'userid');
     if (senderid == null) {
@@ -79,18 +82,14 @@ class _ChatPageState extends State<ChatPage> {
 
 
   Widget _buildUserAvatar() {
-    ImageProvider backgroundImage;
-    try {
-      backgroundImage = buildImageFromBase64(base64Image).image;
-    } catch (e) {
-      backgroundImage = const AssetImage('assets/images/default_person.jpg');
-    }
-    return CircleAvatar(
-      radius: 20,
-      backgroundColor: Colors.white,
-      backgroundImage: backgroundImage,
-    );
-  }
+  return CircleAvatar(
+    radius: 20,
+    backgroundColor: Colors.white,
+    child: widget.image.isNotEmpty
+        ? ClipOval(child: buildImageFromBase64(widget.image))
+        : Image.asset('assets/images/default_person.jpg'),
+  );
+}
 
   void _listenForMessages() {
     final chatId = getChatId();
@@ -146,31 +145,29 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: const Color(0xff613089),
-        leading: const BackButton(color: Colors.white),
-        title: Row(
-          children: [
-            // عرض صورة المستخدم الـ receiver
-            _buildUserAvatar(),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  recname,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                ),
-                const Text(
-                  'Online',
-                  style: TextStyle(color: Colors.white70, fontSize: 12),
-                ),
-              ],
-            ),
-          ],
-        ),
+      appBar:AppBar(
+  elevation: 0,
+  backgroundColor: const Color(0xff613089),
+  leading: const BackButton(color: Colors.white),
+  title: Row(
+    children: [
+      // Display the receiver's image
+      _buildUserAvatar(),
+      const SizedBox(width: 10),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.name,
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+          ),
+        
+        ],
       ),
+    ],
+  ),
+),
+
       body: kIsWeb ? _buildWebChatUI() : _buildMobileChatUI(),
     );
   }

@@ -164,15 +164,12 @@ Future<bool> checkCompletedAppointment(String patientId, String doctorId) async 
         'doctorId': doctorId,
       }),
     );
-
+print(response.body);
     if (response.statusCode == 200) {
-      // إذا تم العثور على موعد مكتمل
-      return true;
-    } else if (response.statusCode == 404) {
-      // إذا لم يتم العثور على موعد مكتمل
       return false;
+    } else if (response.statusCode == 404) {
+      return true;
     } else {
-      // حالات أخرى
       print('Unexpected error: ${response.statusCode}');
       return false;
     }
@@ -299,12 +296,10 @@ Future<bool> checkCompletedAppointment(String patientId, String doctorId) async 
 
                                     bool canWriteReview = snapshot.data ?? false; // True means the appointment is completed
                                     
-                                    // If the condition is true, return an empty container to hide the button
                                     if (canWriteReview) {
                                       return const SizedBox.shrink(); // Hide the button
                                     }
-
-                                    // Otherwise, show the "Write a Review" button
+else{
                                     return ElevatedButton(
                                       onPressed: () {
                                         Navigator.push(
@@ -337,6 +332,9 @@ Future<bool> checkCompletedAppointment(String patientId, String doctorId) async 
                                         ),
                                       ),
                                     );
+
+
+                                  }
                                   },
                                 ),
                               ],
@@ -553,7 +551,6 @@ void _submitReview() async {
    // 'recommend': _recommend ?? false,
   };
 
-  // API URL (Replace with your actual API endpoint)
   final apiUrl = '${ApiConstants.baseUrl}/rating/add';
     final token=await storage.read(key: 'token') ?? '';
 

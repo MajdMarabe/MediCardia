@@ -47,8 +47,11 @@ class _GlucoseLogScreenState extends State<GlucoseLogScreen> {
     );
 
       if (response.statusCode == 200) {
+        print('Fetched glucose data: ${response.body}');
+
         setState(() {
           glucoseData = json.decode(response.body);
+          
         });
       } else {
         throw Exception('Failed to load data');
@@ -157,7 +160,7 @@ class _GlucoseLogScreenState extends State<GlucoseLogScreen> {
 ),
 
                   GlucoseCard(
-                    avgGlucose: glucoseData!['week']['avgGlucose'],levels: (glucoseData!['today']['levels'] as List<dynamic>)
+                    avgGlucose: glucoseData!['week']['avgGlucose'],levels: (glucoseData!['week']['levels'] as List<dynamic>)
     .map((e) => (e as num).toDouble())
     .toList(),
 
@@ -276,13 +279,15 @@ class GlucoseCard extends StatelessWidget {
     required this.period,
   });
 
-
-
-///////////////////////////
-
-
   @override
   Widget build(BuildContext context) {
+    // تحقق من توافق الطول بين levels و labels
+print('Labels: $labels');
+print('Levels: $levels');
+print('Labels length: ${labels.length}');
+print('Levels length: ${levels.length}');
+
+
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
@@ -363,13 +368,17 @@ class GlucoseCard extends StatelessWidget {
                     sideTitles: SideTitles(
                       showTitles: true,
                       getTitlesWidget: (double value, TitleMeta meta) {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            labels[value.toInt() % labels.length],
-                            style: const TextStyle(color: Colors.black54, fontSize: 12),
-                          ),
-                        );
+                        if (value.toInt() >= 0 && value.toInt() < labels.length) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              labels[value.toInt()],
+                              style: const TextStyle(color: Colors.black54, fontSize: 12),
+                            ),
+                          );
+                        } else {
+                          return const SizedBox.shrink();
+                        }
                       },
                     ),
                   ),
@@ -379,22 +388,30 @@ class GlucoseCard extends StatelessWidget {
                     .asMap()
                     .entries
                     .map(
-                      (entry) => BarChartGroupData(
-                        x: entry.key,
-                        barRods: [
-                          BarChartRodData(
-                            toY: entry.value,
-                            width: 16,
-                            color: const Color(0xff613089),
-                            backDrawRodData: BackgroundBarChartRodData(
-                              show: true,
-                              toY: 200,
-                              color: const Color(0xff613089).withOpacity(0.1),
-                            ),
-                          ),
-                        ],
-                      ),
+                      (entry) {
+                        if (entry.key >= 0 && entry.key < labels.length) {
+                          return BarChartGroupData(
+                            x: entry.key,
+                            barRods: [
+                              BarChartRodData(
+                                toY: entry.value,
+                                width: 16,
+                                color: const Color(0xff613089),
+                                backDrawRodData: BackgroundBarChartRodData(
+                                  show: true,
+                                  toY: 200,
+                                  color: const Color(0xff613089).withOpacity(0.1),
+                                ),
+                              ),
+                            ],
+                          );
+                        } else {
+                          return null;
+                        }
+                      },
                     )
+                    .where((group) => group != null) // إزالة العناصر الفارغة
+                    .cast<BarChartGroupData>()
                     .toList(),
               ),
             ),

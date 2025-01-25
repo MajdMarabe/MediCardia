@@ -17,7 +17,7 @@ class AccountTypeSelectionScreen extends StatelessWidget {
                 Container(
                   decoration: const BoxDecoration(
                     image: DecorationImage(
-                      image: AssetImage('assets/images/c.jpeg'), 
+                      image: AssetImage('assets/images/u1.jpg'), 
                       fit: BoxFit.cover,
                     ),
                   ),
