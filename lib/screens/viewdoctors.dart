@@ -74,9 +74,15 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
               },
             };
           }).toList();
-          doctorNames =
-              allDoctors.map((doctor) => doctor['name'] as String).toList();
-          displayedDoctors = List.from(allDoctors);
+         doctorNames = allDoctors
+    .map((doctor) => doctor['name'] as String)
+    .where((name) => name != 'Sally Mah')
+    .toList();
+
+      
+        displayedDoctors = allDoctors
+            .where((doctor) => doctor['name'] != 'Sally Mah')
+            .toList();
           isLoading = false;
         });
       } else {
@@ -99,19 +105,19 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
     );
   }
 
-  void filterDoctors() {
-    String searchQuery = searchController.text.toLowerCase();
-    setState(() {
-      displayedDoctors = allDoctors.where((doctor) {
-        final matchesSpecialty = selectedSpecialty == "All" ||
-            doctor['specialty'].toLowerCase() ==
-                selectedSpecialty.toLowerCase();
-        final matchesSearch =
-            doctor['name'].toLowerCase().contains(searchQuery);
-        return matchesSpecialty && matchesSearch;
-      }).toList();
-    });
-  }
+void filterDoctors() {
+  String searchQuery = searchController.text.toLowerCase();
+  setState(() {
+    displayedDoctors = allDoctors.where((doctor) {
+      final matchesSpecialty = selectedSpecialty == "All" ||
+          doctor['specialty'].toLowerCase() == selectedSpecialty.toLowerCase();
+      final matchesSearch = doctor['name'].toLowerCase().contains(searchQuery);
+      final isNotSallyMah = doctor['name'] != 'Sally Mah';
+      return matchesSpecialty && matchesSearch && isNotSallyMah;
+    }).toList();
+  });
+}
+
 
   void _onSearchChanged() {
     filterDoctors();
@@ -137,8 +143,7 @@ class _FindDoctorPageState extends State<FindDoctorPage> {
         color: Color(0xFF613089), size: 18),
         "Endocrinology": const Icon(FontAwesomeIcons.dna,
         color: Color(0xFF613089), size: 16),
-                "Nephrology":  const Icon(FontAwesomeIcons.droplet,
-        color: Color(0xFF613089), size: 16),
+          
             "Psychiatry": const Icon(Icons.psychology,
         color: Color(0xFF613089), size: 20),
          "Gynecology":
@@ -653,7 +658,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                                       builder: (context, constraints) {
                                         double imageHeight =
                                             constraints.maxWidth > 600
-                                                ? 280
+                                                ? 370
                                                 : 160;
 
                          return widget.doctor["image"] != null
@@ -824,7 +829,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
 ),
 
                        const SizedBox(height: 25),
-                 if (widget.doctor['about'] != 'No about provided.') ...[
+                 if (widget.doctor['about'] != 'No about provided.' && widget.doctor['about'] != " ") ...[
   const Padding(
     padding: EdgeInsets.symmetric(horizontal: 16.0),
     child: Text(
@@ -842,14 +847,14 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
     child: Text(
       widget.doctor['about'],
       style: const TextStyle(
-        fontSize: 18,
+        fontSize: 16,
         color: Colors.black54,
       ),
     ),
   ),
 ],
 
-  
+   const SizedBox(height: 15),
                      
                       Center(
                         child: ElevatedButton(

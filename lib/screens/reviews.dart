@@ -579,7 +579,7 @@ void _submitReview() async {
               Icon(Icons.favorite, color: Color(0xFF613089), size: 24),
               SizedBox(width: 8),
               Text(
-                'Thank You  :)',
+                'Thank You',
                 style: TextStyle(
                   color: Color(0xFF613089),
                   fontSize: 22,

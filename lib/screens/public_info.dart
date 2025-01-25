@@ -555,7 +555,7 @@ Widget _buildDrugForm() {
               controller: _drugNameController,
               label: 'Drug Name',
               hint: 'e.g., Rovatin',
-              icon: Icons.medical_services,
+              icon: FontAwesomeIcons.capsules,
             ),
           ),
           // Only show barcode scanner button on mobile
@@ -656,6 +656,10 @@ Expanded(
         borderRadius: BorderRadius.circular(12.0),
         borderSide: const BorderSide(color: Color(0xff613089), width: 1.5),
       ),
+        focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: const BorderSide(color: Color(0xffb41391)),
+      ),
         enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(15),
       borderSide: const BorderSide(color: Colors.grey),
@@ -683,6 +687,10 @@ Expanded(
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.0),
         borderSide: const BorderSide(color: Color(0xff613089), width: 1.5),
+      ),
+        focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: const BorderSide(color: Color(0xffb41391)),
       ),
          enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(15),

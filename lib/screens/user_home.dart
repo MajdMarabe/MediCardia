@@ -9,7 +9,6 @@ import 'package:flutter_application_3/screens/lab_tests_view.dart';
 import 'package:flutter_application_3/screens/medical_notes_view.dart';
 import 'package:flutter_application_3/screens/treatment_plans_view.dart';
 import 'package:flutter/foundation.dart';
-import 'package:intl/intl.dart';
 import 'blood_donation_home.dart';
 import 'drugshome.dart';
 import 'viewdoctors.dart';
@@ -1137,7 +1136,7 @@ Widget buildEditableListRow(
     );
   }
 
-Widget buildDoctorCard(String name, String distance, String? base64Image, VoidCallback onTap) {
+Widget buildDoctorCard(String name,String rating, String speciality, String? base64Image, VoidCallback onTap) {
   ImageProvider backgroundImage;
 
   try {
@@ -1155,7 +1154,7 @@ Widget buildDoctorCard(String name, String distance, String? base64Image, VoidCa
   return GestureDetector(
     onTap: onTap,
     child: Container(
-      width: 150,
+      width: 165,
       margin: const EdgeInsets.only(right: 15),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1195,11 +1194,23 @@ Widget buildDoctorCard(String name, String distance, String? base64Image, VoidCa
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 3),
                 Row(
                   children: [
                     Text(
-                      distance,
+                     speciality ,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+                 const SizedBox(height: 2),
+                 Row(
+                  children: [
+                    Text(
+                     rating,
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
@@ -1274,8 +1285,9 @@ Widget buildPopularDoctorSection() {
                     itemBuilder: (context, index) {
                       final doctor = displayedDoctors[index];
                       return buildDoctorCard(
-                        doctor['name'] as String,
+                          'Dr. ${doctor["name"]}',
                         '${doctor['averageRating']} ⭐',
+                        '${doctor['specialty']}',
                         doctor['image'] as String,
                          () {
                     Navigator.push(
