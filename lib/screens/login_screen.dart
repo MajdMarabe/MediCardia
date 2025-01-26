@@ -37,11 +37,11 @@ class _SignInScreenState extends State<SignInScreen> {
 
   Future<void> login() async {
     if (_formSignInKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Logging in...'),
-        ),
-      );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(
+      //     content: Text('Logging in...'),
+      //   ),
+      // );
 
       final url = Uri.parse('${ApiConstants.baseUrl}/users/login');
       final headers = {'Content-Type': 'application/json'};
@@ -110,9 +110,9 @@ class _SignInScreenState extends State<SignInScreen> {
             }
           }
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login Successful! User ID: $userid')),
-          );
+          // ScaffoldMessenger.of(context).showSnackBar(
+          //   SnackBar(content: Text('Login Successful! User ID: $userid')),
+          // );
 
           Navigator.pushReplacement(
             context,
@@ -132,7 +132,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   return DoctorHomePage();
                 } else if(role == 'admin'){
                             if (!kIsWeb) {
-                            return AdminDashboard1();
+                            return const AdminDashboard1();
                             }else {
                   return AdminDashboard();}
 
@@ -488,23 +488,23 @@ class _SignInScreenState extends State<SignInScreen> {
             alignment: Alignment.centerRight,
             child: GestureDetector(
               onTap: () {
-                if (_emailController.text.isEmpty ||
-                    !_emailRegExp.hasMatch(_emailController.text)) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content:
-                          Text('Please enter a valid Email to reset password.'),
-                    ),
-                  );
-                } else {
+                // if (_emailController.text.isEmpty ||
+                //     !_emailRegExp.hasMatch(_emailController.text)) {
+                //   ScaffoldMessenger.of(context).showSnackBar(
+                //     const SnackBar(
+                //       content:
+                //           Text('Please enter a valid Email to reset password.'),
+                //     ),
+                //   );
+                // } else {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const ForgetPasswordScreen(),
                     ),
                   );
-                }
-              },
+                },
+             // },
               child: const Text(
                 'Forget password?',
                 style: TextStyle(

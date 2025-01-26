@@ -682,7 +682,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 12),
+                                const SizedBox(height: 8),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16.0),
@@ -758,7 +758,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                     // const SizedBox(height: 20),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 10.0),
                         child: Row(
@@ -794,7 +794,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 10),
                       if (
     widget.doctor['workplace']['name'] !='No workplace name.' &&
     widget.doctor['workplace']['address'] != 'No address.') 
@@ -828,7 +828,7 @@ class _DoctorDetailPageState extends State<DoctorDetailPage> {
   ),
 ),
 
-                       const SizedBox(height: 25),
+                       const SizedBox(height: 20),
                  if (widget.doctor['about'] != 'No about provided.' && widget.doctor['about'] != " ") ...[
   const Padding(
     padding: EdgeInsets.symmetric(horizontal: 16.0),

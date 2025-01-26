@@ -93,7 +93,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                 IconButton(
                   icon: const Icon(FontAwesomeIcons.calendar,
                       color: Color(0xff613089), size: 20),
-                  tooltip: 'Calender',
+                  tooltip: 'Calendar',
                   onPressed: () => _onItemTapped(1),
                 ),
                 IconButton(

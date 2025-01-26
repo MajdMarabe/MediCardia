@@ -86,7 +86,7 @@ Widget build(BuildContext context) {
                     itemCount: 3,
                     itemBuilder: (context, index) {
                       List<String> titles = [
-                        'Manage Accounts',
+                        'Accounts',
                         'Statistics',
                         'Drugs'
                       ];

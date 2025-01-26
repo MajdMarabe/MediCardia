@@ -146,18 +146,15 @@ List<Map<String, dynamic>> CanceledSlots = [];
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
                     children: [
-                       if (_appointments.isNotEmpty) _sectionTitle("Current Appointments"),
-    _appointments.isEmpty
-        ? Center(
-            child: Text(
-              'No booked appointments found.',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[500],
-              ),
-            ),
-          )
-        : Expanded(child: _buildCurrentAppointmentsTable()),
+                       _sectionTitle("Current Appointments"),
+                    _appointments.isEmpty
+                        ?  Center(child: Text('No booked appointments found.',
+                        
+                         style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey[500]),
+                                    ))
+                        : Expanded(child: _buildCurrentAppointmentsTable()),
 
                     
                     CanceledSlots.isEmpty
@@ -201,7 +198,6 @@ List<Map<String, dynamic>> CanceledSlots = [];
     );
   }
 
-  
 Widget _buildCurrentAppointmentsTable() {
   List<Map<String, dynamic>> currentAppointments = _appointments.where((appointment) {
     return !appointment["canceledByDoctor"];
@@ -217,62 +213,70 @@ Widget _buildCurrentAppointmentsTable() {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            headingRowColor: MaterialStateProperty.all(const Color(0xFFF3E5F5)),
-            dataRowColor: MaterialStateProperty.all(Colors.white),
-            columnSpacing: 20.0,
-            horizontalMargin: 20.0,
-            headingTextStyle: const TextStyle(
-              color: Colors.black87,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
+        // إضافة عنصر Expanded أو Flexible
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical, // التمرير العمودي
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal, // التمرير الأفقي
+              child: DataTable(
+                headingRowColor: MaterialStateProperty.all(const Color(0xFFF3E5F5)),
+                dataRowColor: MaterialStateProperty.all(Colors.white),
+                columnSpacing: 20.0,
+                horizontalMargin: 20.0,
+                headingTextStyle: const TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+                dataTextStyle: const TextStyle(
+                  color: Colors.black54,
+                  fontSize: 15,
+                ),
+                border: TableBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                  horizontalInside: BorderSide(color: Colors.grey.shade300, width: 1),
+                ),
+                columns: const [
+                  DataColumn(label: Text("Doctor")),
+                  DataColumn(label: Text("Date")),
+                  DataColumn(label: Text("Time")),
+                  DataColumn(label: Text("Actions")),
+                ],
+                rows: currentAppointments.isNotEmpty
+                    ? currentAppointments.map((appointment) {
+                        return DataRow(cells: [
+                          DataCell(Text(appointment['doctor'])),
+                          DataCell(Text(appointment['date'])),
+                          DataCell(Text(formatEventTime(appointment['time']))),
+                          DataCell(
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Color(0xFF928794)),
+                              onPressed: () {
+                                _deleteAppointment(appointment);
+                              },
+                            ),
+                          ),
+                        ]);
+                      }).toList()
+                    : [
+                        const DataRow(cells: [
+                          DataCell(Text("No appointments available", style: TextStyle(color: Colors.grey))),
+                          DataCell(Text("")),
+                          DataCell(Text("")),
+                          DataCell(Text("")),
+                        ]),
+                      ],
+              ),
             ),
-            dataTextStyle: const TextStyle(
-              color: Colors.black54,
-              fontSize: 15,
-            ),
-            border: TableBorder(
-              borderRadius: BorderRadius.circular(16.0),
-              horizontalInside: BorderSide(color: Colors.grey.shade300, width: 1),
-            ),
-            columns: const [
-              DataColumn(label: Text("Doctor")),
-              DataColumn(label: Text("Date")),
-              DataColumn(label: Text("Time")),
-              DataColumn(label: Text("Actions")),
-            ],
-            rows: currentAppointments.isNotEmpty
-                ? currentAppointments.map((appointment) {
-                    return DataRow(cells: [
-                      DataCell(Text(appointment['doctor'])),
-                      DataCell(Text(appointment['date'])),
-                      DataCell(Text(formatEventTime(appointment['time']))),
-                      DataCell(
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Color(0xFF928794)),
-                          onPressed: () {
-                            _deleteAppointment(appointment);
-                          },
-                        ),
-                      ),
-                    ]);
-                  }).toList()
-                : [
-                    const DataRow(cells: [
-                      DataCell(Text("No appointments available", style: TextStyle(color: Colors.grey))),
-                      DataCell(Text("")),
-                      DataCell(Text("")),
-                      DataCell(Text("")),
-                    ]),
-                  ],
           ),
         ),
       ],
     ),
   );
 }
+
+
 
 
 

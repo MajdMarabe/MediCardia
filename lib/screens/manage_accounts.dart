@@ -292,7 +292,7 @@ Widget _buildTextField({
 void _showEditDoctorDialog(BuildContext context, Map<String, String> account) {
   final TextEditingController fullNameController = TextEditingController(text: account['name']);
   final TextEditingController emailController = TextEditingController(text: account['email']);
-  final TextEditingController passwordController = TextEditingController();
+  //final TextEditingController passwordController = TextEditingController();
   final TextEditingController phoneController = TextEditingController(text: account['phone']);
   final TextEditingController specializationController = TextEditingController(text: account['specialization']);
   final TextEditingController licenseNumberController = TextEditingController(text: account['licenseNumber']);
@@ -325,7 +325,7 @@ void _showEditDoctorDialog(BuildContext context, Map<String, String> account) {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  'Edit Account',
+                  'Edit Doctor Account',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -336,8 +336,8 @@ void _showEditDoctorDialog(BuildContext context, Map<String, String> account) {
                 _buildTextField(controller: fullNameController, label: 'Full Name', hint: 'Please enter full name'),
                 const SizedBox(height: 10),
                 _buildTextField(controller: emailController, label: 'Email',hint: 'Please enter email'),
-                const SizedBox(height: 10),
-                _buildTextField(controller: passwordController, label: 'Password', obscureText: true, hint: 'Please enter password'),
+                //const SizedBox(height: 10),
+               // _buildTextField(controller: passwordController, label: 'Password', obscureText: true, hint: 'Please enter password'),
                 const SizedBox(height: 10),
                 _buildTextField(controller: phoneController, label: 'Phone Number', hint: 'Please enter phone number', keyboardType: TextInputType.phone),
                 const SizedBox(height: 10),
@@ -392,7 +392,7 @@ void _showEditDoctorDialog(BuildContext context, Map<String, String> account) {
 void _showEditPatientDialog(BuildContext context, Map<String, String> account) {
   final TextEditingController fullNameController = TextEditingController(text: account['name']);
   final TextEditingController emailController = TextEditingController(text: account['email']);
-  final TextEditingController passwordController = TextEditingController();
+  //final TextEditingController passwordController = TextEditingController();
   final TextEditingController locationController = TextEditingController(text: account['location']);
   final TextEditingController phoneController = TextEditingController(text: account['phone']);
 
@@ -423,7 +423,7 @@ void _showEditPatientDialog(BuildContext context, Map<String, String> account) {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  'Edit Patient Information',
+                  'Edit Patient Account',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -434,8 +434,8 @@ void _showEditPatientDialog(BuildContext context, Map<String, String> account) {
                 _buildTextField(controller: fullNameController, label: 'Full Name',hint: 'Please enter full name'),
                 const SizedBox(height: 10),
                 _buildTextField(controller: emailController, label: 'Email',hint: 'Please enter email'),
-                const SizedBox(height: 10),
-                _buildTextField(controller: passwordController, label: 'Password', obscureText: true,hint: 'Please enter password'),
+               // const SizedBox(height: 10),
+                //  _buildTextField(controller: passwordController, label: 'Password', obscureText: true,hint: 'Please enter password'),
                 const SizedBox(height: 10),
                 _buildTextField(controller: locationController, label: 'Location',hint: 'Please enter location'),
                 const SizedBox(height: 20),

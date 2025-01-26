@@ -326,16 +326,7 @@ void _showAddChronicDialog(BuildContext context,  Function(List<String>) onAdd) 
     },
   );
 }
-/***
- * 
- * 
- * 
- * 
- * 
- * 
- final response = await http.put(
-                              Uri.parse('${ApiConstants.baseUrl}/users/$userid/chronic-condition'),
- */
+
 void _showAddAllergyDialog(BuildContext context, Function(String) onAdd) {
   TextEditingController allergyController = TextEditingController();
   double dialogWidth = MediaQuery.of(context).size.width > 600
@@ -852,7 +843,7 @@ Widget buildEditableListRow(
                 IconButton(
                   icon: const Icon(FontAwesomeIcons.calendar,
                       color: Color(0xff613089), size: 20),
-                  tooltip: 'Calender',
+                  tooltip: 'Calendar',
                   onPressed: () => _onItemTapped(1),
                 ),
                 IconButton(

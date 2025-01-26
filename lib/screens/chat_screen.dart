@@ -64,32 +64,51 @@ class _ChatPageState extends State<ChatPage> {
   }
 
 
-  Image buildImageFromBase64(String? base64Image) {
-    try {
-      if (base64Image == null || base64Image.isEmpty) {
-        return Image.asset('assets/images/default_person.jpg');
-      }
-
-      final bytes = base64Decode(base64Image);
-      print("Decoded bytes length: ${bytes.length}");
-
-      return Image.memory(bytes);
-    } catch (e) {
-      print("Error decoding image: $e");
-      return Image.asset('assets/images/default_person.jpg');
+Image buildImageFromBase64(String? base64Image) {
+  try {
+    if (base64Image == null || base64Image.isEmpty) {
+      return Image.asset(
+        'assets/images/default_person.jpg',
+        fit: BoxFit.cover, 
+      );
     }
+
+    final bytes = base64Decode(base64Image);
+
+    return Image.memory(
+      bytes,
+      fit: BoxFit.cover, 
+    );
+  } catch (e) {
+    print("Error decoding image: $e");
+    return Image.asset(
+      'assets/images/default_person.jpg',
+      fit: BoxFit.cover, 
+    );
   }
+}
 
 
-  Widget _buildUserAvatar() {
+
+Widget _buildUserAvatar() {
   return CircleAvatar(
-    radius: 20,
-    backgroundColor: Colors.white,
-    child: widget.image.isNotEmpty
-        ? ClipOval(child: buildImageFromBase64(widget.image))
-        : Image.asset('assets/images/default_person.jpg'),
+    radius: 20, 
+    backgroundColor: Colors.transparent, 
+    child: ClipOval(
+      child: AspectRatio(
+        aspectRatio: 1, 
+        child: widget.image.isNotEmpty
+            ? buildImageFromBase64(widget.image)
+            : Image.asset(
+                'assets/images/default_person.jpg',
+                fit: BoxFit.cover, 
+              ),
+      ),
+    ),
   );
 }
+
+
 
   void _listenForMessages() {
     final chatId = getChatId();
